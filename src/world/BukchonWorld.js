@@ -361,8 +361,8 @@ makeWorld();
         float daylight = max(dot(worldNormal,normalize(uSunDirection)),0.0);
         // Soft hemisphere skylight + directional warmth: clear faces,
         // darker sheltered plaster/wood, readable underside of tiled eaves.
-        float hemi = .60 + .10*clamp(worldNormal.y, -.9, 1.);
-        vLight = hemi + .46 * daylight;
+        float hemi = .67 + .09*clamp(worldNormal.y, -.9, 1.);
+        vLight = hemi + .41 * daylight;
       }
     `,
     fragmentShader: `
@@ -392,7 +392,7 @@ makeWorld();
         float occluded=clamp(1.0-getShadowMask(),0.0,1.0);
         // Actual sun shadow map occlusion + subtle local architectural AO.
         // Only the direct component darkens: the sky still fills the shadows.
-        float castShade=1.0-.49*occluded*uShadowStrength;
+        float castShade=1.0-.38*occluded*uShadowStrength;
         vec3 lit = tex.rgb * vColor * finish * vLight * vContactAO * castShade;
         vec3 dusk = lit * vec3(.67,.73,.87) + vec3(.025,.033,.056);
         vec3 col = mix(lit,dusk,uNight);
