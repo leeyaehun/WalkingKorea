@@ -41,7 +41,7 @@ const C = {
   drainIron:[.50,.47,.43],drainGrill:[.69,.64,.56]
 };
 const color=(v)=>Array.isArray(v)?v:C[v]||C.white;
-const positions=[],normals=[],uvs=[],colors=[],materialIds=[],surfaceUVs=[];
+const positions=[],normals=[],uvs=[],colors=[],materialIds=[],surfaceUVs=[],contactAO=[];
 const atlasSize=2048,atlas=document.createElement('canvas');atlas.width=atlas.height=atlasSize;
 const ctx=atlas.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,atlasSize,atlasSize);
 let tileX=4,tileY=4,rowH=0;
@@ -99,11 +99,24 @@ function face(a,b,c,d,n,col,tex=whiteUV){
   const projected=[a,b,c,d].map(p=>surfaceCoordinates(p,n));
   const localUV=[projected[0],projected[1],projected[2],
                  projected[0],projected[2],projected[3]];
+  // Gentle hand-authored architectural contact occlusion: areas just beneath
+  // the eaves and at wall foundations receive less bounce light. Independent
+  // of camera and shadow map resolution; proper cast shadows remain dynamic.
+  const ambientOcclusion=p=>{
+    if(!activeFrame)return 1;
+    const nearRoof=clamp((p[1]-2.12)/.85,0,1);
+    const floorContact=1-clamp(p[1]/.62,0,1);
+    if(id===2||id===3||id===5||id===7)
+      return 1-.20*nearRoof-.09*floorContact;
+    if(id===4)return 1-.10*floorContact;
+    return 1;
+  };
+  const localAO=[a,b,c,a,c,d].map(ambientOcclusion);
   a=transformPoint(a);b=transformPoint(b);c=transformPoint(c);d=transformPoint(d);n=transformNormal(n);
   const p=[a,b,c,a,c,d],u=[[tex[0],tex[3]],[tex[2],tex[3]],[tex[2],tex[1]],[tex[0],tex[3]],[tex[2],tex[1]],[tex[0],tex[1]]];
   for(let i=0;i<6;i++){
     positions.push(...p[i]);normals.push(...n);uvs.push(...u[i]);
-    colors.push(...color(col));materialIds.push(id);surfaceUVs.push(...localUV[i]);
+    colors.push(...color(col));materialIds.push(id);surfaceUVs.push(...localUV[i]);contactAO.push(localAO[i]);
   }
 }
 function box(x,y,z,w,h,d,col){
@@ -297,6 +310,7 @@ makeWorld();
   geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors,3));
   geometry.setAttribute('materialId', new THREE.Float32BufferAttribute(materialIds,1));
   geometry.setAttribute('surfaceUV', new THREE.Float32BufferAttribute(surfaceUVs,2));
+  geometry.setAttribute('contactAO', new THREE.Float32BufferAttribute(contactAO,1));
 
   const texture = new THREE.CanvasTexture(atlas);
   texture.colorSpace = THREE.SRGBColorSpace;
@@ -305,36 +319,61 @@ makeWorld();
   texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping;
 
   const material = new THREE.ShaderMaterial({
-    uniforms: {
-      uAtlas: {value:texture},
-      uNight: {value:0},
-      uFogColor: {value:new THREE.Color().setRGB(.79,.78,.75)}
-    },
+    lights: true,
+    uniforms: THREE.UniformsUtils.merge([
+      THREE.UniformsLib.lights,
+      {
+        uAtlas: {value:texture},
+        uNight: {value:0},
+        uFogColor: {value:new THREE.Color().setRGB(.79,.78,.75)},
+        uSunDirection: {value:new THREE.Vector3(-.47,.81,.35).normalize()},
+        uShadowStrength: {value:.78}
+      }
+    ]),
     vertexShader: `
+      #include <common>
+      #include <shadowmap_pars_vertex>
       attribute float materialId;
       attribute vec2 surfaceUV;
+      attribute float contactAO;
+      uniform vec3 uSunDirection;
       varying vec2 vUV;
       varying vec2 vSurfaceUV;
       varying float vSurfaceId;
       varying vec3 vColor;
       varying float vLight;
+      varying float vContactAO;
       varying float vDistance;
       void main() {
         vSurfaceUV = surfaceUV;
         vSurfaceId = materialId;
-        vec4 viewPos = modelViewMatrix * vec4(position,1.0);
+        vContactAO = contactAO;
+        vec3 transformed = position;
+        vec3 transformedNormal = normalize(normalMatrix * normal);
+        vec4 worldPosition = modelMatrix * vec4(transformed,1.0);
+        #include <shadowmap_vertex>
+        vec4 viewPos = modelViewMatrix * vec4(transformed,1.0);
         gl_Position = projectionMatrix * viewPos;
         vDistance = length(viewPos.xyz);
         vUV = uv;
         vColor = color;
-        vec3 lightDirection = normalize(vec3(-0.45,0.83,0.35));
-        float diffuse = max(dot(normalize(normal),lightDirection),0.0);
-        vLight = 0.77 + diffuse * 0.32;
+        vec3 worldNormal = normalize(mat3(modelMatrix) * normal);
+        float daylight = max(dot(worldNormal,normalize(uSunDirection)),0.0);
+        // Soft hemisphere skylight + directional warmth: clear faces,
+        // darker sheltered plaster/wood, readable underside of tiled eaves.
+        float hemi = .60 + .10*clamp(worldNormal.y, -.9, 1.);
+        vLight = hemi + .46 * daylight;
       }
     `,
     fragmentShader: `
       precision highp float;
+      #include <common>
+      #include <packing>
+      #include <lights_pars_begin>
+      #include <shadowmap_pars_fragment>
+      #include <shadowmask_pars_fragment>
       uniform sampler2D uAtlas;
+      uniform float uShadowStrength;
       uniform float uNight;
       uniform vec3 uFogColor;
       varying vec2 vUV;
@@ -342,6 +381,7 @@ makeWorld();
       varying float vSurfaceId;
       varying vec3 vColor;
       varying float vLight;
+      varying float vContactAO;
       varying float vDistance;
       ${MATERIAL_GLSL}
       void main() {
@@ -349,7 +389,11 @@ makeWorld();
         // Texture-like surface response without external images. Existing
         // labels keep their UVs in the original 2048px sign atlas.
         vec3 finish=bukchonMaterial(vSurfaceUV,vSurfaceId);
-        vec3 lit = tex.rgb * vColor * finish * vLight;
+        float occluded=clamp(1.0-getShadowMask(),0.0,1.0);
+        // Actual sun shadow map occlusion + subtle local architectural AO.
+        // Only the direct component darkens: the sky still fills the shadows.
+        float castShade=1.0-.49*occluded*uShadowStrength;
+        vec3 lit = tex.rgb * vColor * finish * vLight * vContactAO * castShade;
         vec3 dusk = lit * vec3(.67,.73,.87) + vec3(.025,.033,.056);
         vec3 col = mix(lit,dusk,uNight);
         // Keep Seoul's distant hill and Namsan landmark legible while
