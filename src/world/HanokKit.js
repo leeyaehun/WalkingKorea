@@ -1,3 +1,5 @@
+import { createBukchonMasonry } from './BukchonMasonry.js';
+
 /**
  * Bukchon Hanok Set v1 — three street-facing silhouettes.
  *
@@ -18,6 +20,10 @@ export function createHanokKit({ box, face, sphere, cylinder, textured, signs })
     // A shallow, continuously rolling tiled roof with quietly lifted corners.
     return 4.00 - 0.16 * t - 0.78 * Math.sin(t * Math.PI * 0.5) + 0.21 * Math.pow(t, 4) * corner;
   }
+
+  const {streetMasonry,sideMasonry,roofCaps} = createBukchonMasonry({
+    box,face,sphere,roofHeight,roofHalfWidth,eave
+  });
 
   function pitchedRoof() {
     const columns = 16;
@@ -58,6 +64,7 @@ export function createHanokKit({ box, face, sphere, cylinder, textured, signs })
       box(0,2.90,side*3.18,span+.75,.13,.15,'timber');
       for (let x=-3.04;x<=3.05;x+=.72) box(x,2.86,side*3.17,.105,.19,.72,'timberLight');
     }
+    roofCaps();
     box(0,4.07,0,span+1.52,.14,.29,'tileRidge');
     for (let x=-roofHalfWidth+.20;x<roofHalfWidth;x+=.44)
       box(x,4.16,0,.30,.08,.35,'tileLight');
@@ -130,6 +137,7 @@ export function createHanokKit({ box, face, sphere, cylinder, textured, signs })
     box(cx,.52+height*.48,z,w,height-.56,.28,'plaster');
     box(cx,height+.06,z,w+.11,.12,.43,'timber');
     box(cx,height+.14,z,w+.17,.15,.48,'tileDark');
+    streetMasonry(cx,z,w,height);
     // Irregular low-relief stonework is more readable than a single cube.
     for(let j=0;j<3;j++){
       const x=cx-w*.5+.21+j*w*.31;
@@ -146,6 +154,7 @@ export function createHanokKit({ box, face, sphere, cylinder, textured, signs })
       box(xx,.95,-.35,.28,1.65,7.2,'plaster');
       box(xx,1.84,-.35,.42,.18,7.3,'tileDark');
       box(xx,.28,-.35,.36,.50,7.3,'stoneFoundation');
+      sideMasonry(xx);
     }
   }
 
