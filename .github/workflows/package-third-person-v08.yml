@@ -1,0 +1,35 @@
+name: Package playable Dami v0.8
+on:
+  push:
+    branches: [feature/dami-third-person-v08]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  bundle-static-site:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - run: npm run build
+      - name: Verify compiled HTML
+        run: |
+          test -s dist/index.html
+          test -s dist/character.html
+          test -s dist/guide-cat.svg
+      - name: Publish only static files
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/wk-built
+          cp -R dist/. /tmp/wk-built/
+          git switch --orphan compiled-dami-v08
+          cp -R /tmp/wk-built/. .
+          git add -A -- index.html character.html assets guide-cat.svg
+          git -c user.name='WalkingKorea Build Bot' -c user.email='actions@users.noreply.github.com' commit -m "Build playable Dami v0.8 from ${GITHUB_SHA}" >/dev/null
+          git push origin HEAD:refs/heads/deploy/compiled-dami-v08 --force
