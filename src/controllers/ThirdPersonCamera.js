@@ -43,20 +43,15 @@ export function createThirdPersonCamera({camera, hill, isWalkable}) {
     }
     anchor.y += (hill(anchor.x,anchor.z)-anchor.y)*(1-Math.exp(-dt*5));
 
-    const tilt = THREE.MathUtils.clamp(-pitch,.16,.89);
-    const orbitDistance = 4.55;
+    const tilt = THREE.MathUtils.clamp(-pitch,.13,.80);
+    const orbitDistance = 5.25;
     const horizontal = orbitDistance * Math.cos(tilt);
     const vertical = orbitDistance * Math.sin(tilt);
 
-    // Only shorten the boom when it would exit a walkable lane, reducing
-    // instances where a house is between Dami and the camera.
-    let boom=horizontal;
-    for(let attempt=0;attempt<14;attempt++){
-      const bx=anchor.x-Math.sin(cameraYaw)*boom;
-      const bz=anchor.z+Math.cos(cameraYaw)*boom;
-      if(isWalkable(bx,bz)||boom<=1.40)break;
-      boom-=.25;
-    }
+    // Keep the camera a predictable distance away. The alley is narrow and
+    // shrinking the boom down to 1.4m made Dami gigantic whenever the orbit
+    // crossed the path boundary. A consistent medium shot is more readable.
+    const boom=horizontal;
     const lookY=anchor.y + .93;
     desired.set(anchor.x-Math.sin(cameraYaw)*boom,
       Math.max(lookY+vertical, hill(anchor.x-Math.sin(cameraYaw)*boom,anchor.z+Math.cos(cameraYaw)*boom)+1.28),
