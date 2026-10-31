@@ -270,39 +270,66 @@ export function createDamiModel() {
   legRig.name = 'Dami / four articulated paws';
   root.add(legRig);
 
-  const paws = [];
-  const upAxis = new THREE.Vector3(0,1,0);
-  const p0 = new THREE.Vector3(), p1 = new THREE.Vector3();
-  function alignFurryBone(bone,a,b,radius) {
-    p0.set(...a); p1.set(...b);
-    const axis = p1.clone().sub(p0);
-    bone.position.copy(p0).add(p1).multiplyScalar(.5);
-    bone.quaternion.setFromUnitVectors(upAxis,axis.clone().normalize());
-    bone.scale.set(radius,axis.length()*.55+radius*.34,radius);
-  }
-  const legs = [
-    {name:'front-left', x:-.240,z:.235,front:true,offset:0,  material:M.cream},
-    {name:'front-right',x:.240,z:.235,front:true,offset:.5,material:M.cream},
-    {name:'rear-left',  x:-.240,z:-.205,front:false,offset:.5,material:M.cream},
-    {name:'rear-right', x:.240,z:-.205,front:false,offset:0,  material:M.cream}
+  const paws=[];
+  const legs=[
+    {name:'front-left', x:-.240,z:.235,front:true,offset:0},
+    {name:'front-right',x:.240,z:.235,front:true,offset:.5},
+    {name:'rear-left',  x:-.240,z:-.205,front:false,offset:.5},
+    {name:'rear-right', x:.240,z:-.205,front:false,offset:0}
   ];
-  for(const spec of legs) {
-    const paw = new THREE.Group();
-    paw.name=spec.name+' / paw';
-    legRig.add(paw);
-    // The upper coat, ankle and 3 small toes overlap into one plush contour.
-    orb(paw,M.cream,[0,.032,-.018],[.104,.103,.108],24);
-    orb(paw,M.ivory,[0,-.009,.059],[.117,.069,.153],24);
-    for(let i=-1;i<=1;i++) {
-      const toe=orb(paw,M.ivory,[i*.071,-.020,.152],[.047,.051,.064],18);
-      toe.rotation.y=i*.12;
-      orb(paw,M.peach,[i*.071,-.043,.198],[.015,.012,.013],12);
+
+  // One continuously deforming, smooth surface per leg. Unlike several
+  // disconnected spheres it stays connected from the shoulder to the ankle.
+  function makeSmoothLeg() {
+    const rings=11,radial=16;
+    const coords=new Float32Array((rings+1)*radial*3);
+    const triangles=[];
+    for(let r=0;r<rings;r++)for(let j=0;j<radial;j++){
+      const a=r*radial+j,b=r*radial+(j+1)%radial;
+      const c=(r+1)*radial+j,d=(r+1)*radial+(j+1)%radial;
+      triangles.push(a,c,b,b,c,d);
     }
-    const thigh=orb(legRig,spec.material,[spec.x,.34,spec.z],[.102,.16,.106],28);
-    const shin=orb(legRig,M.cream,[spec.x,.18,spec.z],[.079,.12,.088],24);
-    const elbow=orb(legRig,M.cream,[spec.x,.21,spec.z],[.083,.094,.085],20);
-    const hip=orb(legRig,spec.material,[spec.x,.44,spec.z],[.141,.153,.143],24);
-    paws.push({...spec,paw,thigh,shin,elbow,hip,grounded:true});
+    const geo=new THREE.BufferGeometry();
+    geo.setAttribute('position',new THREE.BufferAttribute(coords,3));
+    geo.setIndex(triangles);
+    const m=mesh(geo,M.cream,legRig);
+    m.frustumCulled=false; // geometry is updated by the gait every frame
+    return {mesh:m,coords,rings,radial};
+  }
+  function poseSmoothLeg(leg,shoulder,knee,ankle) {
+    const {coords,rings,radial,mesh:part}=leg.limb;
+    for(let ri=0;ri<=rings;ri++){
+      const t=ri/rings,q=1-t;
+      const x=q*q*shoulder[0]+2*q*t*knee[0]+t*t*ankle[0];
+      const y=q*q*shoulder[1]+2*q*t*knee[1]+t*t*ankle[1];
+      const z=q*q*shoulder[2]+2*q*t*knee[2]+t*t*ankle[2];
+      // Soft haunch at the top and a continuous taper into the ankle.
+      const radius=(leg.front?.091:.102)
+        +.058*q*q +.011*Math.sin(Math.PI*t);
+      for(let j=0;j<radial;j++){
+        const angle=j*Math.PI*2/radial;
+        const i=(ri*radial+j)*3;
+        coords[i]=x+Math.cos(angle)*radius;
+        coords[i+1]=y;
+        coords[i+2]=z+Math.sin(angle)*radius;
+      }
+    }
+    part.geometry.attributes.position.needsUpdate=true;
+    part.geometry.computeVertexNormals();
+  }
+
+  for(const spec of legs) {
+    const paw=new THREE.Group();
+    paw.name=spec.name+' / planted paw';
+    legRig.add(paw);
+    // A single plush pad with subtly modeled toes, not four obvious balls.
+    orb(paw,M.cream,[0,.010,.027],[.119,.097,.141],28);
+    orb(paw,M.ivory,[0,-.014,.101],[.120,.067,.137],28);
+    for(let i=-1;i<=1;i++){
+      orb(paw,M.ivory,[i*.060,-.023,.166],[.044,.039,.041],16);
+    }
+    const limb=makeSmoothLeg();
+    paws.push({...spec,paw,limb,grounded:true});
   }
 
   const shadow=mesh(new THREE.CircleGeometry(.48,28),new THREE.MeshBasicMaterial({
@@ -346,7 +373,7 @@ export function createDamiModel() {
     torso.rotation.z=movementBlend*.026*sway;
     torso.rotation.x=movementBlend*.033*Math.cos(stridePhase);
     torso.rotation.y=movementBlend*.012*Math.sin(stridePhase*.5);
-    body.scale.set(1+.006*Math.sin(t*2.1),1,1+.007*Math.sin(t*2.1));
+    body.scale.set(1+.006*Math.sin(t*2.1),1,1.07+.007*Math.sin(t*2.1));
     headPivot.rotation.z=-torso.rotation.z*.64+Math.sin(t*.92)*.019;
     headPivot.rotation.x=-torso.rotation.x*.65+Math.sin(t*1.15)*.018;
     headPivot.rotation.y=Math.sin(t*.7)*.026;
@@ -388,10 +415,7 @@ export function createDamiModel() {
       const shoulder=[leg.x,topY+torso.position.y*.6,hipZ];
       const knee=[footX*.75+leg.x*.25,kneeY,kneeZ];
       const ankle=[footX,footY+.025,footZ-.025];
-      alignFurryBone(leg.thigh,shoulder,knee,leg.front?.125:.136);
-      alignFurryBone(leg.shin,knee,ankle,.101);
-      leg.elbow.position.set(...knee);
-      leg.hip.position.set(...shoulder);
+      poseSmoothLeg(leg,shoulder,knee,ankle);
       leg.grounded=movementBlend<.05||onGround;
       if(leg.grounded)contactCount++;
     }
