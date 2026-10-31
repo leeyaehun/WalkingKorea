@@ -298,7 +298,9 @@ makeWorld();
         vec3 lit = tex.rgb * vColor * vLight;
         vec3 dusk = lit * vec3(.67,.73,.87) + vec3(.025,.033,.056);
         vec3 col = mix(lit,dusk,uNight);
-        float fog = smoothstep(60.0,180.0,vDistance)*.83;
+        // Keep Seoul's distant hill and Namsan landmark legible while
+        // retaining gentle atmospheric depth down the narrow residential lane.
+        float fog = smoothstep(80.0,240.0,vDistance)*.60;
         gl_FragColor = vec4(mix(col,uFogColor,fog),1.0);
       }
     `,
