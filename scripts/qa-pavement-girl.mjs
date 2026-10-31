@@ -42,7 +42,8 @@ if(Math.hypot(moved.avatar.position[0]-moved.player[0],moved.avatar.position[2]-
  errors.push('Girl not aligned with player position');
 await page.locator('#switch-avatar').click();
 await page.locator('#modal-dami').click();
-await page.waitForTimeout(400);
+await page.waitForFunction(()=>{const s=window.__wkQA?.();return s?.selectedAvatar==='dami'&&s?.avatar?.visible;},{timeout:15000});
+await page.waitForTimeout(280);
 const switched=await page.evaluate(()=>window.__wkQA());
 if(switched.selectedAvatar!=='dami'||!switched.avatar.visible)
  errors.push('In-game character switching failed');
