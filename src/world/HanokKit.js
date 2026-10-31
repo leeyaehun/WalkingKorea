@@ -192,6 +192,90 @@ export function createHanokKit({ box, face, sphere, cylinder, textured, signs })
     if(seed%3===0)planter(-3.56,-3.83,'green');
   }
 
+  /**
+   * Hanok A01 — the single showcase residential house near the beginning
+   * of the walking route. 100% procedural geometry, using the same material
+   * palette / altitude-adjusted building frame as the existing village.
+   * Other hanok archetypes are intentionally unaffected.
+   */
+  function featureHanok(seed) {
+    gateHanok(seed);
+    // An extra roof-edge rhythm and small raised ridge-cap tiles make the
+    // curved giwa roof read clearly in the normal third-person camera.
+    for (let i = 0; i < 24; i++) {
+      const x = -roofHalfWidth + .18 + i * (roofHalfWidth * 2 - .36) / 23;
+      box(x, roofHeight(x, -eave) + .010, -eave - .075,
+          .22, .075, .17, i % 3 === 0 ? 'tileLight' : 'tileRidge');
+    }
+    for (let i = 0; i < 19; i++) {
+      const x = -roofHalfWidth + .30 + i * (roofHalfWidth * 2 - .60) / 18;
+      box(x, 4.20, 0, .18, .095, .24,
+          i % 4 === 0 ? 'tileLight' : 'tileBase');
+    }
+
+    // Layered timber brackets underneath the roof; more sculpted than a
+    // uniformly flat brown bar, but cheap to draw in the shared world mesh.
+    for (const x of [-2.92, -1.48, 0, 1.48, 2.92]) {
+      box(x, 2.89, -3.16, .27, .11, .43, 'woodShade');
+      box(x, 2.80, -3.18, .17, .12, .29, 'timberLight');
+      box(x, 2.73, -3.21, .095, .10, .23, 'timber');
+    }
+
+    // Carved-looking battens, symmetric latch plates and round studs on the
+    // wooden gate. These details face the lane rather than the courtyard.
+    for (const x of [-.95, -.19, .19, .95]) {
+      box(x, 1.13, -4.566, .035, 1.69, .035, 'timberLight');
+    }
+    for (const y of [.39, 1.90]) {
+      box(0, y, -4.576, 2.16, .045, .038, 'woodShade');
+    }
+    for (const x of [-.22, .22]) {
+      box(x, 1.23, -4.59, .13, .22, .045, 'tileRidge');
+      sphere(x, 1.23, -4.645, .038, .055, .022, 'copper', 8, 4);
+    }
+
+    // Two enclosed warm paper lanterns, suspended beneath the little
+    // entrance roof. No extra WebGL lights or external textures needed.
+    for (const x of [-1.62, 1.62]) {
+      box(x, 2.28, -4.61, .035, .27, .035, 'woodShade');
+      box(x, 2.02, -4.62, .35, .43, .27, 'timber');
+      box(x, 2.02, -4.772, .25, .32, .025, 'warmLight');
+      box(x, 2.02, -4.790, .035, .33, .025, 'timber');
+      box(x, 2.02, -4.795, .26, .036, .025, 'timberLight');
+      box(x, 2.27, -4.62, .43, .075, .35, 'tileDark');
+      box(x, 1.78, -4.62, .42, .065, .34, 'woodShade');
+    }
+
+    // Pebble-footed ceramic onggi jars, with distinct lids and narrow
+    // necks, beside a low shrub: small Korean domestic details, not signs.
+    for (const [x, z, r, h] of [
+      [3.08, -4.68, .23, .52],
+      [3.52, -4.54, .17, .38],
+      [-3.29, -4.71, .19, .42]
+    ]) {
+      cylinder(x, .16 + h * .5, z, r, h, 'gateWood', 10);
+      cylinder(x, .17 + h, z, r * .80, .09, 'woodShade', 10);
+      cylinder(x, .23 + h, z, r * .57, .08, 'copper', 10);
+    }
+    for (const [x, z] of [[-3.64, -4.07], [3.83, -3.75]]) {
+      sphere(x, .62, z, .38, .49, .38, 'deepGreen', 8, 5);
+      sphere(x - .15, .95, z - .08, .27, .27, .26, 'sage', 8, 5);
+      for (const dx of [-.17, .08, .22]) {
+        sphere(x + dx, 1.01 + dx * .5, z - .32, .07, .075, .07,
+               'palePink', 6, 4);
+      }
+    }
+
+    // Subtle irregular foundation stone joints on the street-facing wall.
+    for (const side of [-1, 1]) {
+      for (let i = 0; i < 5; i++) {
+        const x = side * (1.65 + i * .33);
+        box(x, .27 + (i % 2) * .09, -4.445, .27, .042, .030,
+            i % 2 ? 'stoneLight' : 'stoneFoundation');
+      }
+    }
+  }
+
   function facingHanok(seed) {
     timberFrame();
     // Visible porch and paper windows distinguish this from the courtyard homes.
@@ -239,6 +323,10 @@ export function createHanokKit({ box, face, sphere, cylinder, textured, signs })
   function build(type=0) {
     // Four A, three B, one C per eight seeds: quiet houses dominate, while
     // a few café/atelier facades anchor memorable places.
+    if (type === 100) {
+      featureHanok(1);
+      return 'a01';
+    }
     const style = type % 8;
     const archetype = style===7 ? 'cafe' : [2,4,6].includes(style) ? 'facing' : 'gate';
     if (archetype==='cafe') cafeHanok(type);
