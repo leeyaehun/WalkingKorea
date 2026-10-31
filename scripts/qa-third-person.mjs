@@ -14,7 +14,11 @@ const base=process.env.WK_BASE_URL||'http://127.0.0.1:4173/';
 const response=await page.goto(base+'?qa=1',{waitUntil:'networkidle',timeout:60000});
 if(!response||response.status()!==200)errors.push('Bad page HTTP response');
 await page.locator('#start-btn').click();
-await page.waitForTimeout(500);
+await page.waitForFunction(() => {
+ const state=window.__wkQA?.();
+ return !!(state?.avatar?.visible && state.avatar.gait?.paws?.every(p=>p.y>.04));
+},{timeout:25000});
+await page.waitForTimeout(250);
 const sample=()=>page.evaluate(()=>window.__wkQA?.());
 const start=await sample();
 if(!start||start.mode!=='third-person')errors.push('Third-person QA state unavailable');
