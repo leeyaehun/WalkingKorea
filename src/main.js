@@ -4,6 +4,7 @@ import { createDamiCompanion } from './characters/DamiCompanion.js';
 import { createGirlSpriteCompanion } from './characters/GirlSprite.js';
 import { createThirdPersonCamera } from './controllers/ThirdPersonCamera.js';
 import { cameraRelativeDirection } from './controllers/MovementDirections.js';
+import { createBukchonLighting } from './world/BukchonLighting.js';
 
 const $ = (id) => document.getElementById(id);
 const canvas = $('world');
@@ -34,6 +35,9 @@ sky.renderOrder=-1000;
 scene.add(sky);
 const {mesh,material,paths,hill,distanceFromPath,houseSites,paving,vertexCount} = createBukchonWorld();
 scene.add(mesh);
+const lighting=createBukchonLighting({
+  renderer,scene,worldMesh:mesh,isTouch:touchDevice
+});
 const dami=createDamiCompanion(scene,hill);
 const girl=createGirlSpriteCompanion(scene,hill,camera);
 const avatars={dami,girl};
@@ -244,7 +248,9 @@ function render(time=0) {
   const fog=state.night?[.31,.37,.45]:[.79,.78,.75];
   sky.position.copy(camera.position);
   sky.material.color.set(state.night?0x34415c:0xffffff);
+  lighting.update({x:state.x,z:state.z,hill,night:state.night});
   material.uniforms.uNight.value=state.night?1:0;
+  material.uniforms.uShadowStrength.value=state.night?.12:.90;
   material.uniforms.uFogColor.value.setRGB(...fog);
   renderer.setClearColor(new THREE.Color().setRGB(...fog),1);
   renderer.render(scene,camera);
