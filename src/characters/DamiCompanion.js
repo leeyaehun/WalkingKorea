@@ -476,7 +476,10 @@ export function createDamiCompanion(scene, hill) {
     if(speed>.12) {
       const desiredHeading=Math.atan2(vx,vz);
       const delta=Math.atan2(Math.sin(desiredHeading-heading),Math.cos(desiredHeading-heading));
-      heading+=delta*(1-Math.exp(-dt*10));
+      // On sharp side/reverse input, face the travel direction before the
+      // feet advance. Smooth small corrections for natural 3D turning.
+      if(Math.abs(delta)>Math.PI/3) heading=desiredHeading;
+      else heading+=delta*(1-Math.exp(-dt*18));
     }
     root.rotation.y=heading;
     model.animate(elapsed,walking&&speed>.12,{dt,travel:distance,speed});
