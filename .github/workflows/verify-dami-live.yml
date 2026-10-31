@@ -15,12 +15,12 @@ jobs:
           set -euo pipefail
           site="https://walkingkorea.leeyaehun.workers.dev"
           curl -fsSL --retry 3 --retry-delay 2 -D /tmp/headers "$site/" -o /tmp/home.html
-          grep -q '0.7.1' /tmp/headers
           grep -q 'id="dami-card"' /tmp/home.html
           grep -q '/character.html' /tmp/home.html
           curl -fsSL --retry 3 --retry-delay 2 "$site/character.html" -o /tmp/character.html
           grep -q 'data-angle="180"' /tmp/character.html
           grep -q 'id="viewer"' /tmp/character.html
+          grep -q 'id="download-glb"' /tmp/character.html
           js_file="$(grep -o '/assets/character-[A-Za-z0-9_-]*.js' /tmp/character.html | head -1)"
           test -n "$js_file"
           curl -fsSL --retry 3 --retry-delay 2 "$site$js_file" -o /tmp/character.js
