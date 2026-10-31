@@ -11,21 +11,23 @@ function makeWorld(){
  finally{globalThis.document=old;}
 }
 
-test('eight existing authored homes receive a deliberate, readable set of living details',()=>{
+test('residential details now extend to all houses, excluding all planter vegetation',()=>{
  const w=makeWorld(),v=w.streetLife;
- assert.equal(v.houseCount,8);
- assert.equal(v.entries.length,8);
- assert.equal(v.counts.doorsteps,8);
- assert.equal(v.counts.plaques,8);
- assert.equal(v.counts.downspouts,8);
- assert.equal(v.counts.electricMeters,8);
- assert.equal(v.counts.planters,19);
- assert.equal(v.counts.benches,2);
- assert.equal(v.counts.storage,2);
+ assert.equal(v.houseCount,w.houseSites.length);
+ assert.equal(v.entries.length,w.houseSites.length);
+ assert.equal(v.counts.doorsteps,21);
+ assert.equal(v.counts.plaques,21);
+ assert.equal(v.counts.downspouts,25);
+ assert.equal(v.counts.electricMeters,25);
+ assert.equal('planters' in v.counts,false);
+ assert.equal(v.counts.benches,4);
+ assert.equal(v.counts.storage,4);
  assert.equal(v.counts.wires,4);
  assert.equal(v.counts.poles,4);
- assert.deepEqual(v.entries.map(x=>x.index),[0,1,2,3,4,5,6,7]);
- assert.ok(v.entries.every(x=>x.details.includes('plaques')&&x.details.includes('doorsteps')));
+ assert.deepEqual(v.entries.map(x=>x.index),w.houseSites.map(h=>h.index));
+ assert.ok(v.entries.every(x=>x.type==='cafe'?
+   !x.details.includes('plaques') && !x.details.includes('doorsteps'):
+   x.details.includes('plaques') && x.details.includes('doorsteps')));
  assert.equal(w.houseSites.filter(s=>s.scenic).length,8);
  assert.equal(w.paths.length,3);
 });
@@ -59,7 +61,7 @@ test('procedural lifestyle geometry is deterministic, finite and within vertex b
  const a=makeWorld(),b=makeWorld();
  assert.deepEqual(a.streetLife,b.streetLife);
  assert.equal(a.vertexCount,b.vertexCount);
- assert.ok(a.vertexCount<1100000,'a dense shared mesh would hurt phones');
+ assert.ok(a.vertexCount<850000,'excessive mesh budget after vegetation removal and district LOD');
  const g=a.mesh.geometry;
  const position=g.getAttribute('position'),materials=g.getAttribute('materialId');
  assert.equal(position.count,materials.count);
