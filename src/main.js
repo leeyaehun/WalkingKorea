@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { createBukchonWorld } from './world/BukchonWorld.js';
+import { createDamiCompanion } from './characters/DamiCompanion.js';
 
 const $ = (id) => document.getElementById(id);
 const canvas = $('world');
@@ -13,6 +14,7 @@ const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera((Math.PI/2.9)*180/Math.PI,1,.1,240);
 const {mesh,material,paths,hill,distanceFromPath,houseSites,vertexCount} = createBukchonWorld();
 scene.add(mesh);
+const dami=createDamiCompanion(scene,hill);
 
 const state={x:0,z:42,yaw:0,pitch:-.055,vy:0,vx:0,vz:0,night:false,running:false,started:false,modal:false,helpViewed:false,mute:true,elapsed:0,walked:0,quality:1};
 const keys=new Set();let lastFrame=0,lastMap=0,lastToast=0,nearSpot=null,stepPhase=0;
@@ -50,8 +52,32 @@ $('idea-btn').onclick=()=>{
  document.querySelectorAll('.vote-option').forEach(b=>b.onclick=()=>{safeStore.setItem('seoul-stroll-vote',b.dataset.choice);document.querySelectorAll('.vote-option').forEach(x=>x.classList.toggle('selected',x===b));$('vote-result').textContent='이 브라우저에서 선택한 동네: '+b.dataset.choice+' (서버 전송 전)';});
 };
 const SUPPORT_URL=''; // Set your actual Buy Me a Coffee / Ko-fi link here when ready.
+
+// Dami is the game's first visible guide character, not a replacement for the
+// first-person walking controls. The concept art is adapted into a small Three.js
+// cat + an illustrated UI card so it is visible on desktop and touch devices.
+const guideLines={
+ entrance:'여기가 오늘 산책의 시작이에요. 담장 너머 지붕을 봐요.',
+ crossroad:'갈림길에선 마음이 가는 쪽으로 천천히 걸어 봐요.',
+ east:'공방길에서는 작은 가게들이 기다리고 있어요.',
+ west:'서쪽 골목은 조용해요. 발걸음도 느려지는 느낌이죠.',
+ turn:'골목이 휘어지는 곳에서 지붕의 곡선을 살펴봐요.',
+ view:'전망길에서는 오늘 걸어온 풍경이 한눈에 보여요.'
+};
+function updateDamiGuide(){
+ const p=nearSpot||locations.find(q=>!discovered.has(q.id))||locations[0];
+ const line=discovered.size===locations.length?'오늘의 골목을 다 찾았어요. 마음껏 쉬어가요.':(guideLines[p?.id]||'천천히 걷다 보면 작은 아름다움이 보여요.');
+ const el=$('dami-line');if(el&&el.textContent!==line)el.textContent=line;
+}
+function showDami(){
+ modal('담이와 함께 걷는 북촌',
+ '<div class="dami-about"><img src="/guide-cat.svg" alt="북촌 수호냥이 담이"><p>안녕! 나는 북촌 골목의 작은 수호냥이 <b>담이</b>야. 초록 스카프와 작은 부적 가방을 매고, 네가 서울의 골목을 천천히 발견하도록 곁에서 안내할게.</p></div><p class="small-note">담이의 3D 모습은 가볍게 구현한 첫 버전으로, 앞으로 걷기 동작과 표현을 더 다듬을 예정이에요.</p>',
+ 'MEET YOUR LITTLE GUIDE');
+}
+$('dami-card')?.addEventListener('click',showDami);
+
 function interact(){if(!nearSpot || state.modal)return;markFound(nearSpot);modal(nearSpot.name,`<p>${nearSpot.detail}</p><p class="small-note">발견한 장소 ${discovered.size} / ${locations.length} · 이 골목은 실제 지도의 정확한 재현이 아닌 서울에서 영감을 받은 공간이야.</p>`,'YOU FOUND A LITTLE PLACE');}
-function nearUpdate(){let m=null,dist=4.5;for(const p of locations){let d=Math.hypot(state.x-p.x,state.z-p.z);if(d<dist){dist=d;m=p;}}nearSpot=m;let hint=$('hint');if(m&&!state.modal&&state.started){hint.innerHTML=`<b>${touchDevice?'터치':'E'}</b>  ${m.name} 둘러보기`;hint.classList.add('visible');$('touch-interact').classList.add('visible');}else{hint.classList.remove('visible');$('touch-interact').classList.remove('visible');}}
+function nearUpdate(){let m=null,dist=4.5;for(const p of locations){let d=Math.hypot(state.x-p.x,state.z-p.z);if(d<dist){dist=d;m=p;}}nearSpot=m;updateDamiGuide();let hint=$('hint');if(m&&!state.modal&&state.started){hint.innerHTML=`<b>${touchDevice?'터치':'E'}</b>  ${m.name} 둘러보기`;hint.classList.add('visible');$('touch-interact').classList.add('visible');}else{hint.classList.remove('visible');$('touch-interact').classList.remove('visible');}}
 $('touch-interact').onclick=interact;
 function isWalkable(x,z){return paths.some(p=>distanceFromPath(x,z,p)<p.width*.5+.33);}
 function move(dt){if(!state.started||state.modal)return;
@@ -85,7 +111,7 @@ window.addEventListener('keydown',e=>{
  if(e.repeat)return;
  if(e.code==='KeyE')interact();if(e.code==='KeyN')toggleTime();if(e.code==='KeyP')savePhoto();if(e.code==='KeyH')showHelp();
 });window.addEventListener('keyup',e=>keys.delete(e.code));window.addEventListener('blur',()=>{keys.clear();touchInput.x=touchInput.y=0;});
-$('start-btn').onclick=()=>{state.started=true;$('intro').classList.remove('visible');if(touchDevice){$('touch-ui').setAttribute('aria-hidden','false');}toast('어서 와요. 오늘은 천천히 걸어요. ✳',3500);};
+$('start-btn').onclick=()=>{state.started=true;$('intro').classList.remove('visible');if(touchDevice){$('touch-ui').setAttribute('aria-hidden','false');}toast('담이와 함께 북촌 골목을 걸어 봐요. ✳',3500);};
 function toggleTime(){state.night=!state.night;$('toggle-time').textContent=state.night?'☀':'☾';toast(state.night?'조용한 서울의 저녁이에요.':'햇살이 돌아왔어요.');}
 $('toggle-time').onclick=toggleTime;
 // Synthesized ambience avoids third-party sound/licensing dependencies. WebAudio begins after click.
@@ -120,10 +146,11 @@ function render(time=0) {
   material.uniforms.uNight.value=state.night?1:0;
   material.uniforms.uFogColor.value.setRGB(...fog);
   renderer.setClearColor(new THREE.Color().setRGB(...fog),1);
+  dami.update({x:state.x,z:state.z,yaw:state.yaw,elapsed:state.elapsed,walking:moving,visible:state.started});
   renderer.render(scene,camera);
   if(time-lastMap>180){lastMap=time;mapUpdate();nearUpdate();}
   if(lastToast&&time>lastToast){$('toast').classList.remove('visible');lastToast=0;}
   requestAnimationFrame(render);
 }
 requestAnimationFrame(render);
-console.info(`[Seoul Stroll Bukchon v0.4] Three.js ready: ${vertexCount.toLocaleString()} vertices, ${houseSites.length} hanok houses, ${paths.length} walkable lanes, ${locations.length} discoveries.`);
+console.info(`[Seoul Stroll Bukchon v0.6] Three.js ready: ${vertexCount.toLocaleString()} vertices, ${houseSites.length} hanok houses, ${paths.length} walkable lanes, ${locations.length} discoveries.`);
