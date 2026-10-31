@@ -185,7 +185,9 @@ function groundTile(x,z,r,shade='sage'){face([x-r,hill(x-r,z-r)-.24,z-r],[x+r,hi
 const paving=buildPavedAlleys({paths,face,hill});
 function routeFloor(){
  // green-grey terrain plate: city blocks are hidden behind walls and house rows.
- for(let x=-52;x<55;x+=8)for(let z=-67;z<68;z+=8)groundTile(x+4,z+4,4,(x+z)%3===0?'sage':'muted');
+ // Muted stone-colored ground. No grass/green tile fields in the village.
+ for(let x=-52;x<55;x+=8)for(let z=-67;z<68;z+=8)
+   groundTile(x+4,z+4,4,(x+z)%3===0?'stoneWarm':'muted');
  // Paving is added after the terrain plate in one shared BufferGeometry.
 }
 // Approved Bukchon Hanok Set v1 (A: wall/gate, B: exposed front, C: café/atelier).
@@ -217,7 +219,9 @@ function housesAlong(path,pIndex){
   if(pIndex===0 && b[1]<-2.5)continue;
   const tx=dx/len,tz=dz/len,nx=-tz,nz=tx;
   for(const side of [-1,1]){
-   const spacing=5.8+((i+pIndex)%3)*.36;
+   // House thresholds face the kerb from BEHIND it, just as in the curated
+   // first 40m. Old 5.8m setbacks pushed gates into the walking lane.
+   const spacing=6.9+((i+pIndex*3+Math.abs(side))%3)*.24;
    const x=b[0]+nx*side*spacing,z=b[1]+nz*side*spacing;
    if(Math.abs(x)>36||Math.abs(z)>49)continue;
    if(paths.some(other=>distanceFromPath(x,z,other)<4.75))continue;
@@ -237,29 +241,36 @@ function housesAlong(path,pIndex){
    const detailVariant = houseSites.length < 8
      ? houseSites.length % 4 + 1
      : (i * 17 + pIndex * 7 + (side === 1 ? 1 : 3)) % 5;
+   const gateX=x+Math.sin(angle)*4.70,gateZ=z-Math.cos(angle)*4.70;
+   // Keep crossing side streets open: street-facing decorations must not
+   // intrude into any other road, not only their originating lane.
+   if(paths.some(other=>distanceFromPath(gateX,gateZ,other) <
+      (other.widthAt?other.widthAt(gateZ):other.width)*.5+.16))continue;
    let archetype='gate';
-   withFrame(x,z,angle,()=>{archetype=courtyard(houseType,detailVariant);});
-   houseSites.push({x,z,angle,archetype,detailVariant,
-     decorated: houseType === 100 || detailVariant > 0});
+   withFrame(x,z,angle,()=>{
+     // Repeat the same level-based structural siting rule from the
+     // showcase alley instead of deforming houses over uneven terrain.
+     box(0,-.155,0,7.35,.32,8.55,'stoneFoundation');
+     box(0,-.016,-4.22,7.35,.10,.23,'stoneLight');
+     archetype=courtyard(houseType,detailVariant);
+   },{level:true});
+   houseSites.push({index:houseSites.length,x,z,angle,archetype,detailVariant,
+     decorated: houseType===100||detailVariant>0,scenic:false,district:true,
+     routeIndex:pIndex,side,laneZ:b[1],roadWidth:path.width});
   }
  }
 }
 function laneDecoration(){
- // Retaining walls near corners and a few objects make it feel inhabited.
+ // Retaining walls at selected bends remain; remove all synthetic trees,
+ // foliage spheres and green roadside objects from the entire village.
  for(const [x,z,angle] of [[-10,6,.7],[-19,-6,.5],[8,22,-.7],[14,-20,.9]]){
   withFrame(x,z,angle,()=>{
-   box(0,.65,0,3.4,1.15,.36,'beige');box(0,1.25,0,3.5,.2,.5,'roof');
-   cylinder(1.75,.83,.55,.18,1.65,'brown');sphere(1.7,1.98,.55,.7,.69,.75,'sage',8,5);
-  });
+   box(0,.65,0,3.4,1.15,.36,'plaster');
+   box(0,1.25,0,3.5,.2,.5,'tileDark');
+  },{level:true});
  }
- for(const [x,z] of [[-6,26],[-8,-32],[13,12],[-21,-12],[7,-10]]){
-  withFrame(x,z,.35,()=>{cylinder(0,1.23,0,.14,2.45,'brown');sphere(.05,2.64,0,.8,.72,.76,'sage',8,5);});
- }
- // The overlook starts on the street itself. Removing the old 4m platform
- // and waist-high transverse railing keeps the iconic downhill vista clear,
- // without blocking the camera or the player walkable path.
-
 }
+
 function hillsideBackground(){
  // The celebrated Bukchon view: the roofs open toward Seoul's city skyline
  // and the Namsan tower beyond. This is a stylized silhouette, not exact GIS.
