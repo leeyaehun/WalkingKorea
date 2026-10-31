@@ -56,14 +56,14 @@ export const MATERIAL_GLSL = `
   vec3 bukchonMaterial(vec2 uv,float id) {
     if(id<.5)return vec3(1.);
     float coarse=matNoise(uv*3.2);
-    float fine=matNoise(uv*24.);
+    float detailFade=1.0-smoothstep(17.0,75.0,vDistance);
     if(id<1.5) {
       // Aged charcoal giwa: gentle slate mineral shifts, patina and
       // narrow convex glaze streaks, not painted checkerboard tiles.
       float slate=matNoise(uv*vec2(8.,5.));
       float streak=.5+.5*sin(uv.x*42.+coarse*2.8);
       float aging=matNoise(uv*vec2(1.9,2.6));
-      float shade=.80+.24*slate+.075*streak+.07*(aging-.5);
+      float shade=.82+.24*slate+.060*streak*detailFade+.07*(aging-.5);
       return vec3(shade*.97,shade,shade*1.02);
     }
     if(id<2.5) {
@@ -72,7 +72,7 @@ export const MATERIAL_GLSL = `
       float warp=matNoise(uv*vec2(1.5,1.8));
       float grain=.5+.5*sin(uv.x*48.+warp*5.8);
       float fibres=matNoise(uv*vec2(26.,2.3));
-      float shade=.82+.17*grain+.10*fibres+.11*(coarse-.5);
+      float shade=.86+.13*grain*detailFade+.10*fibres*detailFade+.11*(coarse-.5);
       return vec3(shade*1.05,shade*.98,shade*.88);
     }
     if(id<3.5) {
@@ -80,7 +80,7 @@ export const MATERIAL_GLSL = `
       // trowel variation, rather than an immaculate flat white.
       float trowel=matNoise(uv*vec2(1.15,2.7));
       float sand=matNoise(uv*vec2(39.,33.));
-      float shade=.94+.065*trowel+.055*(sand-.5);
+      float shade=.94+.065*trowel+.055*(sand-.5)*detailFade;
       return vec3(shade*1.015,shade,shade*.965);
     }
     if(id<4.5) {
@@ -88,27 +88,27 @@ export const MATERIAL_GLSL = `
       // soft erosion across the cut stone faces.
       float mineral=matNoise(uv*vec2(36.,39.));
       float fleck=step(.87,matHash(floor(uv*91.)));
-      float shade=.85+.22*mineral+.07*(coarse-.5)-.10*fleck;
+      float shade=.88+.17*mineral*detailFade+.07*(coarse-.5)-.10*fleck*detailFade;
       return vec3(shade*.99,shade,shade*1.015);
     }
     if(id<5.5) {
       // Fired clay brick: porous grain, slight fired colour patchiness.
       float pores=matNoise(uv*vec2(47.,38.));
       float burn=matNoise(uv*vec2(4.2,2.8));
-      float shade=.84+.19*pores+.09*burn;
+      float shade=.88+.15*pores*detailFade+.08*burn;
       return vec3(shade*1.06,shade*.96,shade*.91);
     }
     if(id<6.5) {
       // Fine dark bitumen / asphalt aggregate, no obvious grid.
       float chips=matNoise(uv*vec2(70.,77.));
       float wear=matNoise(uv*vec2(2.1,3.1));
-      float shade=.88+.15*chips+.07*(wear-.5);
+      float shade=.91+.12*chips*detailFade+.07*(wear-.5);
       return vec3(shade);
     }
     // Hanji paper fibres: nearly uniform, translucent warmth is a
     // later lighting/material-transmission task.
     float paper=matNoise(uv*vec2(26.,41.));
-    float shade=.975+.025*paper;
+    float shade=.985+.02*paper*detailFade;
     return vec3(shade*1.01,shade,shade*.96);
   }
 `;
