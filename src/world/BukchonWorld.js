@@ -2,6 +2,7 @@ import { createHanokKit } from './HanokKit.js';
 import { buildPavedAlleys } from './BukchonPaving.js';
 import {mainLaneWidth,scenicHillLift,scenicHouseSites} from './BukchonStreetLayout.js';
 import {buildFrontageConnectors} from './BukchonFrontage.js';
+import {buildBukchonStreetLife} from './BukchonStreetLife.js';
 import * as THREE from 'three';
 import {surfaceMaterialId,surfaceCoordinates,MATERIAL_GLSL} from './BukchonMaterials.js';
 
@@ -81,6 +82,13 @@ const signs={
  hanokCafe:tile('차 한 잔','#e9d8b9','#654733',{size:43,border:'#81614a'}),
  hanokAtelier:tile('작은 공방','#eadbc7','#594b3e',{size:41,border:'#806d58'}),
 };
+// These are fictional poetic residence names, not actual home addresses.
+signs.residences=[
+  tile('솔향','#604835','#f6e9d4',{w:148,h:70,size:39,border:'#b99d73'}),
+  tile('온기','#74543d','#fff0db',{w:148,h:70,size:39,border:'#c5a478'}),
+  tile('새봄','#5a6047','#fff3dc',{w:148,h:70,size:39,border:'#a9aa84'}),
+  tile('다온','#6e5148','#fff1d9',{w:148,h:70,size:39,border:'#b08b77'})
+];
 // Local building frame: keep traditional building components reusable and let
 // the hill pass continuously underneath houses, gates, trees and courtyards.
 let activeFrame=null;
@@ -293,11 +301,16 @@ function hillsideBackground(){
  }
 }
 let frontage={count:0,segments:[]};
+let streetLife=null;
 function makeWorld(){
  routeFloor();
  housesOnShowcase();
  paths.forEach((p,i)=>housesAlong(p,i));
  frontage=buildFrontageConnectors({houses:houseSites,face,hill,distanceFromPath,mainPath:paths[0]});
+ streetLife=buildBukchonStreetLife({
+   box,face,sphere,cylinder,textured,signs,withFrame,
+   hill,houseSites,paths,distanceFromPath
+ });
  laneDecoration();
  hillsideBackground();
 }
@@ -407,5 +420,5 @@ makeWorld();
   });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.frustumCulled = false;
-  return {mesh,material,paths,hill,distanceFromPath,houseSites,frontage,paving,vertexCount:positions.length/3};
+  return {mesh,material,paths,hill,distanceFromPath,houseSites,frontage,streetLife,paving,vertexCount:positions.length/3};
 }
