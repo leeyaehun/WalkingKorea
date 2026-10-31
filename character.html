@@ -15,7 +15,7 @@ h1{font-size:clamp(36px,5vw,65px);margin:0;letter-spacing:-.065em;line-height:1.
 #viewer{height:100vh;width:100%;display:block;touch-action:pan-y}
 .controls{position:absolute;left:50%;bottom:45px;transform:translateX(-50%);z-index:2;display:flex;align-items:center;justify-content:center;gap:8px;padding:10px;background:#fffaf1d9;border:1px solid #ffffffeb;box-shadow:0 20px 45px #72634a24;backdrop-filter:blur(18px);border-radius:999px;max-width:94vw;flex-wrap:wrap}
 .controls button{background:transparent;border:0;border-radius:40px;padding:11px 15px;font:inherit;font-size:12px;font-weight:700;color:#6c7166;cursor:pointer;white-space:nowrap}
-.controls button.active{background:#697d62;color:white}
+.controls button.active{background:#697d62;color:white}.controls button.export{background:#e6d1ba;color:#5a493b}
 .caption{position:absolute;bottom:130px;left:50%;transform:translateX(-50%);font-size:12px;text-align:center;color:#838473;white-space:nowrap}
 .note{position:absolute;right:28px;top:128px;max-width:195px;font-size:12px;line-height:1.8;color:#7b7b6d}
 .note strong{display:block;color:#4e5f4b;letter-spacing:.06em}
@@ -29,5 +29,5 @@ h1{font-size:clamp(36px,5vw,65px);margin:0;letter-spacing:-.065em;line-height:1.
 <div class="controls" role="group" aria-label="담이 캐릭터 시점">
 <button data-angle="0" class="active">정면</button><button data-angle="45">45°</button>
 <button data-angle="90">옆면</button><button data-angle="135">후면 45°</button>
-<button data-angle="180">뒷면</button><button id="spin-btn">⟳ 자동 회전</button>
+<button data-angle="180">뒷면</button><button id="spin-btn">⟳ 자동 회전</button><button id="download-glb" class="export" title="실제 3D 파일을 다운로드합니다">GLB 다운로드</button>
 </div><script type="module" src="/src/characters/dami-viewer.js"></script></body></html>
