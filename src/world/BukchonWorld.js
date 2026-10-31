@@ -144,7 +144,7 @@ function routeFloor(){
 // Approved Bukchon Hanok Set v1 (A: wall/gate, B: exposed front, C: café/atelier).
 // Shared primitives preserve hillside alignment and the original mesh renderer.
 const hanokKit=createHanokKit({box,face,sphere,cylinder,textured,signs});
-function courtyard(type){return hanokKit.build(type);}
+function courtyard(type,detailVariant=0){return hanokKit.build(type,detailVariant);}
 const houseSites=[];
 function housesAlong(path,pIndex){
  const pts=path.samples;
@@ -166,9 +166,16 @@ function housesAlong(path,pIndex){
    const houseType = pIndex === 0 && houseSites.length === 0 && side === -1
      ? 100
      : (i+pIndex*3+(side===1?2:0))%8;
+   // Stable, varied decorations: keep houses familiar after a reload.
+   // Force the first few visible houses into different enhanced appearances,
+   // then decorate ~80% of the remaining sites using deterministic seeds.
+   const detailVariant = houseSites.length < 8
+     ? houseSites.length % 4 + 1
+     : (i * 17 + pIndex * 7 + (side === 1 ? 1 : 3)) % 5;
    let archetype='gate';
-   withFrame(x,z,angle,()=>{archetype=courtyard(houseType);});
-   houseSites.push({x,z,angle,archetype});
+   withFrame(x,z,angle,()=>{archetype=courtyard(houseType,detailVariant);});
+   houseSites.push({x,z,angle,archetype,detailVariant,
+     decorated: houseType === 100 || detailVariant > 0});
   }
  }
 }
