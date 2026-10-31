@@ -30,7 +30,7 @@ try{
   await page.locator('#download-glb').click();
   const model=await ready;
   if(!model.suggestedFilename().endsWith('.glb'))errors.push('GLB download did not return a .glb filename');
-  else console.log('GLB_DOWNLOAD=PASS '+model.suggestedFilename());
+  else {await model.saveAs('qa-screenshots/WalkingKorea_Dami_v07.glb');console.log('GLB_DOWNLOAD=PASS '+model.suggestedFilename());}
  });
  await inspect(base+'/character.html','dami-back.png',async(page)=>{
   await page.locator('[data-angle="180"]').click();await page.waitForTimeout(1000);
