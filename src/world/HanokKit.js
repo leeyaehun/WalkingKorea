@@ -276,6 +276,120 @@ export function createHanokKit({ box, face, sphere, cylinder, textured, signs })
     }
   }
 
+  /**
+   * Four curated street-house looks. The site picks one using a stable
+   * coordinate-based seed; reloading must not reshuffle roof colours.
+   * All add-ons are local to the existing building frame.
+   */
+  function gardenHanok(variant, archetype) {
+    if (!variant) return;
+    const palettes = [
+      null,
+      ['tileIndigo', 'tileIndigoLight', 'flowerCoral'],
+      ['tileJade', 'tileJadeLight', 'flowerYellow'],
+      ['tileInk', 'tileInkLight', 'flowerLilac'],
+      ['tilePlum', 'tilePlumLight', 'palePink'],
+    ];
+    const [tileA, tileB, petals] = palettes[variant];
+
+    // Roof-sized color treatment: easier to see from gameplay distance than
+    // tiny decorations. A continuous patch follows the same curved tile
+    // profile; contrasting courses retain a real roof-tile rhythm.
+    const columns = 12;
+    const courses = 9;
+    for (const side of [-1, 1]) {
+      for (let row = 0; row < courses; row++) {
+        const z0 = side * eave * row / courses;
+        const z1 = side * eave * (row + 1) / courses;
+        for (let col = 0; col < columns; col++) {
+          const x0 = -roofHalfWidth + col * (2 * roofHalfWidth / columns);
+          const x1 = -roofHalfWidth + (col + 1) * (2 * roofHalfWidth / columns);
+          const tone = (col + row) % 5 === 0 ? tileB : tileA;
+          face([x0, roofHeight(x0,z0)+.058,z0], [x1, roofHeight(x1,z0)+.058,z0],
+               [x1, roofHeight(x1,z1)+.058,z1], [x0, roofHeight(x0,z1)+.058,z1],
+               [0,1,0], tone);
+          if (col % 3 === 0) {
+            const seam = x0 + .034;
+            face([seam,roofHeight(seam,z0)+.088,z0],
+                 [seam+.055,roofHeight(seam+.055,z0)+.088,z0],
+                 [seam+.055,roofHeight(seam+.055,z1)+.088,z1],
+                 [seam,roofHeight(seam,z1)+.088,z1],[0,1,0],tileB);
+          }
+        }
+      }
+      for (let i = 0; i < 16; i++) {
+        const x = -roofHalfWidth + (i+.5) * roofHalfWidth*2/16;
+        box(x,roofHeight(x,side*eave)+.053,side*(eave+.105),
+            .31,.105,.20,i%3===0?tileB:tileA);
+      }
+    }
+    box(0,4.24,0,span+1.60,.12,.28,tileB);
+    for(let i=0;i<16;i++) {
+      const x = -roofHalfWidth+.24+i*(roofHalfWidth*2-.48)/15;
+      box(x,4.34,0,.16,.10,.23,i%3===0?tileA:tileB);
+    }
+
+    // Big clusters of flowers and foliage on the lane-facing side.
+    // Their colors differ by house, giving players landmarks in the alley.
+    const sideZ=archetype==='cafe' ? -3.57 : -4.03;
+    for(const side of [-1,1]) {
+      const x=side*(3.23 + (variant%2)*.16);
+      cylinder(x,.29,sideZ,.22,.52,'stoneFoundation',9);
+      cylinder(x,.59,sideZ,.30,.14,'timberLight',9);
+      for(const [dx,dy,dz] of [[-.23,.86,-.08],[.17,.93,.11],[0,1.13,-.09]]) {
+        sphere(x+dx,dy,sideZ+dz,.34,.36,.33,variant===2?'deepGreen':'sage',8,5);
+      }
+      for(let k=0;k<7;k++) {
+        const a=k*2.39996+variant*.7;
+        sphere(x+Math.cos(a)*.33,1.12+(k%3)*.14,
+               sideZ+Math.sin(a)*.27,.105,.11,.095,petals,7,4);
+      }
+    }
+
+    if(variant===1 || variant===4) {
+      // Paired hanging paper lanterns over the small timber gate / porch.
+      const z=archetype==='gate' ? -4.73 : -3.28;
+      for(const x of [-1.82,1.82]) {
+        box(x,2.45,z,.042,.30,.042,'woodShade');
+        box(x,2.15,z,.40,.50,.31,'timber');
+        box(x,2.15,z-.171,.28,.38,.024,'warmLight');
+        box(x,2.15,z-.198,.038,.39,.02,'woodShade');
+        box(x,2.15,z-.204,.29,.04,.02,'woodShade');
+        box(x,2.44,z,.47,.09,.35,tileA);
+        box(x,1.89,z,.46,.07,.34,tileA);
+      }
+    }
+    if(variant===2) {
+      // Onggi gathering and a small wooden bench below the roof edge.
+      for(const [x,z,r] of [[-3.10,-4.16,.26],[-2.65,-4.10,.18],[3.09,-4.06,.24]]) {
+        cylinder(x,.40,z,r,.60,'gateWood',10);
+        cylinder(x,.74,z,r*.79,.10,'woodShade',10);
+      }
+      box(2.15,.56,-3.97,1.13,.13,.42,'timberLight');
+      for(const x of [1.68,2.65]) box(x,.29,-3.97,.10,.44,.14,'timber');
+    }
+    if(variant===3) {
+      // Distinctive lattice planter trellis and blossom branches.
+      for(const side of [-1,1]) {
+        const x=side*3.62;
+        for(const y of [.70,1.17,1.63])box(x,y,-3.78,.67,.06,.08,'timberLight');
+        for(const dx of [-.27,.27])box(x+dx,1.11,-3.78,.055,1.26,.09,'timber');
+        sphere(x,1.80,-3.80,.35,.34,.35,'deepGreen',8,5);
+        for(const dx of [-.28,0,.26])
+          sphere(x+dx,2.02,-3.86,.115,.12,.12,'flowerLilac',7,4);
+      }
+    }
+    if(variant===4) {
+      // Decorated windbreak wall and warm wood lattice panels.
+      for(const side of [-1,1]) {
+        const x=side*2.65;
+        for(let j=0;j<3;j++) box(x+(j-1)*.25,1.34,-4.404,.055,.81,.06,'timberLight');
+        box(x,1.55,-4.42,.84,.05,.08,'timber');
+        box(x,1.12,-4.42,.84,.05,.08,'timber');
+      }
+    }
+  }
+
   function facingHanok(seed) {
     timberFrame();
     // Visible porch and paper windows distinguish this from the courtyard homes.
@@ -320,11 +434,12 @@ export function createHanokKit({ box, face, sphere, cylinder, textured, signs })
     stoneWall(3.83,.64,-3.97,1.13);
   }
 
-  function build(type=0) {
-    // Four A, three B, one C per eight seeds: quiet houses dominate, while
-    // a few café/atelier facades anchor memorable places.
+  function build(type=0, detailVariant=0) {
+    // Keep all original residential/café archetypes, but give many houses a
+    // roof-sized, visually distinct upgrade instead of one hard-to-find A01.
     if (type === 100) {
       featureHanok(1);
+      gardenHanok(detailVariant || 1, 'gate');
       return 'a01';
     }
     const style = type % 8;
@@ -332,6 +447,7 @@ export function createHanokKit({ box, face, sphere, cylinder, textured, signs })
     if (archetype==='cafe') cafeHanok(type);
     else if (archetype==='facing') facingHanok(type);
     else gateHanok(type);
+    gardenHanok(detailVariant, archetype);
     return archetype;
   }
   return { build };
