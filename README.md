@@ -53,3 +53,28 @@ Output: `dist/`. Deploy the `dist/` folder to static hosting (Vercel, Cloudflare
 - The 'next neighborhood' vote persists locally, not to a server. Support URL is still blank.
 - Browser screenshot output uses `preserveDrawingBuffer`, which may cost performance.
 - Full visual verification and performance testing on actual Mac/mobile devices are still needed.
+
+
+## v0.6 — Dami companion
+
+- Added **담이**, a friendly calico guardian cat based on the approved character C design direction.
+- `public/guide-cat.svg`: the light-weight illustrated companion portrait.
+- `src/characters/DamiCompanion.js`: original, procedural 3D cat that accompanies the walker in first-person view; no external model/texture dependency.
+- New introduction portrait, in-game guide card, and context-sensitive hints for the six discoverable locations.
+- No changes to the original lanes, exploration movement, the six locations, or the existing hanok meshes.
+
+### Cloudflare Workers deployment
+
+The public Worker is named `walkingkorea` (not a Cloudflare Pages project).
+The repository includes `wrangler.jsonc` with static asset directory `./dist`.
+
+From a local checkout, run:
+
+```bash
+npm install
+npm run build
+npx wrangler login
+npx wrangler deploy
+```
+
+To deploy automatically on pushes, go to **Cloudflare → Workers & Pages → walkingkorea → Settings → Builds → Connect**, authorize `leeyaehun/WalkingKorea`, use the `main` branch, set **build command** `npm run build` and **deploy command** `npx wrangler deploy`. Cloudflare Workers Builds is separate from the GitHub Actions build-only workflow. Until this connection is made (or Wrangler deploy is run), GitHub changes do **not** update the public `workers.dev` site.
