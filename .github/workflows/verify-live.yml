@@ -1,0 +1,27 @@
+name: Verify published WalkingKorea
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  check-live:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check public Cloudflare site for Dami
+        shell: bash
+        run: |
+          set -uo pipefail
+          url="https://walkingkorea.leeyaehun.workers.dev/"
+          html="$(curl -fsSL --retry 2 --connect-timeout 10 --max-time 25 "$url" || true)"
+          if [[ "$html" == *'id="dami-card"'* ]]; then
+            echo "LIVE_CHARACTER=present"
+            echo "✅ Dami is present on the public homepage." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "LIVE_CHARACTER=missing"
+            echo "⚠️ Cloudflare is still serving an earlier game build. GitHub build success does not deploy this Worker." >> "$GITHUB_STEP_SUMMARY"
+          fi
+          response="$(curl -sL -o /dev/null -w '%{http_code}' --max-time 25 "${url}guide-cat.svg" || true)"
+          echo "LIVE_ASSET_STATUS=$response"
+          echo "Avatar asset HTTP: $response" >> "$GITHUB_STEP_SUMMARY"
