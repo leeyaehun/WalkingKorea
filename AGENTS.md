@@ -7,7 +7,7 @@ This repository is a **web-only** project (Three.js + Vite). It is independent o
 ## Before editing
 
 1. Read `README.md`.
-2. For environment/hanok/paths: see `src/world/BukchonWorld.js`.
+2. For environment/paths: see `src/world/BukchonWorld.js`; for hanok shapes: see `src/world/HanokKit.js`.
 3. For player, camera, UI and map: see `src/main.js`.
 4. For styling: see `src/style.css`.
 
