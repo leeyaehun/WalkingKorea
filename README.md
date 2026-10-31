@@ -88,3 +88,11 @@ To deploy automatically on pushes, go to **Cloudflare → Workers & Pages → wa
 - `vite.config.js` builds both site pages.
 - The bespoke custom shader for streets and houses remains untouched; scene lights were added for Dami's PBR materials.
 - Source branches and GitHub CI build output are not live until a separate Cloudflare Worker deployment is completed and verified.
+
+## Dami v0.9 — grounded walking and whole-body performance
+
+- WASD now drives a **four-paw diagonal walk cycle** whose timing advances by actual player displacement, not elapsed seconds.
+- Each paw has stance / swing states, curved footfall trajectory, toe lift, knee/elbow bend and a soft overlapping upper limb.
+- Torso, neckerchief, eyes, head, satchel and tail move as a **single posed character**, while the planted paws move relative to the ground. Subtle lean, diagonal weight shifts, idle breathing and blinks prevent the robotic prototype look.
+- Slower cozy walking speed (1.85 units/sec; Shift 3.35) keeps the stride matched to movement and reduces skating. Camera and map remain separate from playable-character motion.
+- Automated browser QA checks distance-synchronized gait phase, four paws, swing lift, grounded support, stationary settling, character position and camera orbit.
