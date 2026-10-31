@@ -312,12 +312,17 @@ function hillsideBackground(){
  }
 }
 let frontage={count:0,segments:[]};
+let districtFrontage={count:0,segments:[]};
 let streetLife=null;
 function makeWorld(){
  routeFloor();
  housesOnShowcase();
  paths.forEach((p,i)=>housesAlong(p,i));
  frontage=buildFrontageConnectors({houses:houseSites,face,hill,distanceFromPath,mainPath:paths[0]});
+ districtFrontage=buildFrontageConnectors({
+   houses:houseSites,face,hill,distanceFromPath,mainPath:paths[0],
+   paths,district:true
+ });
  streetLife=buildBukchonStreetLife({
    box,face,sphere,cylinder,textured,signs,withFrame,
    hill,houseSites,paths,distanceFromPath
@@ -431,5 +436,5 @@ makeWorld();
   });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.frustumCulled = false;
-  return {mesh,material,paths,hill,distanceFromPath,houseSites,frontage,streetLife,paving,vertexCount:positions.length/3};
+  return {mesh,material,paths,hill,distanceFromPath,houseSites,frontage,districtFrontage,streetLife,paving,vertexCount:positions.length/3};
 }
