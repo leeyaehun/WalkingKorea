@@ -161,7 +161,11 @@ function housesAlong(path,pIndex){
    if(houseSites.some(site=>Math.hypot(site.x-x,site.z-z)<7.7))continue;
    // Negative local Z is the front gate: turn each house toward the lane.
    const angle=Math.atan2(nx*side,-nz*side)+Math.PI;
-   const houseType=(i+pIndex*3+(side===1?2:0))%8;
+   // The first lane-facing residence beside the spawn is the single
+   // Hanok A01 showcase. Keep all other pre-existing house sites untouched.
+   const houseType = pIndex === 0 && houseSites.length === 0 && side === -1
+     ? 100
+     : (i+pIndex*3+(side===1?2:0))%8;
    let archetype='gate';
    withFrame(x,z,angle,()=>{archetype=courtyard(houseType);});
    houseSites.push({x,z,angle,archetype});
