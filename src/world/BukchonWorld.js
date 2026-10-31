@@ -1,6 +1,7 @@
+import { createHanokKit } from './HanokKit.js';
 import * as THREE from 'three';
 
-// Procedural Bukchon geometry retained from v0.3, now represented as a Three.js BufferGeometry.
+// Procedural Bukchon lanes and approved Hanok Set v1 geometry in a Three.js BufferGeometry.
 // This keeps existing lane and hanok shapes intact while allowing later migration to separate meshes.
 export function createBukchonWorld() {
 const TAU=Math.PI*2, clamp=(n,lo,hi)=>Math.max(lo,Math.min(hi,n));
@@ -13,9 +14,10 @@ const C = {
   blue:[.56,.71,.75], dustyBlue:[.46,.61,.69], roof:[.35,.41,.46], street:[.53,.55,.53],
   road:[.48,.51,.50], sidewalk:[.81,.78,.69], yellow:[.97,.81,.49], brown:[.57,.46,.36],
   brick:[.67,.44,.39], lilac:[.70,.65,.76], shadow:[.43,.44,.42], teal:[.31,.59,.59],
-  tileDark:[.23,.29,.33], tileBase:[.30,.37,.41], tileLight:[.39,.45,.47], tileRidge:[.19,.24,.27],
-  timber:[.37,.25,.19], timberLight:[.54,.37,.27], woodShade:[.27,.21,.18], plaster:[.94,.89,.77], paper:[.98,.95,.84],
-  stoneFoundation:[.63,.60,.53], stoneLight:[.76,.74,.66], gateWood:[.42,.30,.23], copper:[.71,.53,.30]
+  tileDark:[.30,.34,.39], tileBase:[.36,.40,.45], tileLight:[.50,.54,.57], tileRidge:[.25,.28,.33],
+  timber:[.49,.32,.22], timberLight:[.65,.44,.30], woodShade:[.30,.22,.18], plaster:[.94,.89,.82], paper:[.98,.95,.87],
+  stoneFoundation:[.73,.69,.63], stoneLight:[.84,.80,.74], gateWood:[.53,.34,.23], copper:[.68,.54,.40],
+  shopDark:[.28,.29,.25], warmGlass:[.71,.57,.41], warmLight:[.92,.72,.44]
 };
 const color=(v)=>Array.isArray(v)?v:C[v]||C.white;
 const positions=[],normals=[],uvs=[],colors=[];
@@ -55,6 +57,8 @@ const signs={
  hangul:tile('서울 산책','#334c4e','#f9edcf',{sub:'SEOUL STROLL'}),
  noentry:tile('천천히 가요','#e4ac82','#523e39',{sub:'SLOW DOWN'}),
  bus:tile('서촌 골목','#f7f1e8','#536b75',{sub:'VILLAGE STOP'}),
+ hanokCafe:tile('차 한 잔','#e9d8b9','#654733',{size:43,border:'#81614a'}),
+ hanokAtelier:tile('작은 공방','#eadbc7','#594b3e',{size:41,border:'#806d58'}),
 };
 // Local building frame: keep traditional building components reusable and let
 // the hill pass continuously underneath houses, gates, trees and courtyards.
@@ -145,169 +149,10 @@ function routeFloor(){
  for(let x=-52;x<55;x+=8)for(let z=-67;z<68;z+=8)groundTile(x+4,z+4,4,(x+z)%3===0?'sage':'muted');
  paths.forEach(ribbon);
 }
-// Bukchon-inspired traditional house visual pass. Geometry is stylized, but the
-// components intentionally follow hanok construction: raised stone stylobate,
-// exposed timber frame, paper lattice doors and curved blue-charcoal tiled roof.
-// Model origin is the centre of a house, front faces the lane at -Z.
-function roofY(x,z,w){
-  const t=Math.min(1,Math.abs(z)/3.75);
-  const corner=Math.pow(Math.min(1,Math.abs(x)/(w*.5)),4);
-  // Shallow ridge, gently rolled tiles, corners lifting at each eave.
-  return 4.08 - .24*t - .72*Math.sin(t*Math.PI*.5) + .29*Math.pow(t,5)*corner;
-}
-function hanokRoof(w,type){
-  const halfX=(w+1.45)*.5;
-  const stripsX=12, stripsZ=8;
-  // Surface starts at the central ridge and runs down to each eave. Fine
-  // longitudinal raised seams suggest traditional convex roof-tile rows.
-  for(const side of [-1,1]){
-    for(let iz=0;iz<stripsZ;iz++){
-      const z0=side*3.75*iz/stripsZ,z1=side*3.75*(iz+1)/stripsZ;
-      for(let ix=0;ix<stripsX;ix++){
-        const x0=-halfX+ix*halfX*2/stripsX,x1=-halfX+(ix+1)*halfX*2/stripsX;
-        const seam=(ix%3===0),col=seam?'tileLight':(ix%3===1?'tileBase':'tileDark');
-        face([x0,roofY(x0,z0,w),z0],[x1,roofY(x1,z0,w),z0],
-             [x1,roofY(x1,z1,w),z1],[x0,roofY(x0,z1,w),z1],[0,1,0],col);
-        // Fine ridges on roof tiles, with a dark line under each course.
-        if(ix%3===0){
-          const x=x0+.045;
-          face([x,roofY(x,z0,w)+.025,z0],[x+.068,roofY(x+.068,z0,w)+.025,z0],
-               [x+.068,roofY(x+.068,z1,w)+.025,z1],[x,roofY(x,z1,w)+.025,z1],
-               [0,1,0],'tileLight');
-        }
-      }
-      if(iz%2===1){
-        for(let ix=0;ix<stripsX;ix++){
-          const x0=-halfX+ix*halfX*2/stripsX,x1=x0+.038;
-          const z=z1-side*.012;
-          face([x0,roofY(x0,z,w)+.022,z],[x1,roofY(x1,z,w)+.022,z],
-               [x1,roofY(x1,z,w)+.038,z+side*.035],[x0,roofY(x0,z,w)+.038,z+side*.035],
-               [0,1,0],'tileDark');
-        }
-      }
-    }
-    // Dark raised eave lip with little exposed tile ends (rounded by segments).
-    for(let j=0;j<stripsX;j++){
-      const x0=-halfX+j*(halfX*2/stripsX),x1=-halfX+(j+1)*(halfX*2/stripsX);
-      const y0=roofY(x0,side*3.75,w),y1=roofY(x1,side*3.75,w);
-      face([x0,y0,side*3.75],[x1,y1,side*3.75],
-           [x1,y1-.12,side*3.86],[x0,y0-.12,side*3.86],
-           [0,0,side],'tileRidge');
-      for(let k=0;k<2;k++){
-        const cx=x0+(k+.5)*(x1-x0)*.5;
-        box(cx,(roofY(cx,side*3.75,w)-.055),side*3.86,.10,.13,.13,'tileDark');
-      }
-    }
-    // Exposed underside and wooden beam under long eaves.
-    box(0,2.93,side*3.37,w+.8,.13,.14,'timber');
-    for(let x=-w*.5+.38;x<w*.5;x+=.86){
-      box(x,2.89,side*3.44,.085,.19,.69,'timberLight');
-    }
-  }
-  // Ridge cap, each short cap tile distinguished by daylight glints.
-  box(0,4.16,0,w+1.55,.17,.30,'tileRidge');
-  for(let x=-halfX+.18;x<halfX;x+=.41){
-    box(x,4.27,0,.28,.085,.37,((Math.round(x*7)&1)===0)?'tileDark':'tileLight');
-  }
-  // End gables: a subdued white triangular infill and curved roof edges.
-  for(const side of [-1,1]){
-    const x=side*(w*.5+.055);
-    const z=3.08;
-    face([x,2.91,-z],[x,2.91,z],[x,4.01,0],[x,4.01,0],[side,0,0],'plaster');
-    box(x,3.00,0,.09,.13,5.70,'timber');
-    for(let zz of [-2.4,-1.2,1.2,2.4]){
-      const yy=roofY(x,zz,w)-.11;
-      box(x,yy-.38,zz,.10,.46,.13,'timberLight');
-    }
-    // Outer verge tiles follow the roof curvature rather than a flat slab.
-    for(const s of [-1,1]){
-      for(let k=0;k<8;k++){
-        const za=s*3.75*k/8,zb=s*3.75*(k+1)/8;
-        const ya=roofY(x,za,w),yb=roofY(x,zb,w);
-        face([x-.12,ya+.035,za],[x+.12,ya+.035,za],
-             [x+.12,yb+.035,zb],[x-.12,yb+.035,zb],[0,1,0],'tileRidge');
-      }
-    }
-  }
-}
-function latticePanel(cx,cy,z,width,height,variant=0){
-  // Paper field, four-sided wooden surround, thin grid and a lower wood sill.
-  box(cx,cy,z,width,height,.09,'timber');
-  box(cx,cy,z-.065,width-.14,height-.14,.024,'paper');
-  for(const x of [cx-width*.5+.05,cx+width*.5-.05])box(x,cy,z-.094,.07,height,.036,'timber');
-  for(const y of [cy-height*.5+.045,cy+height*.5-.045])box(cx,y,z-.09,width,.068,.036,'timber');
-  // Fine wooden cross pieces allow the ivory paper to read as hanji, not glass.
-  const cols=variant===1?3:4,rows=variant===1?5:6;
-  for(let i=1;i<cols;i++)box(cx-width*.5+width*i/cols,cy,z-.102,.025,height-.11,.028,'timberLight');
-  for(let j=1;j<rows;j++)box(cx,cy-height*.5+height*j/rows,z-.104,width-.12,.027,.028,'timberLight');
-  box(cx,cy-height*.5+.20,z-.117,width-.1,.055,.045,'timber');
-}
-function hanok(type=0){
-  const w=6.35+(type%3)*.28;
-  const bodyColor=(type%4===2)?'cream':'plaster';
-  // Pale stacked stone base, projecting plinth and porch timber floor.
-  box(0,.18,0,w+.45,.36,6.40,'stoneFoundation');
-  box(0,.39,-.03,w+.25,.12,6.18,'stoneLight');
-  box(0,1.62,0,w,2.67,5.58,bodyColor);
-  box(0,.43,-3.11,w+.55,.12,1.05,'timberLight');
-  for(let xx=-w*.5+.3;xx<w*.5;xx+=.78)box(xx,.26,-3.21,.045,.15,1.0,'timber');
-  // Legible timber post-and-beam construction instead of plain cream blocks.
-  for(const x of [-w*.5+.12,-w*.25,0,w*.25,w*.5-.12]){
-    box(x,1.69,-2.91,.17,2.70,.22,'timber');
-    box(x,1.63,2.91,.15,2.70,.18,'timber');
-    box(x,.51,-2.91,.24,.19,.26,'stoneFoundation');
-  }
-  box(0,2.87,-2.91,w+.28,.19,.23,'timber');
-  box(0,.55,-2.91,w+.10,.21,.19,'timber');
-  box(0,2.66,-2.97,w+.15,.055,.07,'timberLight');
-  // Central twin door, two full-size lattice windows.
-  latticePanel(0,1.60,-3.032,1.57,2.08,1);
-  box(0,1.58,-3.143,.058,2.03,.04,'woodShade');
-  for(const x of [-.10,.10])sphere(x,1.48,-3.19,.035,.035,.035,'copper',6,3);
-  for(const x of [-1.96,1.96])latticePanel(x,1.70,-3.023,1.45,1.82,0);
-  // Grey roof tiles: real nonflat slopes, dark fascia, upturned corner tips.
-  hanokRoof(w,type);
-  // Street-facing low walls: mix brick foundation, warm plaster and wooden caps.
-  // The gate remains at the centre; you can still look into the hanok courtyard.
-  for(const side of [-1,1]){
-    const x=side*2.53;
-    box(x,.31,-4.48,2.12,.62,.32,'stoneFoundation');
-    box(x,1.12,-4.48,2.12,1.12,.29,bodyColor);
-    box(x,1.75,-4.48,2.23,.14,.40,'tileDark');
-    for(let j=0;j<3;j++){
-      const xx=x-.69+j*.69;
-      box(xx,1.13,-4.655,.045,.9,.035,'stoneLight');
-    }
-  }
-  for(const x of [-3.59,-1.39,1.39,3.59]){
-    box(x,.95,-4.52,.20,1.85,.36,'timber');
-    box(x,.27,-4.52,.30,.31,.38,'stoneFoundation');
-  }
-  // Gate header with understated hanok roof and two engraved vertical leaves.
-  box(0,2.03,-4.53,2.93,.18,.52,'timber');
-  box(0,2.23,-4.53,3.16,.13,.68,'tileRidge');
-  for(const x of [-.72,.72]){
-    box(x,1.04,-4.57,1.32,1.62,.055,'gateWood');
-    box(x,1.08,-4.63,1.14,1.35,.025,'timberLight');
-    for(let j=0;j<4;j++)box(x-.43+j*.285,1.08,-4.66,.024,1.29,.025,'woodShade');
-    for(let j=0;j<3;j++)box(x,.60+j*.49,-4.67,1.09,.029,.026,'woodShade');
-  }
-  for(const x of [-.12,.12])sphere(x,1.09,-4.70,.043,.043,.035,'copper',6,3);
-  // Vary the silhouette subtly, keeping a unified calm Bukchon palette.
-  if(type%3===1){
-    box(-w*.5-.12,1.32,1.00,.23,1.72,3.50,'plaster');
-    box(-w*.5-.14,2.25,1.00,.29,.13,3.68,'tileDark');
-  }
-  if(type%4===0){
-    for(const z of [-1.7,1.55])box(w*.5+.045,1.5,z,.03,1.55,.45,'timber');
-  }
-}
-function courtyard(type){
- // Small walled homes enclosing a view rather than lining an endless street.
- hanok(type);
- if(type%3===0){sphere(-3.0,1.35,-2.6,.62,.68,.55,'sage',7,5);sphere(3,1.7,-3.6,.48,.55,.55,'green',7,5);}
- if(type%4===1){cylinder(2.8,1,-4.25,.27,1.7,'brown');sphere(2.8,2,-4.25,.7,.61,.75,'sage',8,5);}
-}
+// Approved Bukchon Hanok Set v1 (A: wall/gate, B: exposed front, C: café/atelier).
+// Shared primitives preserve hillside alignment and the original mesh renderer.
+const hanokKit=createHanokKit({box,face,sphere,cylinder,textured,signs});
+function courtyard(type){return hanokKit.build(type);}
 const houseSites=[];
 function housesAlong(path,pIndex){
  const pts=path.samples;
@@ -324,8 +169,10 @@ function housesAlong(path,pIndex){
    if(houseSites.some(site=>Math.hypot(site.x-x,site.z-z)<7.7))continue;
    // Negative local Z is the front gate: turn each house toward the lane.
    const angle=Math.atan2(nx*side,-nz*side)+Math.PI;
-   houseSites.push({x,z,angle});
-   withFrame(x,z,angle,()=>courtyard((i+pIndex*3+(side===1?2:0))%8));
+   const houseType=(i+pIndex*3+(side===1?2:0))%8;
+   let archetype='gate';
+   withFrame(x,z,angle,()=>{archetype=courtyard(houseType);});
+   houseSites.push({x,z,angle,archetype});
   }
  }
 }
