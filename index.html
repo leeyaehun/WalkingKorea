@@ -37,6 +37,14 @@
     <div id="reticle" class="reticle">+</div>
     <div id="hint" class="nearby-hint" aria-live="polite"></div>
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <button id="dami-card" type="button" class="dami-card" aria-label="북촌 수호냥이 담이 소개 보기">
+      <img src="/guide-cat.svg" alt="" width="70" height="70">
+      <span class="dami-message">
+        <span class="dami-kicker">YOUR LITTLE GUIDE</span>
+        <strong>수호냥이 담이</strong>
+        <span id="dami-line">천천히 걸어볼까요? 내가 안내할게요.</span>
+      </span>
+    </button>
 
     <footer class="bottom-bar">
       <div class="map-card">
@@ -61,13 +69,14 @@
 
   <div id="intro" class="screen-overlay visible">
     <div class="intro-card">
+      <div class="intro-character"><img src="/guide-cat.svg" alt="북촌 수호냥이 담이" width="104" height="104"><div><strong>반가워요! 저는 담이예요.</strong><span>오늘은 제가 서울 골목을 안내할게요.</span></div></div>
       <div class="intro-kicker"><span class="tiny-flower">✳</span> NO HURRY, JUST SEOUL <span class="tiny-flower">✳</span></div>
       <h2>조금만<br><em>걸어볼까요?</em></h2>
       <p>한옥 담장과 굽은 오르막길.<br>서울의 어느 조용한 오후를 담았어요.</p>
       <button id="start-btn" class="start-button">산책 시작하기 <span>↗</span></button>
       <div class="intro-guide">PC: WASD + 마우스 <span>·</span> 모바일: 화면 터치</div>
     </div>
-    <div class="intro-edge">SEOUL STROLL <span>—</span> VOL. 01 <span>©</span> A PERSONAL WEB EXPERIMENT</div>
+    <div class="intro-edge">SEOUL STROLL <span>—</span> VOL. 06 <span>©</span> A PERSONAL WEB EXPERIMENT</div>
   </div>
 
   <div id="modal" class="modal-backdrop" aria-hidden="true">
@@ -77,7 +86,7 @@
     </section>
   </div>
 
-  <div class="mobile-signature">SEOUL STROLL <span>·</span> VOL.05</div>
+  <div class="mobile-signature">SEOUL STROLL <span>·</span> VOL.06</div>
   <script type="module" src="/src/main.js"></script>
 </body>
 </html>
