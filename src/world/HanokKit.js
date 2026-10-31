@@ -1,0 +1,250 @@
+/**
+ * Bukchon Hanok Set v1 — three street-facing silhouettes.
+ *
+ * Procedural, deliberately low-poly geometry: the supplied primitives use
+ * BukchonWorld's local building frame and hillside adjustment. No purchased
+ * assets or external textures are required.
+ *
+ * Local axes: -Z faces the walking lane, Y is metres above the site's terrain.
+ */
+export function createHanokKit({ box, face, sphere, cylinder, textured, signs }) {
+  const span = 6.25;
+  const eave = 3.54;
+  const roofHalfWidth = (span + 1.28) / 2;
+
+  function roofHeight(x, z) {
+    const t = Math.min(1, Math.abs(z) / eave);
+    const corner = Math.pow(Math.min(1, Math.abs(x) / roofHalfWidth), 3);
+    // A shallow, continuously rolling tiled roof with quietly lifted corners.
+    return 4.00 - 0.16 * t - 0.78 * Math.sin(t * Math.PI * 0.5) + 0.21 * Math.pow(t, 4) * corner;
+  }
+
+  function pitchedRoof() {
+    const columns = 16;
+    const courses = 9;
+    for (const side of [-1, 1]) {
+      for (let row = 0; row < courses; row++) {
+        const z0 = side * eave * row / courses;
+        const z1 = side * eave * (row + 1) / courses;
+        for (let col = 0; col < columns; col++) {
+          const x0 = -roofHalfWidth + col * roofHalfWidth * 2 / columns;
+          const x1 = -roofHalfWidth + (col + 1) * roofHalfWidth * 2 / columns;
+          const tileColor = col % 4 === 0 ? 'tileLight' : col % 4 === 1 ? 'tileBase' : 'tileDark';
+          face([x0, roofHeight(x0,z0), z0], [x1, roofHeight(x1,z0), z0],
+               [x1, roofHeight(x1,z1), z1], [x0, roofHeight(x0,z1), z1], [0,1,0], tileColor);
+          // Raised longitudinal seams suggest convex tile rows without using
+          // separate meshes for every individual roof tile.
+          if (col % 2 === 0) {
+            const seamX = x0 + .035;
+            face([seamX, roofHeight(seamX,z0)+.025,z0], [seamX+.062,roofHeight(seamX+.062,z0)+.025,z0],
+                 [seamX+.062,roofHeight(seamX+.062,z1)+.025,z1], [seamX,roofHeight(seamX,z1)+.025,z1],
+                 [0,1,0], 'tileLight');
+          }
+          // A slight separation line at each overlapping row.
+          if (row % 2 === 0) {
+            const z = z1 - side * .035;
+            face([x0,roofHeight(x0,z)+.012,z], [x1,roofHeight(x1,z)+.012,z],
+                 [x1,roofHeight(x1,z)+.034,z+side*.044], [x0,roofHeight(x0,z)+.034,z+side*.044],
+                 [0,1,0], 'tileRidge');
+          }
+        }
+      }
+      // Thin curled eaves, exposed wooden soffit and evenly spaced rafters.
+      for (let col = 0; col < columns; col++) {
+        const x = -roofHalfWidth + (col+.5) * roofHalfWidth*2/columns;
+        box(x, roofHeight(x,side*eave)-.061, side*(eave+.06), roofHalfWidth*2/columns-.012,.10,.12,'tileRidge');
+        if (col%2===0) box(x,roofHeight(x,side*eave)-.12,side*(eave+.13),.20,.11,.16,'tileLight');
+      }
+      box(0,2.90,side*3.18,span+.75,.13,.15,'timber');
+      for (let x=-3.04;x<=3.05;x+=.72) box(x,2.86,side*3.17,.105,.19,.72,'timberLight');
+    }
+    box(0,4.07,0,span+1.52,.14,.29,'tileRidge');
+    for (let x=-roofHalfWidth+.20;x<roofHalfWidth;x+=.44)
+      box(x,4.16,0,.30,.08,.35,'tileLight');
+
+    // The narrow timber-framed triangular gables stop the building reading as
+    // a floating dark slab, particularly when approached from the side.
+    for (const side of [-1,1]) {
+      const x=side*(span*.5+.07);
+      face([x,2.96,-2.88],[x,2.96,2.88],[x,3.96,0],[x,3.96,0],[side,0,0],'plaster');
+      box(x,2.98,0,.11,.13,5.60,'timber');
+      for (const z of [-2.4,-1.2,0,1.2,2.4]) {
+        const y=roofHeight(x,z)-.16;
+        box(x,y-.20,z,.10,.41,.10,'timberLight');
+      }
+      for (const roofSide of [-1,1]) for(let step=0;step<9;step++) {
+        const z0=roofSide*eave*step/9,z1=roofSide*eave*(step+1)/9;
+        face([x-.09,roofHeight(x,z0)+.04,z0],[x+.09,roofHeight(x,z0)+.04,z0],
+             [x+.09,roofHeight(x,z1)+.04,z1],[x-.09,roofHeight(x,z1)+.04,z1],[0,1,0],'tileRidge');
+      }
+    }
+  }
+
+  function lattice(cx,cy,z,width,height,columns=4,rows=6) {
+    box(cx,cy,z,width,height,.08,'timber');
+    box(cx,cy,z-.055,width-.15,height-.13,.025,'paper');
+    for (const xx of [cx-width*.5+.06,cx+width*.5-.06])
+      box(xx,cy,z-.09,.075,height,.035,'timber');
+    for (const yy of [cy-height*.5+.06,cy+height*.5-.06])
+      box(cx,yy,z-.09,width,.075,.035,'timber');
+    for(let i=1;i<columns;i++)
+      box(cx-width*.5+width*i/columns,cy,z-.104,.031,height-.14,.028,'timberLight');
+    for(let i=1;i<rows;i++)
+      box(cx,cy-height*.5+height*i/rows,z-.108,width-.13,.033,.028,'timberLight');
+    box(cx,cy-height*.5+.20,z-.116,width-.09,.072,.045,'timber');
+  }
+
+  function timberFrame() {
+    // House core is recessed behind a proper open wooden porch.
+    box(0,.18,.22,span+.16,.36,5.36,'stoneFoundation');
+    box(0,.40,.15,span+.10,.12,5.25,'stoneLight');
+    box(0,1.56,.34,span,2.58,4.92,'plaster');
+    box(0,.46,-2.88,span+.32,.15,1.22,'timberLight');
+    for(let x=-3.00;x<=3.01;x+=.60)box(x,.34,-2.96,.045,.10,1.1,'timber');
+    for(const x of [-2.99,-1.52,0,1.52,2.99]) {
+      box(x,1.66,-2.82,.175,2.68,.23,'timber');
+      box(x,1.64,2.72,.14,2.66,.14,'timber');
+      box(x,.54,-2.82,.25,.20,.29,'stoneFoundation');
+      // Under-eave brackets are larger than window grid, so their rhythm
+      // reads clearly at normal walking distance.
+      box(x,2.90,-2.80,.36,.14,.42,'timberLight');
+    }
+    box(0,2.93,-2.81,span+.34,.21,.26,'timber');
+    box(0,.58,-2.85,span+.06,.17,.20,'timber');
+    for(const x of [-2.35,-1.68,-.86,.86,1.68,2.35])
+      box(x,2.72,-2.88,.085,.30,.15,'timberLight');
+    // A pair of paper windows + traditional paired centre door.
+    lattice(-1.93,1.69,-2.94,1.52,1.81,4,5);
+    lattice(1.93,1.69,-2.94,1.52,1.81,4,5);
+    lattice(0,1.60,-2.95,1.54,2.03,3,6);
+    box(0,1.60,-3.065,.042,2.0,.045,'woodShade');
+    for(const x of [-.10,.10])sphere(x,1.47,-3.12,.038,.038,.035,'copper',6,3);
+    // Short steps that make the raised wooden maru accessible from the lane.
+    box(0,.21,-3.57,1.65,.20,.57,'stoneLight');
+    pitchedRoof();
+  }
+
+  function stoneWall(cx, w=2, z=-4.16, height=1.62) {
+    box(cx,.22,z,w+.06,.44,.36,'stoneFoundation');
+    box(cx,.44,z,w+.02,.13,.40,'stoneLight');
+    box(cx,.52+height*.48,z,w,height-.56,.28,'plaster');
+    box(cx,height+.06,z,w+.11,.12,.43,'timber');
+    box(cx,height+.14,z,w+.17,.15,.48,'tileDark');
+    // Irregular low-relief stonework is more readable than a single cube.
+    for(let j=0;j<3;j++){
+      const x=cx-w*.5+.21+j*w*.31;
+      box(x,.24,z-.205,w*.23,.18,.025,j%2?'stoneLight':'stoneFoundation');
+    }
+    for(let j=0;j<4;j++){
+      const x=cx-w*.5+.16+j*w*.25;
+      box(x,height*.55+(j%2)*.21,z-.169,w*.17,.095,.023,'stoneLight');
+    }
+  }
+
+  function sideWall() {
+    for(const xx of [-3.48,3.48]){
+      box(xx,.95,-.35,.28,1.65,7.2,'plaster');
+      box(xx,1.84,-.35,.42,.18,7.3,'tileDark');
+      box(xx,.28,-.35,.36,.50,7.3,'stoneFoundation');
+    }
+  }
+
+  function archedGate() {
+    // Traditional paired gate with a separate, modest roof and lintel.
+    for(const x of [-1.24,1.24]){
+      box(x,1.13,-4.28,.19,2.25,.37,'timber');
+      box(x,.29,-4.28,.30,.40,.42,'stoneFoundation');
+    }
+    box(0,2.27,-4.28,2.76,.19,.39,'timber');
+    box(0,2.48,-4.29,3.11,.14,.78,'tileDark');
+    box(0,2.58,-4.29,2.62,.11,.31,'tileBase');
+    for(let i=0;i<12;i++){
+      const x=-1.43+(i+.5)*2.86/12;
+      box(x,2.55,-4.77,.15,.11,.17,i%3?'tileBase':'tileLight');
+    }
+    for(const xx of [-.57,.57]){
+      box(xx,1.16,-4.42,1.1,1.91,.10,'gateWood');
+      box(xx,1.16,-4.49,.96,1.72,.029,'timberLight');
+      for(let j=0;j<4;j++)box(xx-.34+j*.225,1.17,-4.52,.024,1.65,.026,'woodShade');
+      for(let j=0;j<4;j++)box(xx,.53+j*.42,-4.535,.95,.028,.025,'woodShade');
+    }
+    for(const x of [-.15,.15]){
+      sphere(x,1.23,-4.59,.050,.050,.038,'copper',8,4);
+      sphere(x,1.23,-4.63,.022,.022,.020,'woodShade',8,4);
+    }
+  }
+
+  function planter(x,z,shrub='sage'){
+    box(x,.30,z,.48,.48,.48,'stoneFoundation');
+    box(x,.55,z,.52,.13,.50,'timber');
+    sphere(x,.97,z,.43,.43,.42,shrub,8,5);
+    sphere(x-.16,1.17,z,.23,.22,.22,'green',7,4);
+  }
+
+  function gateHanok(seed) {
+    timberFrame();
+    // Wall-and-gate houses are the dominant pattern in residential Bukchon.
+    stoneWall(-2.53,2.12,-4.21,1.62);
+    stoneWall(2.53,2.12,-4.21,1.62);
+    archedGate();
+    sideWall();
+    if(seed%2===0)planter(3.57,-3.72);
+    if(seed%3===0)planter(-3.56,-3.83,'green');
+  }
+
+  function facingHanok(seed) {
+    timberFrame();
+    // Visible porch and paper windows distinguish this from the courtyard homes.
+    stoneWall(-3.58,.65,-3.88,1.06);
+    stoneWall(3.58,.65,-3.88,1.06);
+    if(seed%2===0) {
+      planter(3.20,-3.47);
+      cylinder(-3.11,.49,-3.44,.25,.72,'stoneFoundation',9);
+    } else {
+      planter(-3.2,-3.55,'green');
+      planter(3.3,-3.56);
+    }
+    box(0,.10,-3.94,2.65,.18,.56,'stoneFoundation');
+  }
+
+  function cafeHanok(seed) {
+    timberFrame();
+    // The recessed, warm entrance and sign are a distinct storefront—not a
+    // residential house with a label pasted over its gate.
+    box(0,1.48,-3.18,2.14,2.18,.065,'shopDark');
+    box(0,1.54,-3.24,1.87,1.91,.032,'warmGlass');
+    for(const x of [-1.0,0,1.0])box(x,1.55,-3.29,.075,2.00,.052,'timber');
+    box(0,2.43,-3.30,2.15,.085,.055,'timber');
+    box(0,.62,-3.31,2.12,.13,.09,'timber');
+    for(const x of [-.65,.65]) sphere(x,1.64,-3.35,.05,.048,.038,'copper',8,4);
+    // The glowing interior is a tint painted into the facade, rather than
+    // an unbounded real light, keeping the static website lightweight.
+    box(0,1.25,-3.365,1.42,.25,.042,'warmLight');
+    const sign = seed%2===0 ? signs.hanokCafe : signs.hanokAtelier;
+    box(0,2.80,-3.25,2.69,.50,.095,'timber');
+    textured(0,2.80,-3.31,2.55,.40,'z',sign);
+    // Café stools, pots and sandwich-board, with restrained visual clutter.
+    planter(-3.35,-3.77);
+    planter(3.28,-3.77,'green');
+    box(2.63,.57,-3.61,.90,.09,.33,'timberLight');
+    for(const x of [2.32,2.94]) box(x,.31,-3.61,.09,.46,.14,'timber');
+    box(-2.73,.91,-3.61,.67,.98,.11,'woodShade');
+    box(-2.73,.94,-3.684,.56,.72,.035,'paper');
+    box(-2.73,.55,-3.66,.79,.08,.20,'timber');
+    for(const x of [-2.98,-2.48]) box(x,.30,-3.57,.09,.43,.1,'timber');
+    // A short retaining-wall end piece keeps the shop in the street rhythm.
+    stoneWall(3.83,.64,-3.97,1.13);
+  }
+
+  function build(type=0) {
+    // Four A, three B, one C per eight seeds: quiet houses dominate, while
+    // a few café/atelier facades anchor memorable places.
+    const style = type % 8;
+    const archetype = style===7 ? 'cafe' : [2,4,6].includes(style) ? 'facing' : 'gate';
+    if (archetype==='cafe') cafeHanok(type);
+    else if (archetype==='facing') facingHanok(type);
+    else gateHanok(type);
+    return archetype;
+  }
+  return { build };
+}
