@@ -88,7 +88,7 @@ export function createGirlSpriteCompanion(scene, hill, camera) {
     console.error('WalkingKorea girl sprite atlas failed to load:', error);
   });
 
-  let heading = Math.PI;
+  let heading = 0;
   let initialized = false;
   let lastX = 0;
   let lastZ = 0;
@@ -130,7 +130,7 @@ export function createGirlSpriteCompanion(scene, hill, camera) {
     root.position.set(x, hill(x, z) + 0.045, z);
     const speed = Math.hypot(vx, vz);
     if (!initialized) {
-      heading = Math.PI;
+      heading = 0;
       lastX = x;
       lastZ = z;
       initialized = true;

@@ -16,15 +16,20 @@ const C = {
   road:[.48,.51,.50], sidewalk:[.81,.78,.69], yellow:[.97,.81,.49], brown:[.57,.46,.36],
   brick:[.67,.44,.39], lilac:[.70,.65,.76], shadow:[.43,.44,.42], teal:[.31,.59,.59],
   tileDark:[.30,.34,.39], tileBase:[.36,.40,.45], tileLight:[.50,.54,.57], tileRidge:[.25,.28,.33],
-  tileIndigo:[.28,.37,.49], tileIndigoLight:[.42,.51,.61],
-  tileJade:[.35,.46,.40], tileJadeLight:[.50,.60,.53],
-  tileInk:[.27,.31,.37], tileInkLight:[.42,.46,.52],
-  tilePlum:[.45,.37,.40], tilePlumLight:[.59,.48,.50],
+  // Four realistic weathered giwa tones, not bright fantasy roof colours.
+  tileIndigo:[.29,.32,.35], tileIndigoLight:[.37,.40,.42],
+  tileJade:[.32,.35,.34], tileJadeLight:[.41,.43,.42],
+  tileInk:[.24,.27,.29], tileInkLight:[.36,.38,.40],
+  tilePlum:[.35,.32,.32], tilePlumLight:[.44,.39,.39],
   flowerCoral:[.93,.59,.53], flowerYellow:[.98,.81,.49], flowerLilac:[.76,.68,.84],
   timber:[.49,.32,.22], timberLight:[.65,.44,.30], woodShade:[.30,.22,.18], plaster:[.94,.89,.82], paper:[.98,.95,.87],
-  stoneFoundation:[.73,.69,.63], stoneLight:[.84,.80,.74], gateWood:[.53,.34,.23], copper:[.68,.54,.40],
+  stoneFoundation:[.70,.68,.65], stoneLight:[.85,.83,.79], gateWood:[.46,.29,.19], copper:[.68,.54,.40],
+  mortar:[.91,.87,.80], stoneMasonry:[.77,.76,.73], stoneWarm:[.84,.79,.73], stoneGrey:[.63,.65,.64],
+  brickTerracotta:[.66,.34,.27], brickWarm:[.75,.41,.31], brickDark:[.55,.30,.27],
+  tileEnd:[.40,.42,.43],
   shopDark:[.28,.29,.25], warmGlass:[.71,.57,.41], warmLight:[.92,.72,.44],
-  paveGrout:[.70,.62,.53],paveJoint:[.74,.68,.60],
+  asphalt:[.37,.40,.41], asphaltPatch:[.41,.43,.43],
+  paveGrout:[.70,.69,.66],paveJoint:[.77,.76,.72],
   paveWarm:[.91,.80,.68],paveCream:[.96,.87,.76],
   paveSand:[.88,.77,.66],paveLight:[.98,.89,.79],
   paveStone:[.86,.77,.70],paveHoney:[.92,.81,.68],
@@ -165,7 +170,9 @@ function housesAlong(path,pIndex){
    if(paths.some(other=>distanceFromPath(x,z,other)<4.75))continue;
    if(houseSites.some(site=>Math.hypot(site.x-x,site.z-z)<7.7))continue;
    // Negative local Z is the front gate: turn each house toward the lane.
-   const angle=Math.atan2(nx*side,-nz*side)+Math.PI;
+   // Local -Z must face FROM the house TOWARD the street. Previously
+   // the sign was reversed: visitors saw the blank backs of the homes.
+   const angle=Math.atan2(nx*side,nz*side);
    // The first lane-facing residence beside the spawn is the single
    // Hanok A01 showcase. Keep all other pre-existing house sites untouched.
    const houseType = pIndex === 0 && houseSites.length === 0 && side === -1
@@ -203,24 +210,43 @@ function laneDecoration(){
  });
 }
 function hillsideBackground(){
- for(let x=-75;x<=75;x+=16){
-  let z=-93-(x%4)*2;
-  sphere(x,11,z,14,11,16,x%3===0?'sage':'green',9,5);
+ // The celebrated Bukchon view: the roofs open toward Seoul's city skyline
+ // and the Namsan tower beyond. This is a stylized silhouette, not exact GIS.
+ // The high lookout is at z~-42, and the road descends toward positive Z.
+ for(let x=-86;x<=86;x+=16) {
+   const z=155+(Math.abs(x)%3)*4;
+   const height=9+3*Math.cos(x*.04);
+   sphere(x,height,z,20,height+2,19,x%3===0?'deepGreen':'sage',9,5);
  }
- // This south-facing landmark is deliberately a far-off silhouette. A detailed
- // N Seoul Tower model will be a separate visual pass.
- const sx=17,sz=146;
- for(let i=-8;i<=8;i++){
-   let x=i*10-3,h=8+(i%4+4)%4*3;
-   box(x,h*.5,125,8,h,7,'dustyBlue');
+ // Nearest skyline rows: alternate pale concrete and warm stone to resemble
+ // the layered urban landscape visible between residential rooflines.
+ for(let row=0;row<3;row++) {
+   for(let i=-9;i<=9;i++) {
+     const x=i*9+(row%2)*4;
+     const z=99+row*14;
+     const height=7+((Math.abs(i*17+row*11))%6)*2.8;
+     const tone=(i+row)%4===0?'stoneLight':(i+row)%3===0?'dustyBlue':'beige';
+     box(x,height*.5,z,6.2,height,6.8,tone);
+     // A few subtle stacked window rhythms catch the light.
+     if(row<2 && i%2===0) {
+       for(let wy=4;wy<height-1;wy+=2.5)
+         for(let wx of [-1.7,0,1.7])
+           box(x+wx,wy,z-3.46,.58,.88,.045,'shadow');
+     }
+   }
  }
- cylinder(sx,31,sz,1.12,39,'roof',9);
- cylinder(sx,50,sz,4.4,4.6,'offwhite',10);
- cylinder(sx,53,sz,2.2,3.5,'roof',9);
- cylinder(sx,64,sz,.35,20,'dark',7);
- for(let i=0;i<10;i++){
-  const x=rand(-80,80),z=rand(-135,-40),y=rand(25,38);
-  sphere(x,y,z,rand(4,9),1.1,3.4,'cream',8,4);
+ // N Seoul Tower as a recognizable landmark above its dark green hill.
+ const tx=17,tz=153;
+ sphere(tx,16,tz,30,14,23,'deepGreen',12,6);
+ cylinder(tx,35,tz,1.24,39,'stoneLight',11);
+ cylinder(tx,54,tz,4.6,4.9,'offwhite',12);
+ cylinder(tx,57.1,tz,2.6,2.7,'roof',12);
+ cylinder(tx,67,tz,.43,20,'dark',8);
+ cylinder(tx,78.5,tz,.20,3.5,'brickTerracotta',7);
+ // Soft high clouds, well beyond the route.
+ for(let i=0;i<10;i++) {
+   const x=rand(-88,88),z=rand(165,200),y=rand(30,42);
+   sphere(x,y,z,rand(4,10),1.2,3.6,'cream',8,4);
  }
 }
 function makeWorld(){routeFloor();paths.forEach((p,i)=>housesAlong(p,i));laneDecoration();hillsideBackground();}
@@ -242,7 +268,7 @@ makeWorld();
     uniforms: {
       uAtlas: {value:texture},
       uNight: {value:0},
-      uFogColor: {value:new THREE.Color().setRGB(.72,.78,.76)}
+      uFogColor: {value:new THREE.Color().setRGB(.79,.78,.75)}
     },
     vertexShader: `
       varying vec2 vUV;

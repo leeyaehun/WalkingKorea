@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
-    "build": "vite build",
-    "preview": "vite preview --host 0.0.0.0"
+    "build": "npm run test:art && vite build",
+    "preview": "vite preview --host 0.0.0.0",
+    "test:art": "node --test tests/hanok-a01.test.js tests/neighborhood-movement.test.js tests/bukchon-authentic-street.test.js"
   },
   "dependencies": {
     "three": "^0.181.0"

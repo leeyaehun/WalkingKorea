@@ -454,7 +454,7 @@ export function createDamiCompanion(scene, hill) {
   fill.position.set(4,4,-2);
   scene.add(ambient,sun,fill);
 
-  let heading=Math.PI;
+  let heading=0;
   let initialized=false;
   let lastX=0,lastZ=0;
 
@@ -464,7 +464,7 @@ export function createDamiCompanion(scene, hill) {
     root.position.set(x,hill(x,z)+.04,z);
     const speed=Math.hypot(vx,vz);
     if(!initialized) {
-      heading=Math.PI;
+      heading=0;
       lastX=x;lastZ=z;
       root.rotation.y=heading;
       initialized=true;
