@@ -11,4 +11,5 @@ jobs:
         with:
           node-version: '22'
       - run: npm install --no-audit --no-fund
+      - run: node --test tests/hanok-a01.test.js tests/neighborhood-movement.test.js
       - run: npm run build

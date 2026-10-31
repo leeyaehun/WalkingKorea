@@ -3,6 +3,7 @@ import { createBukchonWorld } from './world/BukchonWorld.js';
 import { createDamiCompanion } from './characters/DamiCompanion.js';
 import { createGirlSpriteCompanion } from './characters/GirlSprite.js';
 import { createThirdPersonCamera } from './controllers/ThirdPersonCamera.js';
+import { cameraRelativeDirection } from './controllers/MovementDirections.js';
 
 const $ = (id) => document.getElementById(id);
 const canvas = $('world');
@@ -63,7 +64,35 @@ const locations=[
  {id:'view',name:'북촌 전망길',detail:'언덕 위에서 작은 한옥 지붕들이 겹쳐 보이는 전망 포인트예요.',x:-3,z:-42},
 ];
 const toMap=(x,z)=>[clamp(8+(x+36)*2.12,2,168),clamp(5+(48-z)*1.19,2,123)];
-function drawMapLanes(){const root=$('map-roads'),ns='http://www.w3.org/2000/svg';for(const route of paths){const pl=document.createElementNS(ns,'polyline');pl.setAttribute('points',route.samples.map(p=>toMap(p[0],p[1]).join(',')).join(' '));pl.setAttribute('fill','none');pl.setAttribute('stroke','#fffaf0');pl.setAttribute('stroke-width',String(route.width*2.12));pl.setAttribute('stroke-linecap','round');pl.setAttribute('stroke-linejoin','round');root.appendChild(pl);}}
+function drawMapLanes(){
+ const root=$('map-roads'),ns='http://www.w3.org/2000/svg';
+ for(const route of paths){
+  const pl=document.createElementNS(ns,'polyline');
+  pl.setAttribute('points',route.samples.map(p=>toMap(p[0],p[1]).join(',')).join(' ');
+  pl.setAttribute('fill','none');
+  pl.setAttribute('stroke','#fffaf0');
+  pl.setAttribute('stroke-width',String(route.width*2.12));
+  pl.setAttribute('stroke-linecap','round');
+  pl.setAttribute('stroke-linejoin','round');
+  root.appendChild(pl);
+ }
+ for(const site of houseSites){
+  if(!site.decorated)continue;
+  const [cx,cy]=toMap(site.x,site.z);
+  const marker=document.createElementNS(ns,'circle');
+  marker.setAttribute('cx',String(cx));
+  marker.setAttribute('cy',String(cy));
+  marker.setAttribute('r',site.archetype==='a01'?'3.25':'2.4');
+  marker.setAttribute('fill',site.archetype==='a01'?'#b95e4c':'#d98d9b');
+  marker.setAttribute('stroke','#fff6e8');
+  marker.setAttribute('stroke-width','0.75');
+  marker.setAttribute('data-hanok-variant',String(site.detailVariant));
+  const tooltip=document.createElementNS(ns,'title');
+  tooltip.textContent=site.archetype==='a01'?'한옥 A01':'꽃과 기와가 꾸며진 한옥';
+  marker.appendChild(tooltip);
+  root.appendChild(marker);
+ }
+}
 drawMapLanes();
 function mapUpdate(){const spot=$('player-spot');const [px,py]=toMap(state.x,state.z);spot.setAttribute('cx',String(clamp(px,3,167)));spot.setAttribute('cy',String(clamp(py,3,122)));$('discovery-count').textContent=`${discovered.size} / ${locations.length}`;
  $('compass-label').textContent=['N','NE','E','SE','S','SW','W','NW'][Math.round(((state.yaw%TAU+TAU)%TAU)/(TAU/8))%8];$('compass-needle').style.transform=`rotate(${state.yaw}rad)`;}
@@ -135,8 +164,7 @@ function move(dt){if(!state.started||state.modal)return;
  let strafe=(keys.has('KeyD')||keys.has('ArrowRight')?1:0)-(keys.has('KeyA')||keys.has('ArrowLeft')?1:0);
  forward+=-touchInput.y;strafe+=touchInput.x;
  let length=Math.hypot(forward,strafe);if(length>1){forward/=length;strafe/=length;}
- const dx=Math.sin(state.yaw)*forward+Math.cos(state.yaw)*strafe;
- const dz=-Math.cos(state.yaw)*forward+Math.sin(state.yaw)*strafe;
+ const {dx,dz}=cameraRelativeDirection(forward,strafe,state.yaw);
  const speed=(keys.has('ShiftLeft')||keys.has('ShiftRight')?3.35:1.85);
  const lerp=1-Math.exp(-dt*10);state.vx+=(dx*speed-state.vx)*lerp;state.vz+=(dz*speed-state.vz)*lerp;
  const nx=state.x+state.vx*dt,nz=state.z+state.vz*dt;
@@ -161,7 +189,7 @@ window.addEventListener('keydown',e=>{
  if(e.repeat)return;
  if(e.code==='KeyE')interact();if(e.code==='KeyN')toggleTime();if(e.code==='KeyP')savePhoto();if(e.code==='KeyH')showHelp();
 });window.addEventListener('keyup',e=>keys.delete(e.code));window.addEventListener('blur',()=>{keys.clear();touchInput.x=touchInput.y=0;});
-$('start-btn').onclick=()=>{state.started=true;document.body.classList.add('playing');$('intro').classList.remove('visible');if(touchDevice){$('touch-ui').setAttribute('aria-hidden','false');}toast(state.avatar==='dami'?'담이와 함께 걸어보자. ✳':'서울 산책자와 북촌 돌길을 걸어보자. ✳',3500);};
+$('start-btn').onclick=()=>{state.started=true;document.body.classList.add('playing');$('intro').classList.remove('visible');if(touchDevice){$('touch-ui').setAttribute('aria-hidden','false');}toast('미니맵의 분홍 점을 따라가면 꾸며진 한옥을 볼 수 있어요. ✿',4400);};
 function toggleTime(){state.night=!state.night;$('toggle-time').textContent=state.night?'☀':'☾';toast(state.night?'조용한 서울의 저녁이에요.':'햇살이 돌아왔어요.');}
 $('toggle-time').onclick=toggleTime;
 // Synthesized ambience avoids third-party sound/licensing dependencies. WebAudio begins after click.
@@ -210,6 +238,7 @@ if(new URLSearchParams(location.search).has('qa')) {
     velocity:[state.vx,state.vz],
     avatar:avatars[state.avatar].snapshot(),selectedAvatar:state.avatar,
     paving,camera:followCamera.snapshot(),
+    decoratedHouses:houseSites.filter(site=>site.decorated).length, houses:houseSites.length,
     viewYaw:state.yaw,started:state.started
   });
 }

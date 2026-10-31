@@ -16,6 +16,11 @@ const C = {
   road:[.48,.51,.50], sidewalk:[.81,.78,.69], yellow:[.97,.81,.49], brown:[.57,.46,.36],
   brick:[.67,.44,.39], lilac:[.70,.65,.76], shadow:[.43,.44,.42], teal:[.31,.59,.59],
   tileDark:[.30,.34,.39], tileBase:[.36,.40,.45], tileLight:[.50,.54,.57], tileRidge:[.25,.28,.33],
+  tileIndigo:[.28,.37,.49], tileIndigoLight:[.42,.51,.61],
+  tileJade:[.35,.46,.40], tileJadeLight:[.50,.60,.53],
+  tileInk:[.27,.31,.37], tileInkLight:[.42,.46,.52],
+  tilePlum:[.45,.37,.40], tilePlumLight:[.59,.48,.50],
+  flowerCoral:[.93,.59,.53], flowerYellow:[.98,.81,.49], flowerLilac:[.76,.68,.84],
   timber:[.49,.32,.22], timberLight:[.65,.44,.30], woodShade:[.30,.22,.18], plaster:[.94,.89,.82], paper:[.98,.95,.87],
   stoneFoundation:[.73,.69,.63], stoneLight:[.84,.80,.74], gateWood:[.53,.34,.23], copper:[.68,.54,.40],
   shopDark:[.28,.29,.25], warmGlass:[.71,.57,.41], warmLight:[.92,.72,.44],
@@ -144,7 +149,7 @@ function routeFloor(){
 // Approved Bukchon Hanok Set v1 (A: wall/gate, B: exposed front, C: café/atelier).
 // Shared primitives preserve hillside alignment and the original mesh renderer.
 const hanokKit=createHanokKit({box,face,sphere,cylinder,textured,signs});
-function courtyard(type){return hanokKit.build(type);}
+function courtyard(type,detailVariant=0){return hanokKit.build(type,detailVariant);}
 const houseSites=[];
 function housesAlong(path,pIndex){
  const pts=path.samples;
@@ -166,9 +171,16 @@ function housesAlong(path,pIndex){
    const houseType = pIndex === 0 && houseSites.length === 0 && side === -1
      ? 100
      : (i+pIndex*3+(side===1?2:0))%8;
+   // Stable, varied decorations: keep houses familiar after a reload.
+   // Force the first few visible houses into different enhanced appearances,
+   // then decorate ~80% of the remaining sites using deterministic seeds.
+   const detailVariant = houseSites.length < 8
+     ? houseSites.length % 4 + 1
+     : (i * 17 + pIndex * 7 + (side === 1 ? 1 : 3)) % 5;
    let archetype='gate';
-   withFrame(x,z,angle,()=>{archetype=courtyard(houseType);});
-   houseSites.push({x,z,angle,archetype});
+   withFrame(x,z,angle,()=>{archetype=courtyard(houseType,detailVariant);});
+   houseSites.push({x,z,angle,archetype,detailVariant,
+     decorated: houseType === 100 || detailVariant > 0});
   }
  }
 }
