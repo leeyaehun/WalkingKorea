@@ -181,13 +181,15 @@ export function createDamiModel() {
   // Tiny cheek pads give the muzzle depth while preserving large eye spacing.
   orb(headPivot,M.ivory,[-.085,-.198,.330],[.119,.071,.047],32);
   orb(headPivot,M.ivory,[.085,-.198,.330],[.119,.071,.047],32);
-  // Brown, wet-look eye lenses with black pupils and light catchlights.
+  // Both eyes blink in sync, rather than being static spheres all the time.
+  const expressiveEyes=[];
   for(const sign of [-1,1]){
     const x=sign*.158;
     const eye=orb(headPivot,M.iris,[x,-.030,.391],[.079,.111,.032],34);
-    orb(headPivot,M.dark,[x+.005,-.032,.423],[.057,.088,.020],30);
-    orb(headPivot,M.shine,[x-.022,.021,.447],[.024,.028,.013],18);
+    const pupil=orb(headPivot,M.dark,[x+.005,-.032,.423],[.057,.088,.020],30);
+    const glint=orb(headPivot,M.shine,[x-.022,.021,.447],[.024,.028,.013],18);
     orb(headPivot,M.flowerCenter,[x+.028,-.089,.444],[.012,.014,.009],12);
+    expressiveEyes.push({eye,pupil,glint});
     const cheek=orb(headPivot,M.peach,[sign*.284,-.164,.280],[.064,.029,.012],30);
     cheek.rotation.z=sign*.10;
     // Ear-to-cheek whiskers carefully curved, not stiff spikes.
@@ -351,6 +353,14 @@ export function createDamiModel() {
     tailPivot.rotation.y=Math.sin(t*2.1)*(.16+.22*movementBlend);
     tailPivot.rotation.z=Math.sin(t*1.7+.9)*.085+movementBlend*.065*sway;
     bagPivot.rotation.z=.08+movementBlend*.045*Math.sin(stridePhase-.4);
+    // Blink softly every few seconds, while keeping the main facial form.
+    const blink=Math.pow(Math.max(0,Math.sin(t*.71+.35)),88);
+    const eyeOpen=1-.91*blink;
+    for(const {eye,pupil,glint} of expressiveEyes) {
+      eye.scale.y=.111*eyeOpen;
+      pupil.scale.y=.088*eyeOpen;
+      glint.scale.y=.028*eyeOpen;
+    }
 
     // Each diagonal pair alternates. While a paw is in stance it moves
     // backward relative to the moving torso to stay near its world footfall.
