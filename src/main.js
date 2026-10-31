@@ -17,7 +17,7 @@ const {mesh,material,paths,hill,distanceFromPath,houseSites,vertexCount} = creat
 scene.add(mesh);
 const dami=createDamiCompanion(scene,hill);
 
-const state={x:0,z:42,yaw:0,pitch:-.34,vy:0,vx:0,vz:0,night:false,running:false,started:false,modal:false,helpViewed:false,mute:true,elapsed:0,walked:0,quality:1};
+const state={x:0,z:42,yaw:0,pitch:-.22,vy:0,vx:0,vz:0,night:false,running:false,started:false,modal:false,helpViewed:false,mute:true,elapsed:0,walked:0,quality:1};
 const keys=new Set();let lastFrame=0,lastMap=0,lastToast=0,nearSpot=null,stepPhase=0;
 const memoryStore={};
 const safeStore={getItem(k){try{return window.localStorage.getItem(k)}catch(e){return memoryStore[k]||null}},setItem(k,v){try{window.localStorage.setItem(k,v)}catch(e){memoryStore[k]=v}}};
@@ -112,7 +112,7 @@ window.addEventListener('keydown',e=>{
  if(e.repeat)return;
  if(e.code==='KeyE')interact();if(e.code==='KeyN')toggleTime();if(e.code==='KeyP')savePhoto();if(e.code==='KeyH')showHelp();
 });window.addEventListener('keyup',e=>keys.delete(e.code));window.addEventListener('blur',()=>{keys.clear();touchInput.x=touchInput.y=0;});
-$('start-btn').onclick=()=>{state.started=true;$('intro').classList.remove('visible');if(touchDevice){$('touch-ui').setAttribute('aria-hidden','false');}toast('이제 내가 담이야! WASD로 골목을 걸어보자. ✳',3500);};
+$('start-btn').onclick=()=>{state.started=true;document.body.classList.add('playing');$('intro').classList.remove('visible');if(touchDevice){$('touch-ui').setAttribute('aria-hidden','false');}toast('이제 내가 담이야! WASD로 골목을 걸어보자. ✳',3500);};
 function toggleTime(){state.night=!state.night;$('toggle-time').textContent=state.night?'☀':'☾';toast(state.night?'조용한 서울의 저녁이에요.':'햇살이 돌아왔어요.');}
 $('toggle-time').onclick=toggleTime;
 // Synthesized ambience avoids third-party sound/licensing dependencies. WebAudio begins after click.
@@ -131,7 +131,7 @@ function resize() {
 window.addEventListener('resize',resize);
 resize();
 function render(time=0) {
-  const dt=Math.min(.06,Math.max(.001,(time-lastFrame)/1000||.016));
+  const dt=Math.min(.12,Math.max(.001,(time-lastFrame)/1000||.016));
   lastFrame=time;
   state.elapsed+=dt;
   move(dt);
