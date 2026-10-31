@@ -1,0 +1,40 @@
+name: Package inspected Dami build
+on:
+  push:
+    branches:
+      - feature/dami-3d-turnaround-v07
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  bundle-static-site:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Compile production site
+        run: |
+          npm install --no-audit --no-fund
+          npm run build
+      - name: Validate both pages
+        run: |
+          test -s dist/index.html
+          test -s dist/character.html
+          grep -q 'src=' dist/character.html
+          test -s dist/guide-cat.svg
+      - name: Publish source-readable build output to isolated branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/dami-compiled
+          cp -R dist/. /tmp/dami-compiled/
+          git switch --orphan compiled-dami-v07
+          git rm -rf . >/dev/null
+          cp -R /tmp/dami-compiled/. .
+          git add -A
+          git -c user.name='WalkingKorea Build Bot' -c user.email='actions@users.noreply.github.com' commit -m "Build Dami 3D v0.7 from ${GITHUB_SHA}" >/dev/null
+          git push origin HEAD:refs/heads/deploy/compiled-dami-v07 --force
