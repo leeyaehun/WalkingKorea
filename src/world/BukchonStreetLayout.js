@@ -27,9 +27,9 @@ export function scenicHillLift(z) {
 }
 
 /**
- * Signed side -1 east / +1 west for main route directed from lower z+55
- * toward upper z-44. These positions leave a junction view gap around
- * the east craft lane (z~-24) and west wall lane (z~-14).
+ * Signed side -1 = west, +1 = east (main route runs toward negative Z).
+ * Keep an intentional gap on the east near the craft-road junction z~-24,
+ * and on the west near the quieter wall-lane junction z~-14.
  */
 export const SCENIC_HOUSE_ROWS=[
   {z:-41.2,side:-1,setback:.29,type:100,variant:1},
@@ -37,13 +37,11 @@ export const SCENIC_HOUSE_ROWS=[
   {z:-33.1,side:-1,setback:.22,type:2,variant:2},
   {z:-30.3,side: 1,setback:.52,type:0,variant:3},
   {z:-25.0,side:-1,setback:.38,type:4,variant:3},
-  {z:-22.4,side: 1,setback:.25,type:7,variant:1},
-  // East entrance to the craft lane is left unobstructed here.
-  {z:-17.1,side: 1,setback:.39,type:1,variant:4},
-  {z:-14.0,side:-1,setback:.26,type:6,variant:4},
-  // West entrance to the wall lane is left unobstructed here.
-  {z:-8.5,side:-1,setback:.33,type:3,variant:1},
-  {z:-6.0,side: 1,setback:.42,type:2,variant:2}
+  // East-facing house at -24 intentionally omitted: visible branch entrance.
+  {z:-17.6,side: 1,setback:.39,type:1,variant:4},
+  // West-facing house at -14 intentionally omitted: visible branch entrance.
+  {z:-9.2,side: 1,setback:.34,type:7,variant:1},
+  {z:-8.1,side:-1,setback:.33,type:3,variant:1},
 ];
 
 export function sampleMainLaneAtZ(samples,z) {
