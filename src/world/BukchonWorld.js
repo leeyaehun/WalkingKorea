@@ -3,6 +3,7 @@ import { buildPavedAlleys } from './BukchonPaving.js';
 import {mainLaneWidth,scenicHillLift,scenicHouseSites} from './BukchonStreetLayout.js';
 import {buildFrontageConnectors} from './BukchonFrontage.js';
 import * as THREE from 'three';
+import {surfaceMaterialId,surfaceCoordinates,MATERIAL_GLSL} from './BukchonMaterials.js';
 
 // Procedural Bukchon lanes and approved Hanok Set v1 geometry in a Three.js BufferGeometry.
 // This keeps existing lane and hanok shapes intact while allowing later migration to separate meshes.
@@ -40,7 +41,7 @@ const C = {
   drainIron:[.50,.47,.43],drainGrill:[.69,.64,.56]
 };
 const color=(v)=>Array.isArray(v)?v:C[v]||C.white;
-const positions=[],normals=[],uvs=[],colors=[];
+const positions=[],normals=[],uvs=[],colors=[],materialIds=[],surfaceUVs=[];
 const atlasSize=2048,atlas=document.createElement('canvas');atlas.width=atlas.height=atlasSize;
 const ctx=atlas.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,atlasSize,atlasSize);
 let tileX=4,tileY=4,rowH=0;
@@ -92,9 +93,18 @@ function withFrame(x,z,angle,fn,{level=false}={}){
 function transformPoint(p){if(!activeFrame)return p;const f=activeFrame,X=f.x+p[0]*f.c-p[2]*f.s,Z=f.z+p[0]*f.s+p[2]*f.c;return [X,p[1]+(f.level?f.baseY:hill(X,Z)),Z];}
 function transformNormal(n){if(!activeFrame)return n;const f=activeFrame;return [n[0]*f.c-n[2]*f.s,n[1],n[0]*f.s+n[2]*f.c];}
 function face(a,b,c,d,n,col,tex=whiteUV){
+  // Material projection is performed in the unrotated local frame before
+  // the terrain transform. Surface grain stays the same scale on every home.
+  const id=surfaceMaterialId(col);
+  const projected=[a,b,c,d].map(p=>surfaceCoordinates(p,n));
+  const localUV=[projected[0],projected[1],projected[2],
+                 projected[0],projected[2],projected[3]];
   a=transformPoint(a);b=transformPoint(b);c=transformPoint(c);d=transformPoint(d);n=transformNormal(n);
   const p=[a,b,c,a,c,d],u=[[tex[0],tex[3]],[tex[2],tex[3]],[tex[2],tex[1]],[tex[0],tex[3]],[tex[2],tex[1]],[tex[0],tex[1]]];
-  for(let i=0;i<6;i++){positions.push(...p[i]);normals.push(...n);uvs.push(...u[i]);colors.push(...color(col));}
+  for(let i=0;i<6;i++){
+    positions.push(...p[i]);normals.push(...n);uvs.push(...u[i]);
+    colors.push(...color(col));materialIds.push(id);surfaceUVs.push(...localUV[i]);
+  }
 }
 function box(x,y,z,w,h,d,col){
   const X=x-w/2,X2=x+w/2,Y=y-h/2,Y2=y+h/2,Z=z-d/2,Z2=z+d/2;
@@ -285,6 +295,8 @@ makeWorld();
   geometry.setAttribute('normal', new THREE.Float32BufferAttribute(normals,3));
   geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs,2));
   geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors,3));
+  geometry.setAttribute('materialId', new THREE.Float32BufferAttribute(materialIds,1));
+  geometry.setAttribute('surfaceUV', new THREE.Float32BufferAttribute(surfaceUVs,2));
 
   const texture = new THREE.CanvasTexture(atlas);
   texture.colorSpace = THREE.SRGBColorSpace;
@@ -299,11 +311,17 @@ makeWorld();
       uFogColor: {value:new THREE.Color().setRGB(.79,.78,.75)}
     },
     vertexShader: `
+      attribute float materialId;
+      attribute vec2 surfaceUV;
       varying vec2 vUV;
+      varying vec2 vSurfaceUV;
+      varying float vSurfaceId;
       varying vec3 vColor;
       varying float vLight;
       varying float vDistance;
       void main() {
+        vSurfaceUV = surfaceUV;
+        vSurfaceId = materialId;
         vec4 viewPos = modelViewMatrix * vec4(position,1.0);
         gl_Position = projectionMatrix * viewPos;
         vDistance = length(viewPos.xyz);
@@ -315,17 +333,23 @@ makeWorld();
       }
     `,
     fragmentShader: `
-      precision mediump float;
+      precision highp float;
       uniform sampler2D uAtlas;
       uniform float uNight;
       uniform vec3 uFogColor;
       varying vec2 vUV;
+      varying vec2 vSurfaceUV;
+      varying float vSurfaceId;
       varying vec3 vColor;
       varying float vLight;
       varying float vDistance;
+      ${MATERIAL_GLSL}
       void main() {
         vec4 tex = texture2D(uAtlas,vUV);
-        vec3 lit = tex.rgb * vColor * vLight;
+        // Texture-like surface response without external images. Existing
+        // labels keep their UVs in the original 2048px sign atlas.
+        vec3 finish=bukchonMaterial(vSurfaceUV,vSurfaceId);
+        vec3 lit = tex.rgb * vColor * finish * vLight;
         vec3 dusk = lit * vec3(.67,.73,.87) + vec3(.025,.033,.056);
         vec3 col = mix(lit,dusk,uNight);
         // Keep Seoul's distant hill and Namsan landmark legible while
