@@ -337,12 +337,12 @@ export function createHanokKit({ box, face, sphere, cylinder, textured, signs })
       cylinder(x,.29,sideZ,.22,.52,'stoneFoundation',9);
       cylinder(x,.59,sideZ,.30,.14,'timberLight',9);
       for(const [dx,dy,dz] of [[-.23,.86,-.08],[.17,.93,.11],[0,1.13,-.09]]) {
-        sphere(x+dx,dy,sideZ+dz,.34,.36,.33,variant===2?'deepGreen':'sage',8,5);
+        sphere(x+dx,dy,sideZ+dz,.34,.36,.33,variant===2?'deepGreen':'sage',6,3);
       }
-      for(let k=0;k<7;k++) {
+      for(let k=0;k<5;k++) {
         const a=k*2.39996+variant*.7;
         sphere(x+Math.cos(a)*.33,1.12+(k%3)*.14,
-               sideZ+Math.sin(a)*.27,.105,.11,.095,petals,7,4);
+               sideZ+Math.sin(a)*.27,.105,.11,.095,petals,6,3);
       }
     }
 
