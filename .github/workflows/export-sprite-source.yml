@@ -1,0 +1,20 @@
+name: Export WalkingKorea source for 2.5D preview
+on:
+  push:
+    branches: [feature/girl-sprites-25d-20261031]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Bundle exact current source
+        run: |
+          mkdir -p export
+          tar --exclude='./.git' --exclude='./export' -czf export/walkingkorea-base-source.tar.gz .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: walkingkorea-source-for-sprite-preview
+          path: export/walkingkorea-base-source.tar.gz
