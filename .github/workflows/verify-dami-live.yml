@@ -1,0 +1,32 @@
+name: Verify live Dami 3D release
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  smoke-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check homepage, character studio and bundled 3D code
+        shell: bash
+        run: |
+          set -euo pipefail
+          site="https://walkingkorea.leeyaehun.workers.dev"
+          curl -fsSL --retry 3 --retry-delay 2 -D /tmp/headers "$site/" -o /tmp/home.html
+          grep -q '0.7.0' /tmp/headers
+          grep -q 'id="dami-card"' /tmp/home.html
+          grep -q '/character.html' /tmp/home.html
+          curl -fsSL --retry 3 --retry-delay 2 "$site/character.html" -o /tmp/character.html
+          grep -q 'data-angle="180"' /tmp/character.html
+          grep -q 'id="viewer"' /tmp/character.html
+          js_file="$(grep -o '/assets/character-[A-Za-z0-9_-]*.js' /tmp/character.html | head -1)"
+          test -n "$js_file"
+          curl -fsSL --retry 3 --retry-delay 2 "$site$js_file" -o /tmp/character.js
+          test "$(wc -c </tmp/character.js)" -gt 10000
+          echo '✅ WalkingKorea v0.7 homepage, 360° viewer, and game code are public.' >> "$GITHUB_STEP_SUMMARY"
+          echo "LIVE_HOME=OK"
+          echo "LIVE_STUDIO=OK"
+          echo "LIVE_VIEWER_JS=OK"
+          echo "JS_BYTES=$(wc -c </tmp/character.js)"
