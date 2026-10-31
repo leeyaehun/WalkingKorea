@@ -47,6 +47,8 @@ function selectAvatar(kind,{announce=false}={}){
  if($('intro-character-name'))$('intro-character-name').textContent=kind==='dami'?'오늘은 담이가 되어볼까요?':'오늘은 서울 산책자가 되어볼까요?';
  if($('intro-character-description'))$('intro-character-description').textContent=profile.hello;
  if($('intro-avatar-portrait'))$('intro-avatar-portrait').src=profile.image;
+ const preview=$('avatar-preview-link');
+ if(preview)preview.href=kind==='girl'?'/girl.html':'/character.html';
  if($('walker-keys'))$('walker-keys').textContent=kind==='dami'?'W A S D 담이 걷기 · 마우스 카메라 · E 둘러보기':'W A S D 걷기 · 마우스 카메라 · E 둘러보기';
  updateDamiGuide();
  if(announce&&state.started)toast(profile.name+'로 변경했어요. ✳');
