@@ -1,0 +1,42 @@
+name: Preview WalkingKorea girl 2.5D sprites
+on:
+  push:
+    branches: [feature/girl-sprites-25d-20261031]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - run: npm install --no-audit --no-fund
+      - run: npm install --no-save playwright@1.56.1
+      - run: npx playwright install --with-deps chromium
+      - name: Bundle game and both studios
+        run: |
+          npm run build
+          test -s dist/sprite.html
+          test -s dist/sprites/girl_idle_5x2.webp
+          test -s dist/sprites/girl_walk_5x4.webp
+          test -s dist/sprites/girl_portrait.webp
+      - name: Launch local production bundle
+        shell: bash
+        run: |
+          npm run preview -- --port 4173 --strictPort >/tmp/wk-sprite-preview.log 2>&1 &
+          for i in {1..45}; do curl -fsS http://127.0.0.1:4173/ >/dev/null && exit 0; sleep .5; done
+          cat /tmp/wk-sprite-preview.log; exit 1
+      - name: Test 2.5D sprite in real Three.js scene
+        run: node scripts/qa-girl-sprite.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: walkingkorea-girl-2_5d-sprite-preview
+          path: qa-screenshots/
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: walkingkorea-girl-2_5d-dist
+          path: dist/
