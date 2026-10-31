@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { createBukchonWorld } from './world/BukchonWorld.js';
 import { createDamiCompanion } from './characters/DamiCompanion.js';
-import { createGirlCompanion } from './characters/SeoulGirl.js';
+import { createGirlSpriteCompanion } from './characters/GirlSprite.js';
 import { createThirdPersonCamera } from './controllers/ThirdPersonCamera.js';
 
 const $ = (id) => document.getElementById(id);
@@ -17,7 +17,7 @@ const camera = new THREE.PerspectiveCamera(57,1,.1,240);
 const {mesh,material,paths,hill,distanceFromPath,houseSites,paving,vertexCount} = createBukchonWorld();
 scene.add(mesh);
 const dami=createDamiCompanion(scene,hill);
-const girl=createGirlCompanion(scene,hill);
+const girl=createGirlSpriteCompanion(scene,hill,camera);
 const avatars={dami,girl};
 
 const state={x:0,z:42,yaw:0,pitch:-.22,vy:0,vx:0,vz:0,night:false,running:false,started:false,modal:false,helpViewed:false,mute:true,elapsed:0,walked:0,quality:1,avatar:'dami'};
@@ -29,7 +29,7 @@ const initialAvatar=safeStore.getItem('walkingkorea-avatar-v1');
 if(initialAvatar==='girl')state.avatar='girl';
 const avatarProfiles={
  dami:{name:'수호냥이 담이',label:'YOU ARE DAMI',image:'/guide-cat.svg',hello:'담이가 되어 골목을 천천히 걸어볼까?'},
- girl:{name:'서울 산책자',label:'SEOUL WALKER',image:'/girl-portrait.svg',hello:'내 발걸음으로 북촌의 작은 골목을 발견해요.'}
+ girl:{name:'서울 산책자',label:'SEOUL WALKER',image:'/sprites/girl_portrait.webp',hello:'내 발걸음으로 북촌의 작은 골목을 발견해요.'}
 };
 function selectAvatar(kind,{announce=false}={}){
  if(!avatars[kind])return;
@@ -48,7 +48,7 @@ function selectAvatar(kind,{announce=false}={}){
  if($('intro-character-description'))$('intro-character-description').textContent=profile.hello;
  if($('intro-avatar-portrait'))$('intro-avatar-portrait').src=profile.image;
  const preview=$('avatar-preview-link');
- if(preview)preview.href=kind==='girl'?'/girl.html':'/character.html';
+ if(preview)preview.href=kind==='girl'?'/sprite.html':'/character.html';
  if($('walker-keys'))$('walker-keys').textContent=kind==='dami'?'W A S D 담이 걷기 · 마우스 카메라 · E 둘러보기':'W A S D 걷기 · 마우스 카메라 · E 둘러보기';
  updateDamiGuide();
  if(announce&&state.started)toast(profile.name+'로 변경했어요. ✳');
@@ -74,7 +74,7 @@ function toast(msg,ms=3000){$('toast').textContent=msg;$('toast').classList.add(
 function modal(title,body,kicker='SEOUL STROLL'){state.modal=true;$('modal-content').innerHTML=`<span class="modal-kicker">${kicker}</span><h2 id="modal-title">${title}</h2>${body}`;$('modal').classList.add('visible');$('modal').setAttribute('aria-hidden','false');document.exitPointerLock?.();}
 function closeModal(){state.modal=false;$('modal').classList.remove('visible');$('modal').setAttribute('aria-hidden','true');}
 $('modal-close').onclick=closeModal;$('modal').addEventListener('click',e=>{if(e.target===$('modal'))closeModal();});
-function showHelp(){modal('내 캐릭터로 서울을 걸어요',`<p>담이나 여성 산책자 중 원하는 캐릭터를 선택해 작은 서울의 골목을 산책해요. 카메라는 뒤에서 따라오고, 시간 제한은 없어요.</p><ul><li><b>W A S D / 방향키</b> — 담이 이동 (카메라 방향 기준)</li><li><b>마우스 드래그</b> — 담이 주변 시점 회전</li><li><b>화면 클릭</b> — 포인터 고정 (ESC 해제)</li><li><b>SHIFT</b> — 조금 더 빠르게 걷기</li><li><b>E</b> — 가까운 장소 둘러보기</li><li><b>N</b> — 낮 / 저녁 변경</li><li><b>P</b> — 현재 화면 사진 저장</li><li><b>모바일</b> — 왼쪽 패드로 이동, 오른쪽 화면을 밀어 시점 회전</li></ul><p class="small-note">북촌에서 영감을 얻어 새롭게 구성한 가상 골목이야. 실제 주택과 주소를 정확하게 재현한 지도가 아니야.</p>`,'HOW TO WALK');}
+function showHelp(){modal('내 캐릭터로 서울을 걸어요',`<p>담이나 2.5D 여성 산책자 중 원하는 캐릭터를 선택해 작은 서울의 골목을 산책해요. 카메라는 뒤에서 따라오고, 시간 제한은 없어요.</p><ul><li><b>W A S D / 방향키</b> — 담이 이동 (카메라 방향 기준)</li><li><b>마우스 드래그</b> — 담이 주변 시점 회전</li><li><b>화면 클릭</b> — 포인터 고정 (ESC 해제)</li><li><b>SHIFT</b> — 조금 더 빠르게 걷기</li><li><b>E</b> — 가까운 장소 둘러보기</li><li><b>N</b> — 낮 / 저녁 변경</li><li><b>P</b> — 현재 화면 사진 저장</li><li><b>모바일</b> — 왼쪽 패드로 이동, 오른쪽 화면을 밀어 시점 회전</li></ul><p class="small-note">북촌에서 영감을 얻어 새롭게 구성한 가상 골목이야. 실제 주택과 주소를 정확하게 재현한 지도가 아니야.</p>`,'HOW TO WALK');}
 $('help-btn').onclick=showHelp;
 function showPostcards(){modal('발견한 골목 이야기',`<p>산책하다 발견한 장소는 여기 기록돼요. 가까이에서 <b>E</b>를 누르면 골목에 숨은 이야기를 볼 수 있어요.</p><div class="place-list">${locations.map((p,i)=>`<div class="place-chip ${discovered.has(p.id)?'found':''}">${discovered.has(p.id)?'✳ '+p.name:'○ 아직 발견하지 못한 곳 '+(i+1)}</div>`).join('')}</div><p class="small-note">기록은 현재 브라우저에만 저장돼요. 로그인이나 서버 계정은 없어.</p>`,'YOUR LITTLE MEMORIES');}
 $('postcards-btn').onclick=showPostcards;
@@ -106,7 +106,7 @@ function updateDamiGuide(){
 function showDami(){
  if(state.avatar==='girl'){
    modal('나의 서울 산책자',
-   '<div class="dami-about"><img src="/girl-portrait.svg" alt="서울 여성 산책자"><p>갈색 단발머리에 꽃 장식, 코랄빛 가디건, 플리츠 치마와 작은 노리개 가방을 챙겼어요. 서울 골목을 천천히 걸어요.</p></div><p class="small-note">현재 캐릭터는 승인된 콘셉트를 바탕으로 제작한 Three.js 3D 에셋입니다.</p>',
+   '<div class="dami-about"><img src="/sprites/girl_portrait.webp" alt="서울 여성 산책자"><p>갈색 단발머리에 꽃 장식, 코랄빛 가디건, 플리츠 치마와 작은 노리개 가방을 챙겼어요. 서울 골목을 천천히 걸어요.</p></div><p class="small-note">현재 캐릭터는 승인된 콘셉트를 바탕으로 제작한 Three.js 3D 에셋입니다.</p>',
    'YOUR WALKING CHARACTER');
    return;
  }
@@ -118,7 +118,7 @@ $('dami-card')?.addEventListener('click',showDami);
 document.querySelectorAll('[data-avatar]').forEach(b=>b.addEventListener('click',()=>selectAvatar(b.dataset.avatar,{announce:true})));
 $('switch-avatar')?.addEventListener('click',()=>{
  modal('함께 걸을 캐릭터 선택',
-  '<p>원하는 캐릭터로 언제든 산책을 이어갈 수 있어요.</p><div class="modal-character-choices"><button id="modal-dami" class="avatar-option"><img src="/guide-cat.svg" alt=""><strong>수호냥이 담이</strong></button><button id="modal-girl" class="avatar-option"><img src="/girl-portrait.svg" alt=""><strong>서울 산책자</strong></button></div>',
+  '<p>원하는 캐릭터로 언제든 산책을 이어갈 수 있어요.</p><div class="modal-character-choices"><button id="modal-dami" class="avatar-option"><img src="/guide-cat.svg" alt=""><strong>수호냥이 담이</strong></button><button id="modal-girl" class="avatar-option"><img src="/sprites/girl_portrait.webp" alt=""><strong>서울 산책자</strong></button></div>',
   'CHOOSE YOUR CHARACTER');
  $('modal-dami').onclick=()=>{selectAvatar('dami',{announce:true});closeModal();};
  $('modal-girl').onclick=()=>{selectAvatar('girl',{announce:true});closeModal();};
@@ -214,4 +214,4 @@ if(new URLSearchParams(location.search).has('qa')) {
   });
 }
 
-console.info(`[Seoul Stroll Bukchon v0.10] Three.js ready: ${vertexCount.toLocaleString()} vertices, ${houseSites.length} hanok houses, ${paths.length} walkable lanes, ${locations.length} discoveries.`);
+console.info(`[Seoul Stroll Bukchon v0.11 preview] Three.js ready: ${vertexCount.toLocaleString()} vertices, ${houseSites.length} hanok houses, ${paths.length} walkable lanes, ${locations.length} discoveries.`);
