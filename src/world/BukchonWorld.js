@@ -28,7 +28,8 @@ const C = {
   brickTerracotta:[.66,.34,.27], brickWarm:[.75,.41,.31], brickDark:[.55,.30,.27],
   tileEnd:[.40,.42,.43],
   shopDark:[.28,.29,.25], warmGlass:[.71,.57,.41], warmLight:[.92,.72,.44],
-  paveGrout:[.70,.62,.53],paveJoint:[.74,.68,.60],
+  asphalt:[.37,.40,.41], asphaltPatch:[.41,.43,.43],
+  paveGrout:[.70,.69,.66],paveJoint:[.77,.76,.72],
   paveWarm:[.91,.80,.68],paveCream:[.96,.87,.76],
   paveSand:[.88,.77,.66],paveLight:[.98,.89,.79],
   paveStone:[.86,.77,.70],paveHoney:[.92,.81,.68],
@@ -267,7 +268,7 @@ makeWorld();
     uniforms: {
       uAtlas: {value:texture},
       uNight: {value:0},
-      uFogColor: {value:new THREE.Color().setRGB(.72,.78,.76)}
+      uFogColor: {value:new THREE.Color().setRGB(.79,.78,.75)}
     },
     vertexShader: `
       varying vec2 vUV;
