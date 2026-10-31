@@ -287,7 +287,7 @@ export function createDamiModel() {
     for(let r=0;r<rings;r++)for(let j=0;j<radial;j++){
       const a=r*radial+j,b=r*radial+(j+1)%radial;
       const c=(r+1)*radial+j,d=(r+1)*radial+(j+1)%radial;
-      triangles.push(a,c,b,b,c,d);
+      triangles.push(a,b,c,b,d,c);
     }
     const geo=new THREE.BufferGeometry();
     geo.setAttribute('position',new THREE.BufferAttribute(coords,3));
