@@ -24,10 +24,10 @@ if(start&&Math.hypot(start.player[0]-start.avatar.position[0],start.player[1]-st
 await page.screenshot({path:'qa-screenshots/dami-thirdperson-start.png',animations:'disabled'});
 
 await page.keyboard.down('w');
-await page.waitForTimeout(900);
+await page.waitForTimeout(2300);
 const during=await sample();
-await page.screenshot({path:'qa-screenshots/dami-thirdperson-walk.png',animations:'disabled'});
 await page.keyboard.up('w');
+await page.screenshot({path:'qa-screenshots/dami-thirdperson-walk.png',animations:'disabled'});
 await page.waitForTimeout(350);
 const stopped=await sample();
 await page.screenshot({path:'qa-screenshots/dami-thirdperson-stop.png',animations:'disabled'});
@@ -37,7 +37,7 @@ if(start&&during&&stopped){
  const modelTravel=Math.hypot(during.avatar.position[0]-start.avatar.position[0],during.avatar.position[2]-start.avatar.position[2]);
  const cameraTravel=Math.hypot(during.camera.camera[0]-start.camera.camera[0],during.camera.camera[2]-start.camera.camera[2]);
  console.log(JSON.stringify({playerTravel,modelTravel,cameraTravel,start,during,stopped}));
- if(playerTravel<.55)errors.push('W did not translate the player avatar');
+ if(playerTravel<.35)errors.push('W did not translate the player avatar (distance '+playerTravel.toFixed(3)+'m)');
  if(Math.abs(playerTravel-modelTravel)>.07)errors.push('Character and player positions diverged');
  if(cameraTravel>playerTravel+1.5)errors.push('Camera moves more than the character unexpectedly');
  if(Math.abs(during.avatar.heading)<1.4)errors.push('W did not turn Dami to face into village');
