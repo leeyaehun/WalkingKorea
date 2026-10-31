@@ -250,7 +250,7 @@ function render(time=0) {
   sky.material.color.set(state.night?0x34415c:0xffffff);
   lighting.update({x:state.x,z:state.z,hill,night:state.night});
   material.uniforms.uNight.value=state.night?1:0;
-  material.uniforms.uShadowStrength.value=state.night?.12:.90;
+  material.uniforms.uShadowStrength.value=state.night?.12:.86;
   material.uniforms.uFogColor.value.setRGB(...fog);
   renderer.setClearColor(new THREE.Color().setRGB(...fog),1);
   renderer.render(scene,camera);
