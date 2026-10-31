@@ -1,5 +1,6 @@
 import { createHanokKit } from './HanokKit.js';
 import { buildPavedAlleys } from './BukchonPaving.js';
+import {mainLaneWidth,scenicHillLift,scenicHouseSites} from './BukchonStreetLayout.js';
 import * as THREE from 'three';
 
 // Procedural Bukchon lanes and approved Hanok Set v1 geometry in a Three.js BufferGeometry.
@@ -81,9 +82,13 @@ const signs={
 // Local building frame: keep traditional building components reusable and let
 // the hill pass continuously underneath houses, gates, trees and courtyards.
 let activeFrame=null;
-function hill(x,z){return .38+(43-z)*.062+.20*Math.sin(z*.14)+.09*Math.sin(x*.16);}
-function withFrame(x,z,angle,fn){const old=activeFrame;activeFrame={x,z,c:Math.cos(angle),s:Math.sin(angle)};try{fn();}finally{activeFrame=old;}}
-function transformPoint(p){if(!activeFrame)return p;const f=activeFrame,X=f.x+p[0]*f.c-p[2]*f.s,Z=f.z+p[0]*f.s+p[2]*f.c;return [X,p[1]+hill(X,Z),Z];}
+function hill(x,z){return .38+(43-z)*.062+.20*Math.sin(z*.14)+.09*Math.sin(x*.16)+scenicHillLift(z);}
+function withFrame(x,z,angle,fn,{level=false}={}){
+ const old=activeFrame;
+ activeFrame={x,z,c:Math.cos(angle),s:Math.sin(angle),level,baseY:hill(x,z)};
+ try{fn();}finally{activeFrame=old;}
+}
+function transformPoint(p){if(!activeFrame)return p;const f=activeFrame,X=f.x+p[0]*f.c-p[2]*f.s,Z=f.z+p[0]*f.s+p[2]*f.c;return [X,p[1]+(f.level?f.baseY:hill(X,Z)),Z];}
 function transformNormal(n){if(!activeFrame)return n;const f=activeFrame;return [n[0]*f.c-n[2]*f.s,n[1],n[0]*f.s+n[2]*f.c];}
 function face(a,b,c,d,n,col,tex=whiteUV){
   a=transformPoint(a);b=transformPoint(b);c=transformPoint(c);d=transformPoint(d);n=transformNormal(n);
@@ -130,15 +135,15 @@ function rod(ax,ay,az,bx,by,bz,r,col){ // diagonal beam with a flat rotated vert
 // BUKCHON 01: small winding lanes and uphill views, not a georeferenced map.
 // Paths are real geometry and also define collision and the minimap.
 const paths=[
- {name:'가회동 오르막',width:3.35,points:[[0,55],[0,43],[-1,35],[.5,25],[-1.5,15],[-5.5,6],[-5,-3],[-1,-14],[.5,-24],[-2,-34],[-3,-44]]},
- {name:'서쪽 담장길',width:2.75,points:[[-5.5,6],[-12,5],[-19,2],[-25,-5],[-24,-12],[-18,-18],[-9,-16],[-1,-14]]},
- {name:'동쪽 공방길',width:2.8,points:[[.5,25],[9,23],[16,16],[17,7],[12,-2],[17,-10],[19,-17],[10,-24],[.5,-24]]}
+ {name:'가회동 오르막',width:3.35,points:[[0,55],[0,43],[-1,35],[.5,25],[-1.5,15],[-5.5,6],[-5,-3],[-2.6,-14],[-2.7,-24],[-2.9,-34],[-3,-44]]},
+ {name:'서쪽 담장길',width:2.75,points:[[-5.5,6],[-12,5],[-19,2],[-25,-5],[-24,-12],[-18,-18],[-9,-16],[-2.6,-14]]},
+ {name:'동쪽 공방길',width:2.8,points:[[.5,25],[9,23],[16,16],[17,7],[12,-2],[17,-10],[19,-17],[10,-24],[-2.7,-24]]}
 ];
 // Smooth the hard turnpoints without opening a wide automotive street.
 function softened(points){let p=points.map(q=>q.slice());for(let pass=0;pass<2;pass++){
  let next=[p[0]];for(let i=0;i<p.length-1;i++){let a=p[i],b=p[i+1];next.push([a[0]*.75+b[0]*.25,a[1]*.75+b[1]*.25],[a[0]*.25+b[0]*.75,a[1]*.25+b[1]*.75]);}next.push(p[p.length-1]);p=next;
 }return p;}
-paths.forEach(p=>p.samples=softened(p.points));
+paths.forEach((p,i)=>{p.samples=softened(p.points);if(i===0)p.widthAt=mainLaneWidth;});
 function distanceFromPath(x,z,p){let best=Infinity;for(let i=0;i<p.samples.length-1;i++){
  const a=p.samples[i],b=p.samples[i+1],vx=b[0]-a[0],vz=b[1]-a[1],t=clamp(((x-a[0])*vx+(z-a[1])*vz)/(vx*vx+vz*vz||1),0,1);
  best=Math.min(best,Math.hypot(x-a[0]-vx*t,z-a[1]-vz*t));
@@ -156,19 +161,33 @@ function routeFloor(){
 const hanokKit=createHanokKit({box,face,sphere,cylinder,textured,signs});
 function courtyard(type,detailVariant=0){return hanokKit.build(type,detailVariant);}
 const houseSites=[];
+function housesOnShowcase(){
+ // Ten level-sited homes create staggered, close-set roof silhouettes.
+ // Junctions at z~-14 (west) and -24 (east) stay clear.
+ for(const site of scenicHouseSites(paths[0].samples)){
+  let archetype='gate';
+  withFrame(site.x,site.z,site.angle,()=>{
+   box(0,-.20,0,8.00,.62,9.00,'stoneFoundation');
+   archetype=courtyard(site.type,site.variant);
+  },{level:true});
+  houseSites.push({...site,archetype,detailVariant:site.variant,decorated:true,scenic:true});
+ }
+}
 function housesAlong(path,pIndex){
  const pts=path.samples;
  let traveled=0;
  for(let i=1;i<pts.length;i++){
   const a=pts[i-1],b=pts[i],dx=b[0]-a[0],dz=b[1]-a[1],len=Math.hypot(dx,dz);traveled+=len;
   if(traveled<8.4)continue;traveled=0;
+  // Upper 40m is hand-composed above, without duplicated procedural homes.
+  if(pIndex===0 && b[1]<-2.5)continue;
   const tx=dx/len,tz=dz/len,nx=-tz,nz=tx;
   for(const side of [-1,1]){
    const spacing=5.8+((i+pIndex)%3)*.36;
    const x=b[0]+nx*side*spacing,z=b[1]+nz*side*spacing;
    if(Math.abs(x)>36||Math.abs(z)>49)continue;
    if(paths.some(other=>distanceFromPath(x,z,other)<4.75))continue;
-   if(houseSites.some(site=>Math.hypot(site.x-x,site.z-z)<7.7))continue;
+   if(houseSites.some(site=>Math.hypot(site.x-x,site.z-z)<(site.scenic?8.2:7.7)))continue;
    // Negative local Z is the front gate: turn each house toward the lane.
    // Local -Z must face FROM the house TOWARD the street. Previously
    // the sign was reversed: visitors saw the blank backs of the homes.
@@ -247,7 +266,7 @@ function hillsideBackground(){
    sphere(x,y,z,rand(4,10),1.2,3.6,'cream',8,4);
  }
 }
-function makeWorld(){routeFloor();paths.forEach((p,i)=>housesAlong(p,i));laneDecoration();hillsideBackground();}
+function makeWorld(){routeFloor();housesOnShowcase();paths.forEach((p,i)=>housesAlong(p,i));laneDecoration();hillsideBackground();}
 makeWorld();
 
   const geometry = new THREE.BufferGeometry();
