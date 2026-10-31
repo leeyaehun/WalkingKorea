@@ -69,6 +69,6 @@ export function scenicHouseSites(samples) {
     const x=lane.x+lane.nx*row.side*setback;
     const z=lane.z+lane.nz*row.side*setback;
     return {...row,index,x,z,laneX:lane.x,laneZ:lane.z,roadWidth:width,
-      angle:Math.atan2(lane.nx*row.side,lane.nz*row.side)};
+      angle:Math.atan2(-lane.nx*row.side,lane.nz*row.side)};
   });
 }

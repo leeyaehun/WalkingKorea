@@ -1,6 +1,7 @@
 import { createHanokKit } from './HanokKit.js';
 import { buildPavedAlleys } from './BukchonPaving.js';
 import {mainLaneWidth,scenicHillLift,scenicHouseSites} from './BukchonStreetLayout.js';
+import {buildFrontageConnectors} from './BukchonFrontage.js';
 import * as THREE from 'three';
 
 // Procedural Bukchon lanes and approved Hanok Set v1 geometry in a Three.js BufferGeometry.
@@ -162,12 +163,14 @@ const hanokKit=createHanokKit({box,face,sphere,cylinder,textured,signs});
 function courtyard(type,detailVariant=0){return hanokKit.build(type,detailVariant);}
 const houseSites=[];
 function housesOnShowcase(){
- // Ten level-sited homes create staggered, close-set roof silhouettes.
+ // Eight level-sited homes create staggered, close-set roof silhouettes.
  // Junctions at z~-14 (west) and -24 (east) stay clear.
  for(const site of scenicHouseSites(paths[0].samples)){
   let archetype='gate';
   withFrame(site.x,site.z,site.angle,()=>{
-   box(0,-.20,0,8.00,.62,9.00,'stoneFoundation');
+   // Narrow low stone plinth: does not read as a giant concrete rectangle.
+   box(0,-.155,0,7.35,.32,8.55,'stoneFoundation');
+   box(0,-.016,-4.22,7.35,.10,.23,'stoneLight');
    archetype=courtyard(site.type,site.variant);
   },{level:true});
   houseSites.push({...site,archetype,detailVariant:site.variant,decorated:true,scenic:true});
@@ -189,9 +192,9 @@ function housesAlong(path,pIndex){
    if(paths.some(other=>distanceFromPath(x,z,other)<4.75))continue;
    if(houseSites.some(site=>Math.hypot(site.x-x,site.z-z)<(site.scenic?8.2:7.7)))continue;
    // Negative local Z is the front gate: turn each house toward the lane.
-   // Local -Z must face FROM the house TOWARD the street. Previously
-   // the sign was reversed: visitors saw the blank backs of the homes.
-   const angle=Math.atan2(nx*side,nz*side);
+   // Actual local -Z rotated by angle points (sin(angle),-cos(angle)).
+   // The previous sign used the wrong x direction and faced away.
+   const angle=Math.atan2(-nx*side,nz*side);
    // The first lane-facing residence beside the spawn is the single
    // Hanok A01 showcase. Keep all other pre-existing house sites untouched.
    const houseType = pIndex === 0 && houseSites.length === 0 && side === -1
@@ -266,7 +269,15 @@ function hillsideBackground(){
    sphere(x,y,z,rand(4,10),1.2,3.6,'cream',8,4);
  }
 }
-function makeWorld(){routeFloor();housesOnShowcase();paths.forEach((p,i)=>housesAlong(p,i));laneDecoration();hillsideBackground();}
+let frontage={count:0,segments:[]};
+function makeWorld(){
+ routeFloor();
+ housesOnShowcase();
+ paths.forEach((p,i)=>housesAlong(p,i));
+ frontage=buildFrontageConnectors({houses:houseSites,face,hill,distanceFromPath,mainPath:paths[0]});
+ laneDecoration();
+ hillsideBackground();
+}
 makeWorld();
 
   const geometry = new THREE.BufferGeometry();
@@ -328,5 +339,5 @@ makeWorld();
   });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.frustumCulled = false;
-  return {mesh,material,paths,hill,distanceFromPath,houseSites,paving,vertexCount:positions.length/3};
+  return {mesh,material,paths,hill,distanceFromPath,houseSites,frontage,paving,vertexCount:positions.length/3};
 }

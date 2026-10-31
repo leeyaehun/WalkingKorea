@@ -1,4 +1,5 @@
 import { createBukchonMasonry } from './BukchonMasonry.js';
+import { createHanokArchitecture } from './BukchonArchitecture.js';
 
 /**
  * Bukchon Hanok Set v1 — three street-facing silhouettes.
@@ -16,14 +17,19 @@ export function createHanokKit({ box, face, sphere, cylinder, textured, signs })
 
   function roofHeight(x, z) {
     const t = Math.min(1, Math.abs(z) / eave);
-    const corner = Math.pow(Math.min(1, Math.abs(x) / roofHalfWidth), 3);
-    // A shallow, continuously rolling tiled roof with quietly lifted corners.
-    return 4.00 - 0.16 * t - 0.78 * Math.sin(t * Math.PI * 0.5) + 0.21 * Math.pow(t, 4) * corner;
+    const edge = Math.min(1, Math.abs(x) / roofHalfWidth);
+    // Hipped roof: short raised central ridge, descending shoulders at both
+    // ends, deep bowed eaves, subtly upturned four corner tips.
+    const hip = Math.pow(Math.max(0,(edge-.63)/.37),1.4);
+    return 4.18 - .17*t - .78*Math.sin(t*Math.PI*.5)
+      - .29*hip*(1-.22*t) + .24*Math.pow(t,4)*Math.pow(edge,4);
   }
 
   const {streetMasonry,sideMasonry,roofCaps} = createBukchonMasonry({
     box,face,sphere,roofHeight,roofHalfWidth,eave
   });
+  const {pitchedEavesAndHips,gateRoof,wallCoping,openPorchGate}
+    = createHanokArchitecture({box,face,sphere,roofHeight,roofHalfWidth,eave,span});
 
   function pitchedRoof() {
     const columns = 16;
@@ -65,26 +71,7 @@ export function createHanokKit({ box, face, sphere, cylinder, textured, signs })
       for (let x=-3.04;x<=3.05;x+=.72) box(x,2.86,side*3.17,.105,.19,.72,'timberLight');
     }
     roofCaps();
-    box(0,4.07,0,span+1.52,.14,.29,'tileRidge');
-    for (let x=-roofHalfWidth+.20;x<roofHalfWidth;x+=.44)
-      box(x,4.16,0,.30,.08,.35,'tileLight');
-
-    // The narrow timber-framed triangular gables stop the building reading as
-    // a floating dark slab, particularly when approached from the side.
-    for (const side of [-1,1]) {
-      const x=side*(span*.5+.07);
-      face([x,2.96,-2.88],[x,2.96,2.88],[x,3.96,0],[x,3.96,0],[side,0,0],'plaster');
-      box(x,2.98,0,.11,.13,5.60,'timber');
-      for (const z of [-2.4,-1.2,0,1.2,2.4]) {
-        const y=roofHeight(x,z)-.16;
-        box(x,y-.20,z,.10,.41,.10,'timberLight');
-      }
-      for (const roofSide of [-1,1]) for(let step=0;step<9;step++) {
-        const z0=roofSide*eave*step/9,z1=roofSide*eave*(step+1)/9;
-        face([x-.09,roofHeight(x,z0)+.04,z0],[x+.09,roofHeight(x,z0)+.04,z0],
-             [x+.09,roofHeight(x,z1)+.04,z1],[x-.09,roofHeight(x,z1)+.04,z1],[0,1,0],'tileRidge');
-      }
-    }
+    pitchedEavesAndHips();
   }
 
   function lattice(cx,cy,z,width,height,columns=4,rows=6) {
@@ -135,8 +122,8 @@ export function createHanokKit({ box, face, sphere, cylinder, textured, signs })
     box(cx,.22,z,w+.06,.44,.36,'stoneFoundation');
     box(cx,.44,z,w+.02,.13,.40,'stoneLight');
     box(cx,.52+height*.48,z,w,height-.56,.28,'plaster');
-    box(cx,height+.06,z,w+.11,.12,.43,'timber');
-    box(cx,height+.14,z,w+.17,.15,.48,'tileDark');
+    // Model the coping as a small two-slope roof, not a dark slab.
+    wallCoping(cx,z,w,height);
     streetMasonry(cx,z,w,height);
     // Irregular low-relief stonework is more readable than a single cube.
     for(let j=0;j<3;j++){
@@ -152,7 +139,14 @@ export function createHanokKit({ box, face, sphere, cylinder, textured, signs })
   function sideWall() {
     for(const xx of [-3.48,3.48]){
       box(xx,.95,-.35,.28,1.65,7.2,'plaster');
-      box(xx,1.84,-.35,.42,.18,7.3,'tileDark');
+      // Continuous tiled coping on both long courtyard-side walls.
+      for(const side of [-1,1]) {
+        const surface=xx+side*.30;
+        face([xx,1.99,-4.18],[xx,1.99,3.44],
+             [surface,1.79,3.44],[surface,1.79,-4.18],
+             [0,1,0],'tileDark');
+      }
+      box(xx,1.79,-.37,.63,.11,7.62,'tileRidge');
       box(xx,.28,-.35,.36,.50,7.3,'stoneFoundation');
       sideMasonry(xx);
     }
@@ -165,12 +159,7 @@ export function createHanokKit({ box, face, sphere, cylinder, textured, signs })
       box(x,.29,-4.28,.30,.40,.42,'stoneFoundation');
     }
     box(0,2.27,-4.28,2.76,.19,.39,'timber');
-    box(0,2.48,-4.29,3.11,.14,.78,'tileDark');
-    box(0,2.58,-4.29,2.62,.11,.31,'tileBase');
-    for(let i=0;i<12;i++){
-      const x=-1.43+(i+.5)*2.86/12;
-      box(x,2.55,-4.77,.15,.11,.17,i%3?'tileBase':'tileLight');
-    }
+    gateRoof();
     for(const xx of [-.57,.57]){
       box(xx,1.16,-4.42,1.1,1.91,.10,'gateWood');
       box(xx,1.16,-4.49,.96,1.72,.029,'timberLight');
@@ -402,8 +391,9 @@ export function createHanokKit({ box, face, sphere, cylinder, textured, signs })
   function facingHanok(seed) {
     timberFrame();
     // Visible porch and paper windows distinguish this from the courtyard homes.
-    stoneWall(-3.58,.65,-3.88,1.06);
-    stoneWall(3.58,.65,-3.88,1.06);
+    stoneWall(-2.66,1.70,-3.89,1.22);
+    stoneWall(2.66,1.70,-3.89,1.22);
+    openPorchGate();
     if(seed%2===0) {
       planter(3.20,-3.47);
       cylinder(-3.11,.49,-3.44,.25,.72,'stoneFoundation',9);

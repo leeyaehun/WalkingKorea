@@ -37,8 +37,8 @@ test('every house gate points from building toward its lane on either side',()=>
  // The dot product with house-to-road must equal one.
  for(const [nx,nz] of [[1,0],[0,1],[.8,.6],[-.6,.8]]) {
   for(const side of [-1,1]) {
-   const angle=Math.atan2(nx*side,nz*side);
-   const forward=[-Math.sin(angle),-Math.cos(angle)];
+   const angle=Math.atan2(-nx*side,nz*side);
+   const forward=[Math.sin(angle),-Math.cos(angle)];
    const towardLane=[-nx*side,-nz*side];
    assert.ok(forward[0]*towardLane[0]+forward[1]*towardLane[1]>.9999);
   }
