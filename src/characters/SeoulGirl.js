@@ -123,10 +123,10 @@ export function createGirlModel(){
   oval(headPivot,M.skin,[.333,-.119,.145],[.060,.105,.069],20);
   // Side sweep built from curved, overlapping bangs, no spiky wedge edges.
   const bangs=[
-    [-.262,.229,.244,.172,.163,-.24],
-    [-.128,.300,.244,.183,.157,-.32],
-    [.035,.314,.171,.123,.132,-.48],
-    [.192,.294,.083,.110,.100,-.54],
+    [-.250,.169,.251,.140,.117,-.24],
+    [-.120,.209,.265,.159,.120,-.33],
+    [.045,.209,.195,.116,.104,-.44],
+    [.195,.184,.140,.101,.095,-.52],
   ];
   for(const [x,y,z,w,h,rot] of bangs){
     const bang=oval(headPivot,M.hair,[x,y,z],[w,h,.103],30);
