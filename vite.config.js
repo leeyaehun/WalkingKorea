@@ -6,7 +6,8 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: resolve(import.meta.dirname, 'index.html'),
-        character: resolve(import.meta.dirname, 'character.html')
+        character: resolve(import.meta.dirname, 'character.html'),
+        girl: resolve(import.meta.dirname, 'girl.html')
       }
     }
   }
