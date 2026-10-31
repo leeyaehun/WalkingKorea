@@ -259,35 +259,147 @@ export function createDamiModel() {
   path([[-.027,.005,.025],[-.027,-.032,.025],[.028,-.032,.025],[.028,.005,.025]],.005,M.leatherDark,charm,12);
   orb(charm,M.flowerCenter,[0,-.057,.003],[.026,.025,.013],10);
 
-  // Four independently pivoting plush feet, with three toe accents.
-  const feet=[];
-  for(const [x,z] of [[-.234,.216],[.234,.216],[-.234,-.205],[.234,-.205]]){
-    const leg=new THREE.Group();leg.position.set(x,.24,z);root.add(leg);
-    orb(leg,M.cream,[0,-.105,0],[.147,.205,.155],24);
-    orb(leg,M.ivory,[0,-.204,.075],[.151,.086,.185],24);
-    for(let j=-1;j<=1;j++){
-      const toe=orb(leg,M.peach,[j*.046,-.225,.235],[.009,.024,.006],8);
-      toe.rotation.z=j*.12;
-    }
-    feet.push(leg);
-  }
-  // Subtle local shadow, no dependence on the world shader or receiveShadow.
-  const shadow=mesh(new THREE.CircleGeometry(.46,28),new THREE.MeshBasicMaterial({
-    color:0x4d4439,transparent:true,opacity:.20,depthWrite:false,side:THREE.DoubleSide
-  }));
-  shadow.rotation.x=-Math.PI/2;shadow.position.y=.011;shadow.castShadow=false;
+  // The whole cat (head, scarf, bag and torso) now shares a single pose rig.
+  // Paws live in a separate ground-contact space to prevent skating.
+  const torso = new THREE.Group();
+  torso.name = 'Dami / unified torso';
+  root.add(torso);
+  const legRig = new THREE.Group();
+  legRig.name = 'Dami / four articulated paws';
+  root.add(legRig);
 
-  function animate(t,isMoving=false){
-    headPivot.rotation.z=Math.sin(t*1.52)*.026;
-    headPivot.rotation.x=Math.sin(t*.96)*.022;
-    tailPivot.rotation.z=Math.sin(t*2.2)*.11;
-    tailPivot.rotation.y=Math.sin(t*1.5)*.18;
-    body.scale.set(1+.008*Math.sin(t*2.0),1,1+.009*Math.sin(t*2));
-    const stride=isMoving ? Math.sin(t*9)*.24 : 0;
-    feet[0].rotation.x=stride;feet[3].rotation.x=stride;
-    feet[1].rotation.x=-stride;feet[2].rotation.x=-stride;
+  const paws = [];
+  const upAxis = new THREE.Vector3(0,1,0);
+  const p0 = new THREE.Vector3(), p1 = new THREE.Vector3();
+  function alignFurryBone(bone,a,b,radius) {
+    p0.set(...a); p1.set(...b);
+    const axis = p1.clone().sub(p0);
+    bone.position.copy(p0).add(p1).multiplyScalar(.5);
+    bone.quaternion.setFromUnitVectors(upAxis,axis.clone().normalize());
+    bone.scale.set(radius,axis.length()*.55+radius*.34,radius);
   }
-  return {root,headPivot,tailPivot,feet,materials:M,animate};
+  const legs = [
+    {name:'front-left', x:-.240,z:.235,front:true,offset:0,  material:M.cream},
+    {name:'front-right',x:.240,z:.235,front:true,offset:.5,material:M.cream},
+    {name:'rear-left',  x:-.240,z:-.205,front:false,offset:.5,material:M.cream},
+    {name:'rear-right', x:.240,z:-.205,front:false,offset:0,  material:M.cream}
+  ];
+  for(const spec of legs) {
+    const paw = new THREE.Group();
+    paw.name=spec.name+' / paw';
+    legRig.add(paw);
+    // The upper coat, ankle and 3 small toes overlap into one plush contour.
+    orb(paw,M.cream,[0,.032,-.018],[.104,.103,.108],24);
+    orb(paw,M.ivory,[0,-.009,.059],[.117,.069,.153],24);
+    for(let i=-1;i<=1;i++) {
+      const toe=orb(paw,M.ivory,[i*.071,-.020,.152],[.047,.051,.064],18);
+      toe.rotation.y=i*.12;
+      orb(paw,M.peach,[i*.071,-.043,.198],[.015,.012,.013],12);
+    }
+    const thigh=orb(legRig,spec.material,[spec.x,.34,spec.z],[.102,.16,.106],28);
+    const shin=orb(legRig,M.cream,[spec.x,.18,spec.z],[.079,.12,.088],24);
+    const elbow=orb(legRig,M.cream,[spec.x,.21,spec.z],[.083,.094,.085],20);
+    const hip=orb(legRig,spec.material,[spec.x,.44,spec.z],[.141,.153,.143],24);
+    paws.push({...spec,paw,thigh,shin,elbow,hip,grounded:true});
+  }
+
+  const shadow=mesh(new THREE.CircleGeometry(.48,28),new THREE.MeshBasicMaterial({
+    color:0x4d4439,transparent:true,opacity:.18,depthWrite:false,side:THREE.DoubleSide
+  }));
+  shadow.rotation.x=-Math.PI/2;
+  shadow.position.y=.013;
+  shadow.castShadow=false;
+
+  // All old sculpt parts are attached to the same moving body group.
+  for(const child of [...root.children]) {
+    if(child!==torso && child!==legRig && child!==shadow)torso.add(child);
+  }
+
+  let stridePhase=0;
+  let strideTravel=0;
+  let movementBlend=0;
+  let smoothedSpeed=0;
+  let contactCount=4;
+  const strideCycle=.84; // world-space meters per four-paw gait cycle
+  const stanceFraction=.62; // planted longer than swinging
+  const ease=t=>t*t*(3-2*t);
+
+  function animate(t,isMoving=false,{dt=1/60,travel=0,speed=0}={}) {
+    dt=THREE.MathUtils.clamp(dt,0,.12);
+    travel=Math.max(0,Math.min(travel,.6));
+    speed=Math.max(0,Math.min(speed,7));
+    const blendTarget=isMoving && speed>.08?1:0;
+    const response=1-Math.exp(-dt*(blendTarget?9:11));
+    movementBlend += (blendTarget-movementBlend)*response;
+    smoothedSpeed += (speed-smoothedSpeed)*(1-Math.exp(-dt*9));
+    // Crucial: no advancing limbs unless Dami actually changed world position.
+    if(movementBlend>.02 && travel>0) {
+      stridePhase += travel * (Math.PI*2/strideCycle);
+      strideTravel += travel;
+    }
+
+    const sway=Math.sin(stridePhase);
+    // Diagonal weight transfer, subtle 2-beat rise and independent head gaze.
+    torso.position.y=.007*Math.sin(t*2.2)+movementBlend*(.012+.021*(1-Math.cos(stridePhase*2))*.5);
+    torso.rotation.z=movementBlend*.026*sway;
+    torso.rotation.x=movementBlend*.033*Math.cos(stridePhase);
+    torso.rotation.y=movementBlend*.012*Math.sin(stridePhase*.5);
+    body.scale.set(1+.006*Math.sin(t*2.1),1,1+.007*Math.sin(t*2.1));
+    headPivot.rotation.z=-torso.rotation.z*.64+Math.sin(t*.92)*.019;
+    headPivot.rotation.x=-torso.rotation.x*.65+Math.sin(t*1.15)*.018;
+    headPivot.rotation.y=Math.sin(t*.7)*.026;
+    tailPivot.rotation.y=Math.sin(t*2.1)*(.16+.22*movementBlend);
+    tailPivot.rotation.z=Math.sin(t*1.7+.9)*.085+movementBlend*.065*sway;
+    bagPivot.rotation.z=.08+movementBlend*.045*Math.sin(stridePhase-.4);
+
+    // Each diagonal pair alternates. While a paw is in stance it moves
+    // backward relative to the moving torso to stay near its world footfall.
+    // During recovery it lifts, flexes and swings ahead.
+    contactCount=0;
+    for(const leg of paws) {
+      const cycle=((stridePhase/(Math.PI*2)+leg.offset)%1+1)%1;
+      const onGround=cycle<stanceFraction;
+      const u=onGround?cycle/stanceFraction:(cycle-stanceFraction)/(1-stanceFraction);
+      const zOffset=onGround?.23-.46*u:-.23+.46*ease(u);
+      const lift=onGround?0:Math.sin(Math.PI*u)*.147;
+      const side=leg.x<0?-1:1;
+      const lateral=movementBlend*.018*Math.sin(stridePhase+leg.offset*Math.PI*2);
+      const footX=leg.x+lateral;
+      const footZ=leg.z+movementBlend*zOffset;
+      const footY=.085+movementBlend*lift;
+      leg.paw.position.set(footX,footY,footZ);
+      leg.paw.rotation.x=movementBlend*(onGround?0:-.17*Math.sin(Math.PI*u));
+      leg.paw.rotation.z=movementBlend*.022*side*sway;
+
+      const topY=leg.front?.485:.425;
+      const hipZ=leg.z-.025;
+      const kneeZ=leg.front?(hipZ*.45+footZ*.55)-.018:(hipZ*.5+footZ*.5)+.052;
+      const kneeY=.226+movementBlend*lift*.35;
+      const shoulder=[leg.x,topY+torso.position.y*.6,hipZ];
+      const knee=[footX*.75+leg.x*.25,kneeY,kneeZ];
+      const ankle=[footX,footY+.025,footZ-.025];
+      alignFurryBone(leg.thigh,shoulder,knee,leg.front?.125:.136);
+      alignFurryBone(leg.shin,knee,ankle,.101);
+      leg.elbow.position.set(...knee);
+      leg.hip.position.set(...shoulder);
+      leg.grounded=movementBlend<.05||onGround;
+      if(leg.grounded)contactCount++;
+    }
+
+    // Relax to planted neutral stance on stopping, not a snapped sine pose.
+    shadow.material.opacity=.18-movementBlend*.028;
+  }
+
+  function gaitSnapshot() {
+    return {
+      phase:stridePhase,traveled:strideTravel,blend:movementBlend,
+      speed:smoothedSpeed,contactCount,
+      paws:paws.map(p=>({name:p.name,x:p.paw.position.x,
+        y:p.paw.position.y,z:p.paw.position.z,grounded:p.grounded}))
+    };
+  }
+  return {root,headPivot,tailPivot,feet:paws.map(p=>p.paw),
+    materials:M,animate,gaitSnapshot};
 }
 
 export function createDamiCompanion(scene, hill) {
@@ -310,31 +422,35 @@ export function createDamiCompanion(scene, hill) {
 
   let heading=Math.PI;
   let initialized=false;
+  let lastX=0,lastZ=0;
 
-  function update({x,z,vx=0,vz=0,dt=.016,elapsed,walking,visible}) {
-    root.visible = !!visible;
+  function update({x,z,vx=0,vz=0,dt=.016,elapsed=0,walking,visible}) {
+    root.visible=!!visible;
     if (!visible) {initialized=false;return;}
     root.position.set(x,hill(x,z)+.04,z);
-
-    // The character's own movement determines the facing direction. Camera
-    // turning alone must NOT rotate or translate Dami.
     const speed=Math.hypot(vx,vz);
     if(!initialized) {
-      heading = Math.PI; // Face into the village (local +Z points forward).
+      heading=Math.PI;
+      lastX=x;lastZ=z;
       root.rotation.y=heading;
       initialized=true;
     }
+    // Animation advances from actual movement, not elapsed time: stationary
+    // paws never tread in place, even when a lane collider stops the player.
+    const distance=Math.hypot(x-lastX,z-lastZ);
+    lastX=x;lastZ=z;
     if(speed>.12) {
       const desiredHeading=Math.atan2(vx,vz);
       const delta=Math.atan2(Math.sin(desiredHeading-heading),Math.cos(desiredHeading-heading));
-      heading += delta*(1-Math.exp(-dt*12));
+      heading+=delta*(1-Math.exp(-dt*10));
     }
     root.rotation.y=heading;
-    model.animate(elapsed,walking&&speed>.15);
+    model.animate(elapsed,walking&&speed>.12,{dt,travel:distance,speed});
   }
   function snapshot() {
     return {position:[root.position.x,root.position.y,root.position.z],
-      heading:root.rotation.y,visible:root.visible,scale:root.scale.x};
+      heading:root.rotation.y,visible:root.visible,scale:root.scale.x,
+      gait:model.gaitSnapshot()};
   }
   return {group:root,update,model,snapshot};
 }
