@@ -176,7 +176,10 @@ selectAvatar(state.avatar);
 function interact(){if(!nearSpot || state.modal)return;markFound(nearSpot);modal(nearSpot.name,`<p>${nearSpot.detail}</p><p class="small-note">발견한 장소 ${discovered.size} / ${locations.length} · 이 골목은 실제 지도의 정확한 재현이 아닌 서울에서 영감을 받은 공간이야.</p>`,'YOU FOUND A LITTLE PLACE');}
 function nearUpdate(){let m=null,dist=4.5;for(const p of locations){let d=Math.hypot(state.x-p.x,state.z-p.z);if(d<dist){dist=d;m=p;}}nearSpot=m;updateDamiGuide();let hint=$('hint');if(m&&!state.modal&&state.started){hint.innerHTML=`<b>${touchDevice?'터치':'E'}</b>  ${m.name} 둘러보기`;hint.classList.add('visible');$('touch-interact').classList.add('visible');}else{hint.classList.remove('visible');$('touch-interact').classList.remove('visible');}}
 $('touch-interact').onclick=interact;
-function isWalkable(x,z){return paths.some(p=>distanceFromPath(x,z,p)<p.width*.5+.33);}
+function isWalkable(x,z){
+ return paths.some(p=>distanceFromPath(x,z,p)<
+   (p.widthAt?p.widthAt(z):p.width)*.5+.33);
+}
 const followCamera=createThirdPersonCamera({camera,hill,isWalkable});
 function move(dt){if(!state.started||state.modal)return;
  let forward=(keys.has('KeyW')||keys.has('ArrowUp')?1:0)-(keys.has('KeyS')||keys.has('ArrowDown')?1:0);
