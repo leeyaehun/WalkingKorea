@@ -15,13 +15,32 @@ renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
 renderer.toneMapping = THREE.NoToneMapping;
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(57,1,.1,240);
+// A real 3D gradient sky dome: the warm, hazy skyline visible between
+// Bukchon's rooflines. This is not the generated reference illustration.
+const skyGeometry=new THREE.SphereGeometry(215,24,12);
+const skyPositions=skyGeometry.getAttribute('position');
+const skyColors=[];
+const skyHorizon=new THREE.Color(0xe6bda8),skyZenith=new THREE.Color(0x9cb7dd);
+for(let i=0;i<skyPositions.count;i++){
+ const elevation=Math.max(0,Math.min(1,(skyPositions.getY(i)/215+.12)/.85));
+ const tone=skyHorizon.clone().lerp(skyZenith,elevation);
+ skyColors.push(tone.r,tone.g,tone.b);
+}
+skyGeometry.setAttribute('color',new THREE.Float32BufferAttribute(skyColors,3));
+const sky=new THREE.Mesh(skyGeometry,new THREE.MeshBasicMaterial({
+ side:THREE.BackSide,vertexColors:true,depthWrite:false,fog:false
+}));
+sky.renderOrder=-1000;
+scene.add(sky);
 const {mesh,material,paths,hill,distanceFromPath,houseSites,paving,vertexCount} = createBukchonWorld();
 scene.add(mesh);
 const dami=createDamiCompanion(scene,hill);
 const girl=createGirlSpriteCompanion(scene,hill,camera);
 const avatars={dami,girl};
 
-const state={x:0,z:42,yaw:0,pitch:-.22,vy:0,vx:0,vz:0,night:false,running:false,started:false,modal:false,helpViewed:false,mute:true,elapsed:0,walked:0,quality:1,avatar:'dami'};
+// Start on the upper lookout, looking DOWN the old lane toward Namsan.
+// The paths and camera-relative WASD controls remain unchanged.
+const state={x:-3,z:-42,yaw:Math.PI,pitch:-.35,vy:0,vx:0,vz:0,night:false,running:false,started:false,modal:false,helpViewed:false,mute:true,elapsed:0,walked:0,quality:1,avatar:'dami'};
 const keys=new Set();let lastFrame=0,lastMap=0,lastToast=0,nearSpot=null,stepPhase=0;
 const memoryStore={};
 const safeStore={getItem(k){try{return window.localStorage.getItem(k)}catch(e){return memoryStore[k]||null}},setItem(k,v){try{window.localStorage.setItem(k,v)}catch(e){memoryStore[k]=v}}};
@@ -189,7 +208,7 @@ window.addEventListener('keydown',e=>{
  if(e.repeat)return;
  if(e.code==='KeyE')interact();if(e.code==='KeyN')toggleTime();if(e.code==='KeyP')savePhoto();if(e.code==='KeyH')showHelp();
 });window.addEventListener('keyup',e=>keys.delete(e.code));window.addEventListener('blur',()=>{keys.clear();touchInput.x=touchInput.y=0;});
-$('start-btn').onclick=()=>{state.started=true;document.body.classList.add('playing');$('intro').classList.remove('visible');if(touchDevice){$('touch-ui').setAttribute('aria-hidden','false');}toast('미니맵의 분홍 점을 따라가면 꾸며진 한옥을 볼 수 있어요. ✿',4400);};
+$('start-btn').onclick=()=>{state.started=true;document.body.classList.add('playing');$('intro').classList.remove('visible');if(touchDevice){$('touch-ui').setAttribute('aria-hidden','false');}toast('북촌 전망길에서 내리막 골목을 따라 서울 풍경을 만나보세요. ✿',4500);};
 function toggleTime(){state.night=!state.night;$('toggle-time').textContent=state.night?'☀':'☾';toast(state.night?'조용한 서울의 저녁이에요.':'햇살이 돌아왔어요.');}
 $('toggle-time').onclick=toggleTime;
 // Synthesized ambience avoids third-party sound/licensing dependencies. WebAudio begins after click.
@@ -219,7 +238,9 @@ function render(time=0) {
   dami.update({...motion,visible:state.started&&state.avatar==='dami'});
   girl.update({...motion,visible:state.started&&state.avatar==='girl'});
   followCamera.update({x:state.x,z:state.z,yaw:state.yaw,pitch:state.pitch,dt,moving});
-  const fog=state.night?[.31,.37,.45]:[.72,.78,.76];
+  const fog=state.night?[.31,.37,.45]:[.79,.78,.75];
+  sky.position.copy(camera.position);
+  sky.material.color.set(state.night?0x34415c:0xffffff);
   material.uniforms.uNight.value=state.night?1:0;
   material.uniforms.uFogColor.value.setRGB(...fog);
   renderer.setClearColor(new THREE.Color().setRGB(...fog),1);
@@ -243,4 +264,4 @@ if(new URLSearchParams(location.search).has('qa')) {
   });
 }
 
-console.info(`[Seoul Stroll Bukchon v0.11 preview] Three.js ready: ${vertexCount.toLocaleString()} vertices, ${houseSites.length} hanok houses, ${paths.length} walkable lanes, ${locations.length} discoveries.`);
+console.info(`[Seoul Stroll Bukchon v0.12 scenic alley] Three.js ready: ${vertexCount.toLocaleString()} vertices, ${houseSites.length} hanok houses, ${paths.length} walkable lanes, ${locations.length} discoveries.`);
