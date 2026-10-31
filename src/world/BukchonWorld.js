@@ -193,7 +193,7 @@ function housesAlong(path,pIndex){
 }
 function laneDecoration(){
  // Retaining walls near corners and a few objects make it feel inhabited.
- for(const [x,z,angle] of [[-10,6,.7],[-19,-6,.5],[8,22,-.7],[14,-20,.9],[-2,-38,0]]){
+ for(const [x,z,angle] of [[-10,6,.7],[-19,-6,.5],[8,22,-.7],[14,-20,.9]]){
   withFrame(x,z,angle,()=>{
    box(0,.65,0,3.4,1.15,.36,'beige');box(0,1.25,0,3.5,.2,.5,'roof');
    cylinder(1.75,.83,.55,.18,1.65,'brown');sphere(1.7,1.98,.55,.7,.69,.75,'sage',8,5);
@@ -202,12 +202,10 @@ function laneDecoration(){
  for(const [x,z] of [[-6,26],[-8,-32],[13,12],[-21,-12],[7,-10]]){
   withFrame(x,z,.35,()=>{cylinder(0,1.23,0,.14,2.45,'brown');sphere(.05,2.64,0,.8,.72,.76,'sage',8,5);});
  }
- // An elevated overlook at the northwest side of the upper route.
- withFrame(-3,-43,0,()=>{
-  box(0,.18,-1.35,4.0,.35,2.8,'beige');
-  for(const xx of [-2,2])box(xx,.90,-2.60,.18,1.55,.2,'brown');
-  box(0,1.57,-2.60,4.15,.17,.22,'brown');
- });
+ // The overlook starts on the street itself. Removing the old 4m platform
+ // and waist-high transverse railing keeps the iconic downhill vista clear,
+ // without blocking the camera or the player walkable path.
+
 }
 function hillsideBackground(){
  // The celebrated Bukchon view: the roofs open toward Seoul's city skyline
