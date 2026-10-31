@@ -1,0 +1,45 @@
+name: Verify live v0.11 2.5D deployment
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  live:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify real public HTML and binary image files
+        shell: bash
+        run: |
+          set -euo pipefail
+          root="https://walkingkorea.leeyaehun.workers.dev"
+          curl -fsSL --retry 4 --retry-delay 2 -D /tmp/wk-headers "$root/?smoketest=v011" -o /tmp/wk-home.html
+          grep -qi 'X-WalkingKorea-Version: 0.11.0' /tmp/wk-headers
+          grep -q 'data-avatar="girl"' /tmp/wk-home.html
+          curl -fsSL --retry 4 "$root/sprite.html?smoketest=v011" -o /tmp/wk-sprite.html
+          grep -q 'sprite' /tmp/wk-sprite.html
+          for asset in girl_idle_5x2.webp girl_walk_5x4.webp girl_portrait.webp; do
+            curl -fsSL --retry 4 "$root/sprites/$asset?smoketest=v011" -o "/tmp/$asset"
+            test "$(head -c 4 "/tmp/$asset")" = "RIFF"
+            test "$(dd if="/tmp/$asset" bs=1 skip=8 count=4 status=none)" = "WEBP"
+          done
+          echo "LIVE_HOME=PASS"
+          echo "LIVE_2_5D_STUDIO=PASS"
+          echo "LIVE_WEBP_ATLASES=PASS"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - run: npm install --no-save playwright@1.56.1
+      - run: npx playwright install --with-deps chromium
+      - name: Test playable sprite against public Cloudflare host
+        env:
+          WK_BASE_URL: https://walkingkorea.leeyaehun.workers.dev/
+        run: node scripts/qa-girl-sprite.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: walkingkorea-v011-public-proof
+          path: qa-screenshots/
