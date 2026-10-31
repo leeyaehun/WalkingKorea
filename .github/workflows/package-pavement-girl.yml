@@ -1,7 +1,7 @@
 name: Package WalkingKorea v0.10
 on:
   push:
-    branches: [feature/paved-alley-girl-v010]
+    branches: [main]
   workflow_dispatch:
 permissions:
   contents: write
