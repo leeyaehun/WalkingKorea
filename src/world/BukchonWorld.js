@@ -1,4 +1,5 @@
 import { createHanokKit } from './HanokKit.js';
+import { buildPavedAlleys } from './BukchonPaving.js';
 import * as THREE from 'three';
 
 // Procedural Bukchon lanes and approved Hanok Set v1 geometry in a Three.js BufferGeometry.
@@ -17,7 +18,14 @@ const C = {
   tileDark:[.30,.34,.39], tileBase:[.36,.40,.45], tileLight:[.50,.54,.57], tileRidge:[.25,.28,.33],
   timber:[.49,.32,.22], timberLight:[.65,.44,.30], woodShade:[.30,.22,.18], plaster:[.94,.89,.82], paper:[.98,.95,.87],
   stoneFoundation:[.73,.69,.63], stoneLight:[.84,.80,.74], gateWood:[.53,.34,.23], copper:[.68,.54,.40],
-  shopDark:[.28,.29,.25], warmGlass:[.71,.57,.41], warmLight:[.92,.72,.44]
+  shopDark:[.28,.29,.25], warmGlass:[.71,.57,.41], warmLight:[.92,.72,.44],
+  paveGrout:[.70,.62,.53],paveJoint:[.74,.68,.60],
+  paveWarm:[.91,.80,.68],paveCream:[.96,.87,.76],
+  paveSand:[.88,.77,.66],paveLight:[.98,.89,.79],
+  paveStone:[.86,.77,.70],paveHoney:[.92,.81,.68],
+  pavePatch:[.83,.77,.71],paveMossStone:[.79,.77,.72],
+  edgeStone:[.84,.77,.67],edgeStoneLight:[.90,.83,.73],
+  drainIron:[.50,.47,.43],drainGrill:[.69,.64,.56]
 };
 const color=(v)=>Array.isArray(v)?v:C[v]||C.white;
 const positions=[],normals=[],uvs=[],colors=[];
@@ -126,28 +134,12 @@ function distanceFromPath(x,z,p){let best=Infinity;for(let i=0;i<p.samples.lengt
  best=Math.min(best,Math.hypot(x-a[0]-vx*t,z-a[1]-vz*t));
 }return best;}
 function groundTile(x,z,r,shade='sage'){face([x-r,hill(x-r,z-r)-.24,z-r],[x+r,hill(x+r,z-r)-.24,z-r],[x+r,hill(x+r,z+r)-.24,z+r],[x-r,hill(x-r,z+r)-.24,z+r],[0,1,0],shade);}
-function ribbon(path){
- const pts=path.samples,edges=[];
- for(let i=0;i<pts.length;i++){
-  const a=pts[Math.max(0,i-1)],b=pts[Math.min(pts.length-1,i+1)];let dx=b[0]-a[0],dz=b[1]-a[1],len=Math.hypot(dx,dz)||1;const nx=-dz/len,nz=dx/len;
-  edges.push([[pts[i][0]+nx*path.width*.5,pts[i][1]+nz*path.width*.5],[pts[i][0]-nx*path.width*.5,pts[i][1]-nz*path.width*.5]]);
- }
- for(let i=0;i<edges.length-1;i++){
-  const [a,b]=edges[i],[d,c]=edges[i+1];
-  const v=q=>[q[0],hill(q[0],q[1])+.025,q[1]];
-  face(v(a),v(b),v(c),v(d),[0,1,0],i%9===0?'beige':'sidewalk');
-  // Subtle stone joints in pedestrian lanes, not automobile center lines.
-  if(i%4===0){const v1=q=>[q[0],hill(q[0],q[1])+.043,q[1]];
-   const f=.11,p=q=>[q[0]*(1-f)+edges[i+1][0][0]*f,q[1]*(1-f)+edges[i+1][0][1]*f];
-   const t=q=>[q[0]*(1-f)+edges[i+1][1][0]*f,q[1]*(1-f)+edges[i+1][1][1]*f];
-   face(v1(a),v1(b),v1(t(b)),v1(p(a)),[0,1,0],'cream');
-  }
- }
-}
+// Real slab faces follow the original sloped, winding lane samples.
+const paving=buildPavedAlleys({paths,face,hill});
 function routeFloor(){
  // green-grey terrain plate: city blocks are hidden behind walls and house rows.
  for(let x=-52;x<55;x+=8)for(let z=-67;z<68;z+=8)groundTile(x+4,z+4,4,(x+z)%3===0?'sage':'muted');
- paths.forEach(ribbon);
+ // Paving is added after the terrain plate in one shared BufferGeometry.
 }
 // Approved Bukchon Hanok Set v1 (A: wall/gate, B: exposed front, C: café/atelier).
 // Shared primitives preserve hillside alignment and the original mesh renderer.
@@ -275,5 +267,5 @@ makeWorld();
   });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.frustumCulled = false;
-  return {mesh,material,paths,hill,distanceFromPath,houseSites,vertexCount:positions.length/3};
+  return {mesh,material,paths,hill,distanceFromPath,houseSites,paving,vertexCount:positions.length/3};
 }
