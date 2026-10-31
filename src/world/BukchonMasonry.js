@@ -43,8 +43,12 @@ export function createBukchonMasonry({box, face, sphere, roofHeight, roofHalfWid
   }
 
   function sideMasonry(x) {
-    const side=x>0?1:-1, surface=x+side*.184;
+    const side=x>0?1:-1;
     const length=6.58,zStart=-3.46;
+    // Both sides of the long alley wall must show stone and brick. Previously
+    // only its outward face was textured, leaving a blank inner corridor.
+    for(const surface of [x+side*.184,x-side*.184]) {
+    const wallNormal=surface>x?1:-1;
     for(let row=0;row<3;row++) {
       const y0=.38+row*.225,y1=y0+.203;
       for(let col=0;col<15;col++) {
@@ -52,7 +56,7 @@ export function createBukchonMasonry({box, face, sphere, roofHeight, roofHalfWid
         const z1=Math.min(zStart+length,z0+length/15-.056);
         if(z1<=z0)continue;
         face([surface,y0,z0],[surface,y1,z0],[surface,y1,z1],[surface,y0,z1],
-             [side,0,0],(row+col)%4===0?'stoneGrey':'stoneMasonry');
+             [wallNormal,0,0],(row+col)%4===0?'stoneGrey':'stoneMasonry');
       }
     }
     for(let row=0;row<3;row++) {
@@ -62,8 +66,9 @@ export function createBukchonMasonry({box, face, sphere, roofHeight, roofHalfWid
         const z1=Math.min(zStart+length,z0+length/13-.06);
         if(z1<=z0)continue;
         face([surface,y0,z0],[surface,y1,z0],[surface,y1,z1],[surface,y0,z1],
-             [side,0,0],(row+col)%5===0?'brickDark':'brickTerracotta');
+             [wallNormal,0,0],(row+col)%5===0?'brickDark':'brickTerracotta');
       }
+    }
     }
   }
 
