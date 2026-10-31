@@ -1,6 +1,6 @@
 import { chromium } from 'playwright';
 import fs from 'node:fs/promises';
-const base='http://127.0.0.1:4173/';
+const base=process.env.WK_BASE_URL||'http://127.0.0.1:4173/';
 const browser=await chromium.launch({headless:true,args:['--enable-webgl','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader','--no-sandbox']});
 const errors=[];
 await fs.mkdir('qa-screenshots',{recursive:true});
