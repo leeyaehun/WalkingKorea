@@ -33,7 +33,7 @@ const sky=new THREE.Mesh(skyGeometry,new THREE.MeshBasicMaterial({
 }));
 sky.renderOrder=-1000;
 scene.add(sky);
-const {mesh,material,paths,hill,distanceFromPath,houseSites,paving,vertexCount} = createBukchonWorld();
+const {mesh,material,paths,hill,distanceFromPath,houseSites,streetLife,paving,vertexCount} = createBukchonWorld();
 scene.add(mesh);
 const lighting=createBukchonLighting({
   renderer,scene,worldMesh:mesh,isTouch:touchDevice
@@ -269,6 +269,7 @@ if(new URLSearchParams(location.search).has('qa')) {
     avatar:avatars[state.avatar].snapshot(),selectedAvatar:state.avatar,
     paving,camera:followCamera.snapshot(),
     decoratedHouses:houseSites.filter(site=>site.decorated).length, houses:houseSites.length,
+    streetDetails:streetLife.counts, utilityCrossings:streetLife.lines.length,
     viewYaw:state.yaw,started:state.started
   });
 }
