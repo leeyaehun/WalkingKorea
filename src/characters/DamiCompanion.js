@@ -290,40 +290,51 @@ export function createDamiModel() {
   return {root,headPivot,tailPivot,feet,materials:M,animate};
 }
 
-export function createDamiCompanion(scene,hill) {
-  const model=createDamiModel();
-  const root=model.root;
-  root.visible=false;
-  root.scale.setScalar(.63);
+export function createDamiCompanion(scene, hill) {
+  const model = createDamiModel();
+  const root = model.root;
+  root.name = 'Dami — playable character';
+  root.userData.isPlayableCharacter = true;
+  root.visible = false;
+  root.scale.setScalar(.94);
   scene.add(root);
-  // World geometry has a bespoke shader; these lights affect Dami only.
-  const ambient = new THREE.AmbientLight(0xfff5e8,2.15);
-  const sun = new THREE.DirectionalLight(0xffe6bf,2.10);
+
+  // The streets use a separate shader; these lights illuminate Dami's PBR
+  // materials without altering the environment's existing palette.
+  const ambient = new THREE.AmbientLight(0xfff5e8, 2.15);
+  const sun = new THREE.DirectionalLight(0xffe6bf, 2.10);
   sun.position.set(-2,7,5);
   const fill = new THREE.DirectionalLight(0xc9dbff,.95);
   fill.position.set(4,4,-2);
   scene.add(ambient,sun,fill);
 
-  const pos=new THREE.Vector3();let initialized=false;
-  function update({x,z,yaw,elapsed,walking,visible}) {
-    root.visible=!!visible;
-    if(!visible){initialized=false;return;}
-    // The companion is *beside* the path, never a huge obstruction dead centre.
-    const forwardX=Math.sin(yaw),forwardZ=-Math.cos(yaw);
-    const rightX=Math.cos(yaw),rightZ=Math.sin(yaw);
-    const tx=x+forwardX*3.35+rightX*1.13;
-    const tz=z+forwardZ*3.35+rightZ*1.13;
-    if(!initialized||Math.hypot(tx-pos.x,tz-pos.z)>13){
-      pos.set(tx,0,tz);initialized=true;
-    } else {
-      const k=1-Math.exp(-.055*(walking?1.2:.65));
-      pos.x+=(tx-pos.x)*k;pos.z+=(tz-pos.z)*k;
+  let heading=Math.PI;
+  let initialized=false;
+
+  function update({x,z,vx=0,vz=0,dt=.016,elapsed,walking,visible}) {
+    root.visible = !!visible;
+    if (!visible) {initialized=false;return;}
+    root.position.set(x,hill(x,z)+.04,z);
+
+    // The character's own movement determines the facing direction. Camera
+    // turning alone must NOT rotate or translate Dami.
+    const speed=Math.hypot(vx,vz);
+    if(!initialized) {
+      heading = Math.PI; // Face into the village (local +Z points forward).
+      root.rotation.y=heading;
+      initialized=true;
     }
-    root.position.set(pos.x,hill(pos.x,pos.z)+.035+Math.sin(elapsed*4)*.011,pos.z);
-    // Front +Z on the model: looking toward the camera keeps its face visible.
-    const targetYaw=Math.atan2(x-pos.x,z-pos.z);
-    root.rotation.y=targetYaw;
-    model.animate(elapsed,walking);
+    if(speed>.12) {
+      const desiredHeading=Math.atan2(vx,vz);
+      const delta=Math.atan2(Math.sin(desiredHeading-heading),Math.cos(desiredHeading-heading));
+      heading += delta*(1-Math.exp(-dt*12));
+    }
+    root.rotation.y=heading;
+    model.animate(elapsed,walking&&speed>.15);
   }
-  return {group:root,update,model};
+  function snapshot() {
+    return {position:[root.position.x,root.position.y,root.position.z],
+      heading:root.rotation.y,visible:root.visible,scale:root.scale.x};
+  }
+  return {group:root,update,model,snapshot};
 }
