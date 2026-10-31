@@ -10,7 +10,7 @@ const page=await browser.newPage({viewport:{width:1280,height:850},deviceScaleFa
 const errors=[];
 page.on('pageerror',e=>errors.push('PAGE: '+e.message));
 page.on('console',m=>{if(m.type()==='error')errors.push('CONSOLE: '+m.text());});
-const base='http://127.0.0.1:4173/';
+const base=process.env.WK_BASE_URL||'http://127.0.0.1:4173/';
 const response=await page.goto(base+'?qa=1',{waitUntil:'networkidle',timeout:60000});
 if(!response||response.status()!==200)errors.push('Bad page HTTP response');
 await page.locator('#start-btn').click();
