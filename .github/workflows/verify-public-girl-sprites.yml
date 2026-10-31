@@ -16,7 +16,8 @@ jobs:
           set -euo pipefail
           root="https://walkingkorea.leeyaehun.workers.dev"
           curl -fsSL --retry 4 --retry-delay 2 -D /tmp/wk-headers "$root/?smoketest=v011" -o /tmp/wk-home.html
-          grep -qi 'X-WalkingKorea-Version: 0.11.0' /tmp/wk-headers
+          # Native Wrangler deploys do not include the fallback API version header.
+          # Verify the actual built app and its sprite image files instead.
           grep -q 'data-avatar="girl"' /tmp/wk-home.html
           curl -fsSL --retry 4 "$root/sprite.html?smoketest=v011" -o /tmp/wk-sprite.html
           grep -q 'sprite' /tmp/wk-sprite.html
