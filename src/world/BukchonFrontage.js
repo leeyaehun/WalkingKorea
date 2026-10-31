@@ -36,7 +36,7 @@ export function buildFrontageConnectors({
         const d=Math.hypot(p.x-q.x,p.z-q.z);
         if(!best||d<best.d)best={p,q,d};
       }
-      if(best.d<.12||best.d>3.25)continue;
+      if(best.d<.12||best.d>(district?4.8:3.25))continue;
       const {p,q,d}=best;
       const mx=(p.x+q.x)*.5,mz=(p.z+q.z)*.5;
       const roadDist=distanceFromPath(mx,mz,road);
