@@ -193,7 +193,7 @@ function routeFloor(){
 // Approved Bukchon Hanok Set v1 (A: wall/gate, B: exposed front, C: café/atelier).
 // Shared primitives preserve hillside alignment and the original mesh renderer.
 const hanokKit=createHanokKit({box,face,sphere,cylinder,textured,signs});
-function courtyard(type,detailVariant=0){return hanokKit.build(type,detailVariant);}
+function courtyard(type,detailVariant=0,profile='hero'){return hanokKit.build(type,detailVariant,profile);}
 const houseSites=[];
 function housesOnShowcase(){
  // Eight level-sited homes create staggered, close-set roof silhouettes.
@@ -252,7 +252,7 @@ function housesAlong(path,pIndex){
      // showcase alley instead of deforming houses over uneven terrain.
      box(0,-.155,0,7.35,.32,8.55,'stoneFoundation');
      box(0,-.016,-4.22,7.35,.10,.23,'stoneLight');
-     archetype=courtyard(houseType,detailVariant);
+     archetype=courtyard(houseType,detailVariant,'district');
    },{level:true});
    houseSites.push({index:houseSites.length,x,z,angle,archetype,detailVariant,
      decorated: houseType===100||detailVariant>0,scenic:false,district:true,
