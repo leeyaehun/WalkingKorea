@@ -38,12 +38,12 @@ export function createGirlModel(){
   }
   function bentSleeve(parent,side){
     const upper=new THREE.Group();upper.position.set(side*.255,1.14,.005);parent.add(upper);
-    const sleeve=oval(upper,M.coral,[side*.09,-.145,.012],[.133,.245,.146],30);
+    const sleeve=oval(upper,M.coral,[side*.080,-.140,.006],[.118,.208,.125],30);
     sleeve.rotation.z=side*.28;
     // Folded ivory cuff and softly rounded glove-free hand.
-    const cuff=oval(upper,M.cream,[side*.14,-.317,.026],[.112,.055,.118],24);
-    oval(upper,M.skin,[side*.156,-.389,.047],[.088,.105,.090],24);
-    oval(upper,M.coralLight,[side*.10,-.132,.105],[.044,.15,.037],16);
+    const cuff=oval(upper,M.cream,[side*.128,-.298,.026],[.099,.044,.101],24);
+    oval(upper,M.skin,[side*.134,-.368,.045],[.077,.083,.080],24);
+    oval(upper,M.coralLight,[side*.092,-.118,.101],[.027,.098,.018],16);
     return upper;
   }
   const torsoRig=new THREE.Group();root.add(torsoRig);
@@ -82,14 +82,27 @@ export function createGirlModel(){
   // Inner blouse and jacket split into front panels.
   oval(torsoRig,M.blouse,[0,1.050,.025],[.225,.29,.158],36);
   oval(torsoRig,M.coral,[0,1.056,-.083],[.259,.292,.175],36);
-  // Paired rounded panels show an uninterrupted cream opening and buttons.
+  // Flat tailored cardigan panels, softly bevelled. They belong to the
+  // jacket instead of reading as large dangling, sausage-shaped shapes.
   for(const side of [-1,1]){
-    const panel=oval(torsoRig,M.coralLight,[side*.148,1.043,.162],[.117,.253,.067],28);
-    panel.rotation.z=side*.035;
-    oval(torsoRig,M.coral,[side*.230,1.038,.020],[.071,.260,.138],24);
+    const shape=new THREE.Shape();
+    const xx=v=>side*v;
+    shape.moveTo(xx(.075),1.285);
+    shape.bezierCurveTo(xx(.14),1.302,xx(.227),1.268,xx(.242),1.205);
+    shape.lineTo(xx(.238),.858);
+    shape.quadraticCurveTo(xx(.226),.824,xx(.197),.821);
+    shape.lineTo(xx(.079),.825);
+    shape.quadraticCurveTo(xx(.068),.968,xx(.066),1.092);
+    shape.quadraticCurveTo(xx(.064),1.217,xx(.075),1.285);
+    const jacketGeo=new THREE.ExtrudeGeometry(shape,{
+      depth:.024,bevelEnabled:true,bevelSize:.013,bevelThickness:.012,
+      bevelSegments:3,curveSegments:10
+    });
+    const panel=geom(jacketGeo,side===1?M.coralLight:M.coral,torsoRig);
+    panel.position.z=.189;panel.material.side=THREE.DoubleSide;
   }
   for(const y of [.91,1.060,1.195]){
-    oval(torsoRig,M.cream,[.115,y,.232],[.030,.029,.017],16);
+    oval(torsoRig,M.cream,[.108,y,.234],[.024,.024,.012],16);
   }
   // Rounded white collar flares around the neck.
   for(const side of [-1,1]){
@@ -121,17 +134,25 @@ export function createGirlModel(){
   const face=oval(headPivot,M.skin,[0,-.042,.170],[.330,.335,.280],48);
   oval(headPivot,M.skin,[-.333,-.119,.145],[.060,.105,.069],20);
   oval(headPivot,M.skin,[.333,-.119,.145],[.060,.105,.069],20);
-  // Side sweep built from curved, overlapping bangs, no spiky wedge edges.
-  const bangs=[
-    [-.250,.169,.251,.140,.117,-.24],
-    [-.120,.209,.265,.159,.120,-.33],
-    [.045,.209,.195,.116,.104,-.44],
-    [.195,.184,.140,.101,.095,-.52],
-  ];
-  for(const [x,y,z,w,h,rot] of bangs){
-    const bang=oval(headPivot,M.hair,[x,y,z],[w,h,.103],30);
-    bang.rotation.z=rot;
-  }
+  // A single sweeping, sculpted fringe overlays the upper forehead.
+  // Previous back-placed hair lobes left the entire forehead exposed.
+  const fringe=new THREE.Shape();
+  fringe.moveTo(-.325,.255);
+  fringe.bezierCurveTo(-.220,.370,-.010,.381,.240,.280);
+  fringe.bezierCurveTo(.290,.245,.304,.188,.295,.148);
+  fringe.bezierCurveTo(.240,.192,.180,.174,.110,.143);
+  fringe.bezierCurveTo(.025,.104,-.025,.098,-.085,.139);
+  fringe.bezierCurveTo(-.165,.175,-.218,.091,-.299,.124);
+  fringe.bezierCurveTo(-.359,.147,-.367,.219,-.325,.255);
+  const fringeGeometry=new THREE.ExtrudeGeometry(fringe,{
+    depth:.040,bevelEnabled:true,bevelSize:.015,bevelThickness:.013,
+    bevelSegments:4,curveSegments:16
+  });
+  const fringeMesh=geom(fringeGeometry,M.hair,headPivot);
+  fringeMesh.position.z=.365;
+  // A smaller swept lock gives the bob an asymmetrical, hand-combed finish.
+  const lock=oval(headPivot,M.hair,[-.217,.203,.367],[.094,.099,.054],28);
+  lock.rotation.z=-.42;
   const leftLock=oval(headPivot,M.hair,[-.337,-.081,.018],[.126,.301,.183],28);
   leftLock.rotation.z=-.13;
   const rightLock=oval(headPivot,M.hair,[.340,-.069,.021],[.123,.300,.185],28);
@@ -141,13 +162,14 @@ export function createGirlModel(){
     const x=side*.132;
     oval(headPivot,M.eye,[x,-.080,.440],[.047,.076,.024],26);
     oval(headPivot,M.eyeLight,[x-.014,-.049,.464],[.014,.022,.007],14);
-    const b=oval(headPivot,M.brown,[x,-.004,.440],[.055,.010,.009],16);
+    const b=oval(headPivot,M.hairHighlight,[x,.035,.439],[.046,.006,.006],16);
     b.rotation.z=side*.13;
-    oval(headPivot,M.blush,[side*.252,-.159,.405],[.078,.036,.013],22);
+    oval(headPivot,M.blush,[side*.247,-.163,.404],[.063,.026,.008],22);
   }
   oval(headPivot,M.skinShade,[0,-.139,.453],[.017,.013,.007],12);
-  oval(headPivot,M.accent,[0,-.204,.446],[.049,.040,.013],20);
-  oval(headPivot,M.eyeLight,[0,-.192,.459],[.028,.012,.006],14);
+  // Petite upturned smile, not a large rounded open-mouth oval.
+  tube(headPivot,M.accent,[[-.048,-.210,.447],[-.024,-.232,.456],[0,-.239,.458],[.028,-.232,.456],[.046,-.210,.447]],.009);
+  oval(headPivot,M.blush,[0,-.223,.449],[.020,.011,.008],12);
   // Left flower-pin with five petals and two hanging peach tassels.
   const hairPin=new THREE.Group();hairPin.position.set(-.345,.121,.146);headPivot.add(hairPin);
   for(let i=0;i<5;i++){
