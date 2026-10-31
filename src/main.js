@@ -3,6 +3,7 @@ import { createBukchonWorld } from './world/BukchonWorld.js';
 import { createDamiCompanion } from './characters/DamiCompanion.js';
 import { createGirlSpriteCompanion } from './characters/GirlSprite.js';
 import { createThirdPersonCamera } from './controllers/ThirdPersonCamera.js';
+import { cameraRelativeDirection } from './controllers/MovementDirections.js';
 
 const $ = (id) => document.getElementById(id);
 const canvas = $('world');
@@ -163,8 +164,7 @@ function move(dt){if(!state.started||state.modal)return;
  let strafe=(keys.has('KeyD')||keys.has('ArrowRight')?1:0)-(keys.has('KeyA')||keys.has('ArrowLeft')?1:0);
  forward+=-touchInput.y;strafe+=touchInput.x;
  let length=Math.hypot(forward,strafe);if(length>1){forward/=length;strafe/=length;}
- const dx=Math.sin(state.yaw)*forward+Math.cos(state.yaw)*strafe;
- const dz=-Math.cos(state.yaw)*forward+Math.sin(state.yaw)*strafe;
+ const {dx,dz}=cameraRelativeDirection(forward,strafe,state.yaw);
  const speed=(keys.has('ShiftLeft')||keys.has('ShiftRight')?3.35:1.85);
  const lerp=1-Math.exp(-dt*10);state.vx+=(dx*speed-state.vx)*lerp;state.vz+=(dz*speed-state.vz)*lerp;
  const nx=state.x+state.vx*dt,nz=state.z+state.vz*dt;
