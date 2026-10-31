@@ -1,8 +1,8 @@
 /**
  * Phase 05 — lived-in Bukchon street details.
  *
- * One authored, deterministic pass. Props belong to existing house fronts and
- * real street intersections; no global random clutter and no change to
+ * Deterministic citywide pass. Props belong to existing house fronts and
+ * real street intersections; no vegetation or random clutter and no change to
  * walkable collision / street coordinates / Phase 01–04 lighting.
  *
  * All geometric operations share the existing one-mesh renderer and its
@@ -12,8 +12,9 @@ export function buildBukchonStreetLife({
   box,face,sphere,cylinder,textured,signs,withFrame,
   hill,houseSites,paths,distanceFromPath
 }) {
-  const houses=houseSites.filter(s=>s.scenic).sort((a,b)=>a.index-b.index);
-  const counts={doorsteps:0,plaques:0,downspouts:0,planters:0,
+  // The same architectural language now spans ALL village houses.
+  const houses=houseSites.slice().sort((a,b)=>a.index-b.index);
+  const counts={doorsteps:0,plaques:0,downspouts:0,
     electricMeters:0,benches:0,storage:0,wires:0,poles:0};
   const entries=[];
 
@@ -21,13 +22,20 @@ export function buildBukchonStreetLife({
   // local -Z is the lane-facing side of the masonry fence.
   for(const site of houses) {
     const ordinal=site.index;
-    let summary={index:ordinal,type:site.archetype,details:[]};
+    let summary={index:ordinal,type:site.archetype,scenic:!!site.scenic,routeIndex:site.routeIndex??0,details:[]};
     const add=key=>{counts[key]++;summary.details.push(key)};
     withFrame(site.x,site.z,site.angle,()=>{
-      // Compact stone step: stops near the kerb, not on the walking roadway.
-      box(0,-.017,-4.61,1.44,.16,.24,'stoneFoundation');
-      box(0,.082,-4.50,1.24,.075,.25,'stoneLight');
-      box(0,.118,-4.45,1.10,.03,.18,'stoneMasonry');
+      // Keep all details at the building's front, not in the road.
+      // Shops already have their own sign/entrance; do not add a fake
+      // residential plate and doorstep across the glass storefront.
+      const isShop=site.archetype==='cafe';
+      const entryZ=site.archetype==='facing'?-3.90:-4.61;
+      if(!isShop){
+      // A gate/porch keeps the lowest step on the building side of the
+      // kerb. At all district sites the front is >= 0.2m past the road.
+      box(0,-.017,entryZ,1.36,.16,.22,'stoneFoundation');
+      box(0,.082,entryZ+.11,1.19,.075,.22,'stoneLight');
+      box(0,.118,entryZ+.15,1.05,.03,.16,'stoneMasonry');
       add('doorsteps');
 
       // Small dark wood address plaque with fictional poetic house title.
@@ -38,6 +46,7 @@ export function buildBukchonStreetLife({
       textured(plaqueX,1.53,-4.588,.49,.23,'z',
         signs.residences[ordinal%signs.residences.length],-1);
       add('plaques');
+      }
 
       // Discreet utility meter, pipes and the bent downspout at the ends
       // of the facade: these are functionally placed, not scattered props.
@@ -56,28 +65,7 @@ export function buildBukchonStreetLife({
       box(pipeX,2.66,-3.34,.18,.07,.30,'drainIron');
       add('downspouts');
 
-      // Pots and greens stay at the wall's sides, well away from entrances.
-      const numPots=ordinal%3===0?3:2;
-      for(let p=0;p<numPots;p++){
-        const x=(p%2===0?-1:1)*(2.54+(p%3)*.22);
-        const z=-4.11+(p%2)*.32;
-        const scale=.78+.09*((ordinal+p)%3);
-        cylinder(x,.24*scale,z,.245*scale,.46*scale,
-          p%2===0?'brickTerracotta':'gateWood',9);
-        cylinder(x,.475*scale,z,.28*scale,.055*scale,'brickDark',9);
-        cylinder(x,.52*scale,z,.207*scale,.045*scale,'stoneWarm',9);
-        for(let k=0;k<3;k++){
-          const a=(k*2.399+ordinal*.6);
-          sphere(x+Math.cos(a)*.18*scale,.78*scale+k*.065,
-            z+Math.sin(a)*.15*scale,.24*scale,.27*scale,.20*scale,
-            k===1?'sage':'deepGreen',7,4);
-        }
-        if(p===numPots-1&&ordinal%2===0)
-          sphere(x,.99*scale,z-.10,.09,.09,.10,'flowerCoral',7,4);
-        add('planters');
-      }
-
-      if(ordinal===1||ordinal===5){
+      if(ordinal===1||ordinal===5||(ordinal>=8&&ordinal%9===1)){
         // Low front-side bench, supported by substantial wooden feet.
         const x=2.18;
         box(x,.43,-3.83,1.14,.13,.45,'timberLight');
@@ -86,7 +74,7 @@ export function buildBukchonStreetLife({
         box(x,.69,-3.61,1.14,.44,.11,'woodShade');
         add('benches');
       }
-      if(ordinal===2||ordinal===6){
+      if(ordinal===2||ordinal===6||(ordinal>=8&&ordinal%11===0)){
         // Orderly onggi storage / small stack of ceramic jars.
         for(const [j,x] of [-2.62,-2.25,-1.93].entries()){
           const radius=.17+j*.018;

@@ -5,8 +5,11 @@
  * Only houses on the SAME side of the main road and <11m apart are eligible.
  * Junctions and portals remain open. Geometry remains in the shared world mesh.
  */
-export function buildFrontageConnectors({houses,face,hill,distanceFromPath,mainPath}) {
-  const scenic=houses.filter(h=>h.scenic && h.archetype!=='cafe');
+export function buildFrontageConnectors({
+  houses,face,hill,distanceFromPath,mainPath,paths=[mainPath],district=false
+}) {
+  const selected=houses.filter(h=>
+    (district ? h.district : h.scenic) && h.archetype!=='cafe');
   let count=0,segments=[];
   const frontPoint=(h,lx)=>{
     const lz=h.archetype==='facing'?-3.89:-4.21;
@@ -17,8 +20,12 @@ export function buildFrontageConnectors({houses,face,hill,distanceFromPath,mainP
   function polygon(a,b,c,d,normal,color){
     face(a,b,c,d,normal,color);
   }
+  for(const routeIndex of (district?[0,1,2]:[0])) {
+  const road=paths[routeIndex]||mainPath;
   for(const side of [-1,1]){
-    const row=scenic.filter(h=>h.side===side).sort((a,b)=>a.laneZ-b.laneZ);
+    const row=selected.filter(h=>h.side===side &&
+       (district?h.routeIndex===routeIndex:true))
+       .sort((a,b)=>a.laneZ-b.laneZ);
     for(let i=1;i<row.length;i++){
       const a=row[i-1],b=row[i];
       if(Math.hypot(b.x-a.x,b.z-a.z)>11.2)continue;
@@ -29,11 +36,18 @@ export function buildFrontageConnectors({houses,face,hill,distanceFromPath,mainP
         const d=Math.hypot(p.x-q.x,p.z-q.z);
         if(!best||d<best.d)best={p,q,d};
       }
-      if(best.d<.12||best.d>3.25)continue;
+      if(best.d<.12||best.d>(district?4.8:3.25))continue;
       const {p,q,d}=best;
       const mx=(p.x+q.x)*.5,mz=(p.z+q.z)*.5;
-      const roadDist=distanceFromPath(mx,mz,mainPath);
-      if(roadDist<(mainPath.widthAt?mainPath.widthAt(mz):mainPath.width)*.5+.22)continue;
+      const roadDist=distanceFromPath(mx,mz,road);
+      if(roadDist<(road.widthAt?road.widthAt(mz):road.width)*.5+.22)continue;
+      // A wall link between houses may never cut across a crossing road.
+      if(district && paths.some((other,index)=>index!==routeIndex &&
+        [0.2,0.5,0.8].some(t=>{
+          const px=p.x+(q.x-p.x)*t,pz=p.z+(q.z-p.z)*t;
+          return distanceFromPath(px,pz,other) <
+            (other.widthAt?other.widthAt(pz):other.width)*.5+.50;
+        })))continue;
       // Retain the literal openings to the two side streets.
       if(side===-1 && mz>-19 && mz<-10)continue;
       if(side===1 && mz>-28 && mz<-20)continue;
@@ -66,9 +80,10 @@ export function buildFrontageConnectors({houses,face,hill,distanceFromPath,mainP
         const central1=[q.x,q.y+wallHeight+.09,q.z];
         polygon(central0,central1,at1,at0,[0,1,0],'tileDark');
       }
-      segments.push({length:d,side,from:a.index,to:b.index,midpoint:{x:mx,z:mz},roadDistance:roadDist});
+      segments.push({length:d,routeIndex,side,from:a.index,to:b.index,midpoint:{x:mx,z:mz},roadDistance:roadDist});
       count++;
     }
+  }
   }
   return {count,segments};
 }

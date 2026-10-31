@@ -31,9 +31,13 @@ export function createHanokKit({ box, face, sphere, cylinder, textured, signs })
   const {pitchedEavesAndHips,gateRoof,wallCoping,openPorchGate}
     = createHanokArchitecture({box,face,sphere,roofHeight,roofHalfWidth,eave,span});
 
+  // Distance-tier geometry: hero fidelity in the showcase street, fewer
+  // small roof polygons on branch roads. This is build-time LOD, not a
+  // frame-by-frame pop or a second render mesh.
+  let detailProfile='hero';
   function pitchedRoof() {
-    const columns = 16;
-    const courses = 9;
+    const columns = detailProfile==='district' ? 12 : 16;
+    const courses = detailProfile==='district' ? 7 : 9;
     for (const side of [-1, 1]) {
       for (let row = 0; row < courses; row++) {
         const z0 = side * eave * row / courses;
@@ -172,13 +176,6 @@ export function createHanokKit({ box, face, sphere, cylinder, textured, signs })
     }
   }
 
-  function planter(x,z,shrub='sage'){
-    box(x,.30,z,.48,.48,.48,'stoneFoundation');
-    box(x,.55,z,.52,.13,.50,'timber');
-    sphere(x,.97,z,.43,.43,.42,shrub,8,5);
-    sphere(x-.16,1.17,z,.23,.22,.22,'green',7,4);
-  }
-
   function gateHanok(seed) {
     timberFrame();
     // Wall-and-gate houses are the dominant pattern in residential Bukchon.
@@ -186,8 +183,6 @@ export function createHanokKit({ box, face, sphere, cylinder, textured, signs })
     stoneWall(2.53,2.12,-4.21,1.62);
     archedGate();
     sideWall();
-    if(seed%2===0)planter(3.57,-3.72);
-    if(seed%3===0)planter(-3.56,-3.83,'green');
   }
 
   /**
@@ -245,7 +240,7 @@ export function createHanokKit({ box, face, sphere, cylinder, textured, signs })
     }
 
     // Pebble-footed ceramic onggi jars, with distinct lids and narrow
-    // necks, beside a low shrub: small Korean domestic details, not signs.
+    // necks: small Korean domestic details, not signs.
     for (const [x, z, r, h] of [
       [3.08, -4.68, .23, .52],
       [3.52, -4.54, .17, .38],
@@ -255,15 +250,6 @@ export function createHanokKit({ box, face, sphere, cylinder, textured, signs })
       cylinder(x, .17 + h, z, r * .80, .09, 'woodShade', 10);
       cylinder(x, .23 + h, z, r * .57, .08, 'copper', 10);
     }
-    for (const [x, z] of [[-3.64, -4.07], [3.83, -3.75]]) {
-      sphere(x, .62, z, .38, .49, .38, 'deepGreen', 8, 5);
-      sphere(x - .15, .95, z - .08, .27, .27, .26, 'sage', 8, 5);
-      for (const dx of [-.17, .08, .22]) {
-        sphere(x + dx, 1.01 + dx * .5, z - .32, .07, .075, .07,
-               'palePink', 6, 4);
-      }
-    }
-
     // Subtle irregular foundation stone joints on the street-facing wall.
     for (const side of [-1, 1]) {
       for (let i = 0; i < 5; i++) {
@@ -275,26 +261,24 @@ export function createHanokKit({ box, face, sphere, cylinder, textured, signs })
   }
 
   /**
-   * Four curated street-house looks. The site picks one using a stable
-   * coordinate-based seed; reloading must not reshuffle roof colours.
-   * All add-ons are local to the existing building frame.
+   * Four restrained roof and timber variations, without flowers/planters.
    */
-  function gardenHanok(variant, archetype) {
+  function finishHanok(variant, archetype) {
     if (!variant) return;
     const palettes = [
       null,
-      ['tileIndigo', 'tileIndigoLight', 'flowerCoral'],
-      ['tileJade', 'tileJadeLight', 'flowerYellow'],
-      ['tileInk', 'tileInkLight', 'flowerLilac'],
-      ['tilePlum', 'tilePlumLight', 'palePink'],
+      ['tileIndigo', 'tileIndigoLight'],
+      ['tileJade', 'tileJadeLight'],
+      ['tileInk', 'tileInkLight'],
+      ['tilePlum', 'tilePlumLight'],
     ];
-    const [tileA, tileB, petals] = palettes[variant];
+    const [tileA, tileB] = palettes[variant];
 
     // Roof-sized color treatment: easier to see from gameplay distance than
     // tiny decorations. A continuous patch follows the same curved tile
     // profile; contrasting courses retain a real roof-tile rhythm.
-    const columns = 12;
-    const courses = 9;
+    const columns = detailProfile==='district' ? 8 : 12;
+    const courses = detailProfile==='district' ? 6 : 9;
     for (const side of [-1, 1]) {
       for (let row = 0; row < courses; row++) {
         const z0 = side * eave * row / courses;
@@ -327,23 +311,6 @@ export function createHanokKit({ box, face, sphere, cylinder, textured, signs })
       box(x,4.34,0,.16,.10,.23,i%3===0?tileA:tileB);
     }
 
-    // Big clusters of flowers and foliage on the lane-facing side.
-    // Their colors differ by house, giving players landmarks in the alley.
-    const sideZ=archetype==='cafe' ? -3.57 : -4.03;
-    for(const side of [-1,1]) {
-      const x=side*(3.23 + (variant%2)*.16);
-      cylinder(x,.29,sideZ,.22,.52,'stoneFoundation',9);
-      cylinder(x,.59,sideZ,.30,.14,'timberLight',9);
-      for(const [dx,dy,dz] of [[-.23,.86,-.08],[.17,.93,.11],[0,1.13,-.09]]) {
-        sphere(x+dx,dy,sideZ+dz,.34,.36,.33,variant===2?'deepGreen':'sage',6,3);
-      }
-      for(let k=0;k<5;k++) {
-        const a=k*2.39996+variant*.7;
-        sphere(x+Math.cos(a)*.33,1.12+(k%3)*.14,
-               sideZ+Math.sin(a)*.27,.105,.11,.095,petals,6,3);
-      }
-    }
-
     if(variant===1 || variant===4) {
       // Paired hanging paper lanterns over the small timber gate / porch.
       const z=archetype==='gate' ? -4.73 : -3.28;
@@ -366,17 +333,6 @@ export function createHanokKit({ box, face, sphere, cylinder, textured, signs })
       box(2.15,.56,-3.97,1.13,.13,.42,'timberLight');
       for(const x of [1.68,2.65]) box(x,.29,-3.97,.10,.44,.14,'timber');
     }
-    if(variant===3) {
-      // Distinctive lattice planter trellis and blossom branches.
-      for(const side of [-1,1]) {
-        const x=side*3.62;
-        for(const y of [.70,1.17,1.63])box(x,y,-3.78,.67,.06,.08,'timberLight');
-        for(const dx of [-.27,.27])box(x+dx,1.11,-3.78,.055,1.26,.09,'timber');
-        sphere(x,1.80,-3.80,.35,.34,.35,'deepGreen',8,5);
-        for(const dx of [-.28,0,.26])
-          sphere(x+dx,2.02,-3.86,.115,.12,.12,'flowerLilac',7,4);
-      }
-    }
     if(variant===4) {
       // Decorated windbreak wall and warm wood lattice panels.
       for(const side of [-1,1]) {
@@ -394,13 +350,8 @@ export function createHanokKit({ box, face, sphere, cylinder, textured, signs })
     stoneWall(-2.66,1.70,-3.89,1.22);
     stoneWall(2.66,1.70,-3.89,1.22);
     openPorchGate();
-    if(seed%2===0) {
-      planter(3.20,-3.47);
-      cylinder(-3.11,.49,-3.44,.25,.72,'stoneFoundation',9);
-    } else {
-      planter(-3.2,-3.55,'green');
-      planter(3.3,-3.56);
-    }
+    // Uncluttered masonry shoulders; plants intentionally removed.
+    cylinder(-3.11,.49,-3.44,.25,.72,'stoneFoundation',9);
     box(0,.10,-3.94,2.65,.18,.56,'stoneFoundation');
   }
 
@@ -420,9 +371,7 @@ export function createHanokKit({ box, face, sphere, cylinder, textured, signs })
     const sign = seed%2===0 ? signs.hanokCafe : signs.hanokAtelier;
     box(0,2.80,-3.25,2.69,.50,.095,'timber');
     textured(0,2.80,-3.31,2.55,.40,'z',sign);
-    // Café stools, pots and sandwich-board, with restrained visual clutter.
-    planter(-3.35,-3.77);
-    planter(3.28,-3.77,'green');
+    // Café stools and sandwich-board; decorative plants removed.
     box(2.63,.57,-3.61,.90,.09,.33,'timberLight');
     for(const x of [2.32,2.94]) box(x,.31,-3.61,.09,.46,.14,'timber');
     box(-2.73,.91,-3.61,.67,.98,.11,'woodShade');
@@ -433,12 +382,13 @@ export function createHanokKit({ box, face, sphere, cylinder, textured, signs })
     stoneWall(3.83,.64,-3.97,1.13);
   }
 
-  function build(type=0, detailVariant=0) {
+  function build(type=0, detailVariant=0, profile='hero') {
+    detailProfile = profile==='district' ? 'district' : 'hero';
     // Keep all original residential/café archetypes, but give many houses a
     // roof-sized, visually distinct upgrade instead of one hard-to-find A01.
     if (type === 100) {
       featureHanok(1);
-      gardenHanok(detailVariant || 1, 'gate');
+      finishHanok(detailVariant || 1, 'gate');
       return 'a01';
     }
     const style = type % 8;
@@ -446,7 +396,7 @@ export function createHanokKit({ box, face, sphere, cylinder, textured, signs })
     if (archetype==='cafe') cafeHanok(type);
     else if (archetype==='facing') facingHanok(type);
     else gateHanok(type);
-    gardenHanok(detailVariant, archetype);
+    finishHanok(detailVariant, archetype);
     return archetype;
   }
   return { build };
