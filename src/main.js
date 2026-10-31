@@ -68,7 +68,7 @@ function drawMapLanes(){
  const root=$('map-roads'),ns='http://www.w3.org/2000/svg';
  for(const route of paths){
   const pl=document.createElementNS(ns,'polyline');
-  pl.setAttribute('points',route.samples.map(p=>toMap(p[0],p[1]).join(',')).join(' ');
+  pl.setAttribute('points',route.samples.map(p=>toMap(p[0],p[1]).join(',')).join(' '));
   pl.setAttribute('fill','none');
   pl.setAttribute('stroke','#fffaf0');
   pl.setAttribute('stroke-width',String(route.width*2.12));
