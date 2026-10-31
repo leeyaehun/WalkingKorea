@@ -61,16 +61,20 @@ await mobile.waitForTimeout(450);
 await mobile.screenshot({path:'qa-screenshots/mobile-girl-on-pavement.png',animations:'disabled'});
 const mobileAvatar=await mobile.evaluate(()=>window.__wkQA?.().selectedAvatar);
 if(mobileAvatar!=='girl')errors.push('Mobile selection lost');
+// Release two live WebGL renderers before opening the separate studio;
+// SwiftShader otherwise stalls screenshot readbacks on CI machines.
+await page.close();
+await mobile.close();
 // Rotate the real girl mesh from front to back in a dedicated GLB-ready studio.
-const studio=await browser.newPage({viewport:{width:1050,height:850},deviceScaleFactor:1,acceptDownloads:true});
+const studio=await browser.newPage({viewport:{width:900,height:700},deviceScaleFactor:1,acceptDownloads:true});
 studio.on('pageerror',e=>errors.push('GIRL STUDIO: '+e.message));
 const studioResponse=await studio.goto(base+'girl.html',{waitUntil:'networkidle',timeout:60000});
 if(studioResponse?.status()!==200)errors.push('Girl studio not served');
 await studio.waitForTimeout(450);
-await studio.screenshot({path:'qa-screenshots/girl-studio-front.png',animations:'disabled'});
+await studio.screenshot({path:'qa-screenshots/girl-studio-front.png',animations:'disabled',timeout:60000});
 await studio.locator('[data-angle="180"]').click();
 await studio.waitForTimeout(700);
-await studio.screenshot({path:'qa-screenshots/girl-studio-back.png',animations:'disabled'});
+await studio.screenshot({path:'qa-screenshots/girl-studio-back.png',animations:'disabled',timeout:60000});
 const filePromise=studio.waitForEvent('download',{timeout:35000});
 await studio.locator('#download-glb').click();
 const file=await filePromise;
