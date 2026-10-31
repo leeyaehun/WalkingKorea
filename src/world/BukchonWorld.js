@@ -192,9 +192,9 @@ function housesAlong(path,pIndex){
    if(paths.some(other=>distanceFromPath(x,z,other)<4.75))continue;
    if(houseSites.some(site=>Math.hypot(site.x-x,site.z-z)<(site.scenic?8.2:7.7)))continue;
    // Negative local Z is the front gate: turn each house toward the lane.
-   // Local -Z must face FROM the house TOWARD the street. Previously
-   // the sign was reversed: visitors saw the blank backs of the homes.
-   const angle=Math.atan2(nx*side,nz*side);
+   // Actual local -Z rotated by angle points (sin(angle),-cos(angle)).
+   // The previous sign used the wrong x direction and faced away.
+   const angle=Math.atan2(-nx*side,nz*side);
    // The first lane-facing residence beside the spawn is the single
    // Hanok A01 showcase. Keep all other pre-existing house sites untouched.
    const houseType = pIndex === 0 && houseSites.length === 0 && side === -1
