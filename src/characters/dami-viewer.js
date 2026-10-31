@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
 import { createDamiModel } from './DamiCompanion.js';
 
 const canvas=document.querySelector('#viewer');
@@ -36,6 +37,18 @@ document.querySelectorAll('[data-angle]').forEach(b=>{
    desired=Number(b.dataset.angle)*Math.PI/180;
    document.querySelectorAll('[data-angle]').forEach(x=>x.classList.toggle('active',x===b));
  });
+});
+document.querySelector('#download-glb').addEventListener('click',()=>{
+  const root=character.root.clone(true);
+  root.rotation.y=0;root.position.set(0,0,0);
+  const exporter=new GLTFExporter();
+  exporter.parse(root,(buffer)=>{
+    const blob=new Blob([buffer],{type:'model/gltf-binary'});
+    const url=URL.createObjectURL(blob);
+    const link=document.createElement('a');
+    link.href=url;link.download='WalkingKorea_Dami_v07.glb';link.click();
+    setTimeout(()=>URL.revokeObjectURL(url),1500);
+  },err=>console.error('GLB export failed',err),{binary:true,onlyVisible:true});
 });
 document.querySelector('#spin-btn').addEventListener('click',e=>{
  spin=!spin;e.currentTarget.classList.toggle('active',spin);
