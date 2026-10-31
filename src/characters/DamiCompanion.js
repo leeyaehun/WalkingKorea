@@ -66,7 +66,7 @@ export function createDamiModel() {
   orb(root,M.orange,[.07,.58,-.326],[.18,.15,.062],24);
 
   // Calico tail, with a real curved tube and continuous alternating segments.
-  const tailPivot=new THREE.Group();tailPivot.position.set(-.285,.49,-.247);root.add(tailPivot);
+  const tailPivot=new THREE.Group();tailPivot.position.set(-.32,.51,-.25);tailPivot.scale.setScalar(.80);root.add(tailPivot);
   const tailCurve=new THREE.CatmullRomCurve3([
     new THREE.Vector3(0,0,0), new THREE.Vector3(-.22,-.02,-.02),
     new THREE.Vector3(-.40,.13,-.02),new THREE.Vector3(-.43,.40,.015),
@@ -84,19 +84,42 @@ export function createDamiModel() {
   // Sculpted head: smooth and cheek-heavy, with a wide expressive face.
   const headPivot=new THREE.Group();
   headPivot.position.set(0,.944,.126);root.add(headPivot);
-  const headGeo=new THREE.SphereGeometry(1,56,38);
+  const headGeo=new THREE.SphereGeometry(1,124,76);
   const p=headGeo.attributes.position;
+  const colors=new Float32Array(p.count*3);
+  const ivoryColor=new THREE.Color(0xfffbf4);
+  const orangeColor=new THREE.Color(0xe6a76c);
+  const brownColor=new THREE.Color(0x80716c);
+  const smooth=(a,b,v)=>{const q=Math.max(0,Math.min(1,(v-a)/(b-a)));return q*q*(3-2*q)};
   for(let i=0;i<p.count;i++){
-    let x=p.getX(i),y=p.getY(i),z=p.getZ(i);
-    const cheek = Math.exp(-Math.pow((y+.20)/.28,2))*.065;
-    const forehead = Math.max(0,y)*.015;
-    x=x*(.435+cheek);
-    const fy=.378*y+.025*(1-y*y);
-    z=z*(.348+cheek*.45)+.024*(1-y*y);
-    p.setXYZ(i,x,fy,z);
+    const bx=p.getX(i),by=p.getY(i),bz=p.getZ(i);
+    const cheek=Math.exp(-Math.pow((by+.20)/.28,2))*.065;
+    const x=bx*(.435+cheek);
+    const y=.378*by+.025*(1-by*by);
+    const z=bz*(.348+cheek*.45)+.024*(1-by*by);
+    p.setXYZ(i,x,y,z);
+    // Organic calico color painted directly on the sculpt. No floating,
+    // low-poly polygon overlays that can obscure eyes or leave hard seams.
+    const leftShape=y-(.075+.035*Math.sin(11*x+7*z)+.10*(x+.18)**2);
+    const rightShape=y-(.086+.030*Math.sin(9*x-5*z)+.09*(x-.20)**2);
+    const front=smooth(-.28,-.025,z);
+    const back=1-smooth(-.26,.025,z);
+    const orangeFront=(1-smooth(-.16,-.02,x))*smooth(-.024,.023,leftShape)*front;
+    const brownFront=smooth(.05,.17,x)*smooth(-.020,.022,rightShape)*front;
+    const orangeBack=smooth(-.03,.13,x)*smooth(-.015,.035,y)*back;
+    const brownBack=(1-smooth(-.13,-.015,x))*smooth(-.02,.035,y)*back;
+    const c=ivoryColor.clone();
+    const a=Math.min(1,Math.max(orangeFront,orangeBack));
+    const b=Math.min(1,Math.max(brownFront,brownBack));
+    if(a>b)c.lerp(orangeColor,a);
+    else c.lerp(brownColor,b);
+    colors[i*3]=c.r;colors[i*3+1]=c.g;colors[i*3+2]=c.b;
   }
-  p.needsUpdate=true;headGeo.computeVertexNormals();
-  const headMesh=mesh(headGeo,M.ivory,headPivot);
+  p.needsUpdate=true;
+  headGeo.setAttribute('color',new THREE.BufferAttribute(colors,3));
+  headGeo.computeVertexNormals();
+  const headMaterial=new THREE.MeshStandardMaterial({vertexColors:true,roughness:.91});
+  const headMesh=mesh(headGeo,headMaterial,headPivot);
   headMesh.name='rounded sculpted head';
 
   // Surface patches follow the head's actual 3D curvature, not floating flat
@@ -127,14 +150,7 @@ export function createDamiModel() {
     const m=mesh(geo,material,headPivot);m.material.side=THREE.DoubleSide;
     return m;
   }
-  patch([
-    [-.36,.07],[-.41,.17],[-.32,.27],[-.18,.35],[-.06,.35],
-    [.012,.23],[-.028,.13],[-.07,.037],[-.18,.018],[-.29,.025]
-  ],M.orange);
-  patch([
-    [.055,.35],[.18,.35],[.32,.27],[.402,.14],[.36,.055],
-    [.26,.039],[.16,.087],[.094,.18]
-  ],M.brown);
+  // Face color now comes from high-density vertex colors on headGeo.
 
   // Volumetric rounded-triangle ears, outside cream and inside warm pink.
   function ear(x,material){
@@ -156,28 +172,28 @@ export function createDamiModel() {
     innerShape.quadraticCurveTo(0,-.096,-.089,-.06);
     const inner=mesh(new THREE.ShapeGeometry(innerShape,18),M.peach,g);
     inner.position.z=.116;inner.scale.set(.92,.92,1);
-    g.rotation.z=x<0?.11:-.11;
+    g.scale.set(.78,.78,.80);g.rotation.z=x<0?.11:-.11;
     return g;
   }
   const earLeft=ear(-.282,M.orange);
   const earRight=ear(.282,M.brown);
 
   // Tiny cheek pads give the muzzle depth while preserving large eye spacing.
-  orb(headPivot,M.ivory,[-.091,-.193,.308],[.139,.092,.072],24);
-  orb(headPivot,M.ivory,[.091,-.193,.308],[.139,.092,.072],24);
+  orb(headPivot,M.ivory,[-.085,-.198,.330],[.119,.071,.047],32);
+  orb(headPivot,M.ivory,[.085,-.198,.330],[.119,.071,.047],32);
   // Brown, wet-look eye lenses with black pupils and light catchlights.
   for(const sign of [-1,1]){
     const x=sign*.158;
-    const eye=orb(headPivot,M.iris,[x,-.027,.326],[.069,.101,.033],28);
-    orb(headPivot,M.dark,[x+.008,-.026,.354],[.044,.083,.020],24);
-    orb(headPivot,M.shine,[x-.018,.010,.373],[.018,.023,.012],16);
-    orb(headPivot,M.flowerCenter,[x+.023,-.083,.371],[.012,.014,.008],12);
-    const cheek=orb(headPivot,M.peach,[sign*.279,-.157,.267],[.069,.031,.013],24);
+    const eye=orb(headPivot,M.iris,[x,-.030,.391],[.079,.111,.032],34);
+    orb(headPivot,M.dark,[x+.005,-.032,.423],[.057,.088,.020],30);
+    orb(headPivot,M.shine,[x-.022,.021,.447],[.024,.028,.013],18);
+    orb(headPivot,M.flowerCenter,[x+.028,-.089,.444],[.012,.014,.009],12);
+    const cheek=orb(headPivot,M.peach,[sign*.284,-.164,.280],[.064,.029,.012],30);
     cheek.rotation.z=sign*.10;
     // Ear-to-cheek whiskers carefully curved, not stiff spikes.
     for(let i=0;i<2;i++){
       const sy=-.17-i*.058;
-      path([[sign*.32,sy,.262],[sign*.40,sy+.012,.234],[sign*.50,sy+(i?-.016:.045),.187]],.0045,M.brown,headPivot,12);
+      path([[sign*.325,sy,.288],[sign*.375,sy+.012,.263],[sign*.427,sy+(i?-.013:.029),.231]],.0035,M.brown,headPivot,16);
     }
   }
   // Hand-shaped rose-colored nose and smiling cat mouth.
@@ -189,12 +205,12 @@ export function createDamiModel() {
   for(const side of [-1,1])path([[side*.115,.13,.306],[side*.162,.145,.300],[side*.199,.137,.29]],.0045,M.brown,headPivot,10);
 
   // Cotton neckerchief: fabric ring, triangular pleated front and tied knot.
-  const scarf=mesh(new THREE.TorusGeometry(.245,.076,10,38,Math.PI*2),M.sage);
-  scarf.rotation.x=Math.PI/2;scarf.position.set(0,.742,.08);
+  const scarf=mesh(new THREE.TorusGeometry(.255,.080,14,44,Math.PI*2),M.sage);
+  scarf.rotation.x=Math.PI/2;scarf.position.set(0,.699,.17);
   // Rounded triangular front cloth, gently curving in 3D.
   const clothVertices=[
-     -.254,.730,.275,  .252,.730,.275,  .0,.475,.391,
-     -.213,.680,.320, .218,.680,.320, .0,.487,.403
+     -.249,.695,.450,  .249,.695,.450,  .0,.460,.510,
+     -.214,.655,.485, .217,.655,.485, .0,.473,.522
   ];
   const clothGeo=new THREE.BufferGeometry();
   clothGeo.setAttribute('position',new THREE.Float32BufferAttribute(clothVertices,3));
@@ -202,8 +218,8 @@ export function createDamiModel() {
   clothGeo.computeVertexNormals();
   const clothMat=M.sage.clone();clothMat.side=THREE.DoubleSide;
   mesh(clothGeo,clothMat,root);
-  flower(root,.0,.665,.347,.080);
-  const tie=new THREE.Group();tie.position.set(-.241,.723,-.04);root.add(tie);
+  flower(root,.0,.636,.507,.068);
+  const tie=new THREE.Group();tie.position.set(-.274,.692,.09);root.add(tie);
   orb(tie,M.sage2,[0,0,0],[.098,.083,.078],20);
   const bow1=orb(tie,M.sage,[-.11,.02,-.035],[.154,.065,.045],20);bow1.rotation.z=.40;
   const bow2=orb(tie,M.sage,[-.025,-.145,-.015],[.063,.159,.045],20);bow2.rotation.z=.34;
