@@ -51,7 +51,7 @@ test('eight hand-placed hanoks frame the first 40m without overlapping',()=>{
   const siteDistance=world.distanceFromPath(house.x,house.z,world.paths[0]);
   // The building centre is well outside player road collision.
   assert.ok(siteDistance>5.7,siteDistance.toFixed(3));
-  const gateX=house.x-Math.sin(house.angle)*4.6;
+  const gateX=house.x+Math.sin(house.angle)*4.6;
   const gateZ=house.z-Math.cos(house.angle)*4.6;
   const gateDistance=world.distanceFromPath(gateX,gateZ,world.paths[0]);
   assert.ok(gateDistance>=house.roadWidth*.5-.12,
