@@ -71,7 +71,7 @@ function updateDamiGuide(){
 }
 function showDami(){
  modal('담이와 함께 걷는 북촌',
- '<div class="dami-about"><img src="/guide-cat.svg" alt="북촌 수호냥이 담이"><p>안녕! 나는 북촌 골목의 작은 수호냥이 <b>담이</b>야. 초록 스카프와 작은 부적 가방을 매고, 네가 서울의 골목을 천천히 발견하도록 곁에서 안내할게.</p></div><p class="small-note">담이의 3D 모습은 가볍게 구현한 첫 버전으로, 앞으로 걷기 동작과 표현을 더 다듬을 예정이에요.</p>',
+ '<div class="dami-about"><img src="/guide-cat.svg" alt="북촌 수호냥이 담이"><p>안녕! 나는 북촌 골목의 작은 수호냥이 <b>담이</b>야. 초록 스카프와 작은 부적 가방을 매고, 네가 서울의 골목을 천천히 발견하도록 곁에서 안내할게.</p></div><p class="small-note">새로운 담이는 둥근 머리와 삼색 무늬, 스카프와 한옥 참을 실제 입체 메시로 만든 3D 캐릭터예요. 정면과 뒷면까지 직접 돌려볼 수 있어요.</p><a class="modal-action" style="display:inline-block;text-decoration:none" href="/character.html">담이 3D 모델 360° 보기 ↗</a>',
  'MEET YOUR LITTLE GUIDE');
 }
 $('dami-card')?.addEventListener('click',showDami);
@@ -153,4 +153,4 @@ function render(time=0) {
   requestAnimationFrame(render);
 }
 requestAnimationFrame(render);
-console.info(`[Seoul Stroll Bukchon v0.6] Three.js ready: ${vertexCount.toLocaleString()} vertices, ${houseSites.length} hanok houses, ${paths.length} walkable lanes, ${locations.length} discoveries.`);
+console.info(`[Seoul Stroll Bukchon v0.7] Three.js ready: ${vertexCount.toLocaleString()} vertices, ${houseSites.length} hanok houses, ${paths.length} walkable lanes, ${locations.length} discoveries.`);
