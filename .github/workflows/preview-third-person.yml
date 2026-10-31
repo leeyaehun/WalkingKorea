@@ -1,7 +1,7 @@
-name: Preview third-person playable Dami
+name: Preview grounded four-paw Dami gait
 on:
   push:
-    branches: [feature/dami-third-person-v08]
+    branches: [feature/dami-grounded-walk-v09]
   workflow_dispatch:
 permissions:
   contents: read
@@ -24,10 +24,10 @@ jobs:
           for attempt in {1..40}; do curl -fsS http://127.0.0.1:4173/ >/dev/null && exit 0; sleep .5; done
           cat /tmp/walkingkorea-preview.log
           exit 1
-      - name: Simulate WASD character movement and orbit
+      - name: Test grounded footfalls and camera-separated movement
         run: node scripts/qa-third-person.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: walkingkorea-third-person-preview
+          name: walkingkorea-grounded-gait-preview
           path: qa-screenshots/
