@@ -1,0 +1,589 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#e8dbcf" />
+  <meta name="description" content="브라우저에서 바로 산책하는 작은 서울 골목. 설치도 로그인도 필요 없어요." />
+  <title>Seoul Stroll — 작은 서울 산책</title>
+  <style>
+:root{--ink:#34342f;--cream:#fff9ef;--accent:#d56f58;--muted:#8a847a;--glass:rgba(255,251,244,.90)}*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#d3c9b7;color:var(--ink);font-family:'Avenir Next','Apple SD Gothic Neo','NanumSquare',system-ui,sans-serif}button{font:inherit;cursor:pointer}button:focus-visible{outline:3px solid #f2a87c;outline-offset:3px}#world{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;background:linear-gradient(#9bb7ca 0%,#d4d5c9 45%,#f0d8b6 90%)}#grain{pointer-events:none;position:fixed;inset:0;opacity:.09;mix-blend-mode:multiply;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E")} .vignette{position:fixed;inset:0;pointer-events:none;box-shadow:inset 0 0 150px 15px rgba(72,57,39,.16)}.hud{position:fixed;inset:0;pointer-events:none}.topbar,.bottom-bar,.left-label,.compass{pointer-events:auto}.topbar{display:flex;justify-content:space-between;align-items:center;position:absolute;left:38px;right:38px;top:28px;gap:20px}.brand{display:flex;align-items:center;gap:11px}.brand-mark{display:grid;place-items:center;border:1px solid rgba(64,57,44,.33);background:rgba(255,251,244,.87);height:42px;width:42px;border-radius:14px;font-size:25px;line-height:1}.brand-lines{display:flex;flex-direction:column;gap:0}.brand-lines strong{font-size:17px;letter-spacing:.09em;font-weight:700}.brand-lines i{font-style:normal;color:#cd725e}.brand-lines span{font-size:10px;letter-spacing:.025em;color:#5f655b}.header-actions{display:flex;align-items:center;gap:8px}.pill,.icon-button,.secondary-button,.primary-button,.map-card{background:var(--glass);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.7);box-shadow:0 7px 28px rgba(44,48,40,.09)}.pill{border-radius:40px;font-size:11px;padding:12px 15px;color:#4e554c}.live-dot{display:inline-block;width:7px;height:7px;background:#91b59b;border-radius:50%;margin-right:7px}.icon-button{width:39px;height:39px;border-radius:50%;color:#4f554c;font-size:18px;transition:transform .2s,background .2s}.icon-button:hover,.secondary-button:hover,.primary-button:hover{transform:translateY(-2px);background:#fff}.left-label{position:absolute;left:48px;top:27%;text-shadow:0 1px 14px rgba(255,255,255,.45);opacity:.95}.eyebrow{font-size:10px;letter-spacing:.24em;font-weight:700;color:#9c6a54}.left-label h1{font-size:clamp(25px,3.2vw,47px);font-weight:600;line-height:1.32;letter-spacing:-.065em;margin:11px 0}.left-label h1 em{color:#c16d52;font-style:normal}.left-label p{font-size:12px;color:#5b5e54}.compass{position:absolute;top:97px;right:44px;display:flex;align-items:center;justify-content:center;gap:8px;font-size:12px;font-weight:700;letter-spacing:.1em;color:#fff;text-shadow:0 1px 5px #666}.compass-needle{width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-bottom:12px solid #df785e;filter:drop-shadow(0 1px 2px #777)}.reticle{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:15px;font-weight:200;color:rgba(255,255,255,.6);text-shadow:0 1px 3px rgba(0,0,0,.4)}.bottom-bar{position:absolute;left:36px;right:36px;bottom:27px;display:flex;align-items:end;justify-content:space-between;gap:15px}.map-card{padding:13px 13px 10px;border-radius:19px;width:193px}.map-top{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px}.map-top span{font-size:13px;font-weight:700}.map-top small{font-size:8px;letter-spacing:.06em;color:#8f8c7c}#minimap{display:block;border-radius:10px;width:100%}.bottom-center{font-size:11px;background:rgba(255,251,244,.83);backdrop-filter:blur(12px);border-radius:50px;padding:11px 17px;margin-bottom:4px;color:#77766e;white-space:nowrap}.bottom-center #discovery-count{font-weight:700;color:#b56e5a}.dot-separator{margin:0 8px;color:#c4bcb0}.mobile-keys{display:none}.right-actions{display:flex;gap:8px;margin-bottom:4px}.secondary-button,.primary-button{height:43px;padding:0 19px;border-radius:50px;font-size:12px;font-weight:700;white-space:nowrap}.primary-button{background:#343f37;color:#fff;border:1px solid #465248}.primary-button:hover{color:#283c30}.nearby-hint,.toast{position:absolute;left:50%;transform:translateX(-50%);pointer-events:none;background:rgba(36,45,39,.8);color:white;backdrop-filter:blur(10px);border-radius:50px;font-size:12px;transition:opacity .25s,transform .25s;opacity:0;max-width:90%;text-align:center}.nearby-hint{bottom:114px;padding:11px 19px}.nearby-hint.visible,.toast.visible{opacity:1}.nearby-hint b{color:#f8ddaa}.toast{top:20%;padding:13px 22px;transform:translate(-50%,-9px)}.toast.visible{transform:translate(-50%,0)}.screen-overlay{position:fixed;inset:0;z-index:20;background:rgba(42,47,37,.13);backdrop-filter:blur(6px);display:flex;justify-content:center;align-items:center;transition:opacity .55s,visibility .55s;opacity:0;visibility:hidden}.screen-overlay.visible{opacity:1;visibility:visible}.intro-card{text-align:center;padding:55px 54px 44px;background:rgba(255,251,243,.95);border:1px solid rgba(255,255,255,.9);border-radius:28px;box-shadow:0 30px 85px rgba(32,42,33,.22);width:min(430px,90vw)}.intro-kicker{font-size:10px;letter-spacing:.15em;color:#bd7862;font-weight:700}.tiny-flower{font-size:15px}.intro-card h2{font-size:clamp(36px,4vw,56px);line-height:1.25;letter-spacing:-.08em;margin:20px 0 14px;font-weight:600}.intro-card h2 em{color:#c5765a;font-style:normal}.intro-card p{font-size:13px;line-height:2;color:#79766d;margin:0 0 28px}.start-button{background:#334238;color:#fff;border:0;border-radius:50px;font-size:14px;font-weight:700;width:100%;height:52px;display:flex;justify-content:space-between;align-items:center;padding:0 26px;transition:background .2s,transform .2s}.start-button:hover{background:#4f6655;transform:translateY(-2px)}.start-button span{font-size:21px}.intro-guide{font-size:10px;margin-top:20px;color:#9e9a8f}.intro-guide span{margin:0 10px}.intro-edge{position:absolute;bottom:30px;color:#fff;letter-spacing:.13em;font-size:10px;text-shadow:0 1px 5px #555}.intro-edge span{margin:0 12px}.modal-backdrop{position:fixed;inset:0;z-index:30;display:flex;justify-content:center;align-items:center;padding:16px;background:rgba(36,42,34,.5);backdrop-filter:blur(8px);visibility:hidden;opacity:0;transition:opacity .2s,visibility .2s}.modal-backdrop.visible{visibility:visible;opacity:1}.modal-panel{background:#fffaf1;color:#394039;border-radius:24px;max-width:480px;width:100%;max-height:80vh;overflow:auto;padding:34px;box-shadow:0 30px 100px #212d233b;position:relative}.close-btn{position:absolute;right:23px;top:17px;font-size:27px;color:#8f8b80;background:none;border:0}.modal-kicker{font-size:10px;color:#bb755f;font-weight:700;letter-spacing:.15em}.modal-panel h2{font-size:30px;letter-spacing:-.05em;margin:13px 0}.modal-panel p{font-size:13px;line-height:1.9;color:#72776d}.modal-panel ul{padding-left:19px;font-size:13px;line-height:2.2;color:#616961}.modal-action{background:#334238;color:#fff;border:0;border-radius:12px;padding:13px 18px;font-weight:700;margin-top:16px}.place-list{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:24px}.place-chip{border:1px solid #dfddd0;background:#f4f0e6;padding:14px 12px;border-radius:12px;text-align:left;font-size:12px;color:#70796b}.place-chip.found{background:#e5f0e5;border-color:#c2d6c1;color:#34543d}.vote-options{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0}.vote-option{border:1px solid #d3d3c8;background:#f8f5ed;border-radius:12px;padding:10px 14px}.vote-option.selected{border-color:#66876e;background:#e2ecdf}.small-note{font-size:11px!important;color:#99968e!important}.touch-ui{display:none}.mobile-signature{display:none}
+@media(max-width:850px){.topbar{left:18px;right:18px;top:17px}.brand-lines strong{font-size:14px}.brand-lines span{font-size:9px}.location{display:none}.left-label{left:23px;top:105px}.left-label h1{font-size:28px;margin:6px 0}.left-label p{font-size:11px}.compass{top:93px;right:20px}.bottom-bar{left:16px;right:16px;bottom:12px;align-items:end}.map-card{width:125px;padding:8px;border-radius:13px}.map-top span{font-size:10px}.map-top small{display:none}.bottom-center{display:none}.secondary-button{display:none}.primary-button{height:38px;padding:0 12px;font-size:11px}.right-actions{margin-bottom:6px}.intro-card{padding:40px 27px}.intro-edge{font-size:8px;bottom:18px}.nearby-hint{bottom:155px}.touch-ui{display:block;position:fixed;inset:0;z-index:4;pointer-events:none;touch-action:none}.touch-pad{position:absolute;bottom:157px;left:30px;width:112px;height:112px;background:rgba(255,253,245,.2);border:2px solid rgba(255,255,255,.45);border-radius:50%;pointer-events:auto;touch-action:none}.touch-knob{position:absolute;left:31px;top:31px;width:46px;height:46px;background:rgba(255,252,244,.62);border:1px solid rgba(255,255,255,.6);box-shadow:0 5px 16px #3344;border-radius:50%;transform:translate(0,0)}.touch-look{position:absolute;top:19%;right:0;width:50%;height:58%;pointer-events:auto;touch-action:none}.touch-interact{position:absolute;bottom:179px;right:24px;pointer-events:auto;background:rgba(255,251,244,.8);border:1px solid #fff;border-radius:40px;padding:11px 16px;color:#434b40;font-size:12px;display:none}.touch-interact.visible{display:block}.reticle{display:none}.mobile-signature{display:block;position:absolute;bottom:27px;left:148px;font-size:8px;color:#eee;letter-spacing:.1em;text-shadow:0 1px 4px #777}.mobile-signature span{margin:0 5px}}
+@media(max-width:450px){.brand-mark{width:34px;height:34px;border-radius:10px;font-size:21px}.brand-lines span{display:none}.header-actions{gap:5px}.icon-button{width:33px;height:33px;font-size:16px}.left-label{top:95px}.left-label h1{font-size:24px}.map-card{width:105px}.map-top{margin-bottom:3px}.touch-pad{bottom:147px;left:19px;width:99px;height:99px}.touch-knob{left:28px;top:28px;width:39px;height:39px}.mobile-signature{display:none}}
+
+</style>
+</head>
+<body>
+  <canvas id="world" aria-label="서울 골목 3D 산책 화면"></canvas>
+  <div id="grain"></div>
+  <div class="vignette"></div>
+
+  <div class="hud">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">ㅅ</div>
+        <div class="brand-lines"><strong>SEOUL <i>STROLL</i></strong><span>작은 서울을 천천히 걷다</span></div>
+      </div>
+      <div class="header-actions">
+        <span class="pill location"><span class="live-dot"></span> 북촌 한옥마을에서 영감을 받은 골목</span>
+        <button id="toggle-time" class="icon-button" title="낮과 저녁 전환" aria-label="낮과 저녁 전환">☾</button>
+        <button id="toggle-sound" class="icon-button" title="소리 켜기 또는 끄기" aria-label="소리 켜기 또는 끄기">♩</button>
+        <button id="help-btn" class="icon-button" title="조작 방법" aria-label="조작 방법">?</button>
+      </div>
+    </header>
+
+    <div class="left-label">
+      <span class="eyebrow">A LITTLE WALK THROUGH SEOUL</span>
+      <h1>북촌의 골목을<br><em>천천히 걷다.</em></h1>
+      <p>서두르지 않아도 괜찮아요.</p>
+    </div>
+
+    <div class="compass"><span id="compass-label">N</span><div class="compass-needle" id="compass-needle"></div></div>
+    <div id="reticle" class="reticle">+</div>
+    <div id="hint" class="nearby-hint" aria-live="polite"></div>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <footer class="bottom-bar">
+      <div class="map-card">
+        <div class="map-top"><span>북촌 골목</span><small>WALK MAP · 01</small></div>
+        <svg id="minimap" viewBox="0 0 170 125" aria-label="현재 위치 지도">
+          <rect x="0" y="0" width="170" height="125" rx="8" fill="#e8e1d4" />
+          <g id="map-roads"></g>
+          <g fill="#b7c5a8" opacity=".48"><rect x="12" y="24" width="31" height="26" rx="3"/><rect x="127" y="16" width="31" height="27" rx="3"/><rect x="19" y="83" width="32" height="31" rx="3"/></g>
+          <g id="map-pois"></g>
+          <circle id="player-spot" cx="84" cy="14" r="5.5" fill="#eb6f52" stroke="white" stroke-width="2.5" />
+        </svg>
+      </div>
+      <div class="bottom-center"><span id="discovery-count">0 / 6</span> 발견한 장소 <span class="dot-separator">·</span> <span class="desktop-keys">W A S D 이동 · 마우스 시점 · E 둘러보기</span><span class="mobile-keys">왼쪽 이동 · 오른쪽 시점</span></div>
+      <div class="right-actions">
+        <button class="secondary-button" id="postcards-btn">▧ <span>산책 기록</span></button>
+        <button class="primary-button" id="idea-btn">♡ <span>다음 동네</span></button>
+      </div>
+    </footer>
+  </div>
+
+  <div id="touch-ui" class="touch-ui" aria-hidden="true"><div id="touch-pad" class="touch-pad"><div id="touch-knob" class="touch-knob"></div></div><button id="touch-interact" class="touch-interact">둘러보기</button><div id="touch-look" class="touch-look"></div></div>
+
+  <div id="intro" class="screen-overlay visible">
+    <div class="intro-card">
+      <div class="intro-kicker"><span class="tiny-flower">✳</span> NO HURRY, JUST SEOUL <span class="tiny-flower">✳</span></div>
+      <h2>조금만<br><em>걸어볼까요?</em></h2>
+      <p>한옥 담장과 굽은 오르막길.<br>서울의 어느 조용한 오후를 담았어요.</p>
+      <button id="start-btn" class="start-button">산책 시작하기 <span>↗</span></button>
+      <div class="intro-guide">PC: WASD + 마우스 <span>·</span> 모바일: 화면 터치</div>
+    </div>
+    <div class="intro-edge">SEOUL STROLL <span>—</span> VOL. 01 <span>©</span> A PERSONAL WEB EXPERIMENT</div>
+  </div>
+
+  <div id="modal" class="modal-backdrop" aria-hidden="true">
+    <section class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <button id="modal-close" class="close-btn" aria-label="닫기">×</button>
+      <div id="modal-content"></div>
+    </section>
+  </div>
+
+  <div class="mobile-signature">SEOUL STROLL <span>·</span> VOL.03</div>
+  <script>
+/*
+ Seoul Stroll v0.3 — Bukchon-inspired walking lanes and detailed procedural hanok.
+ No npm install / external script / account needed. Uses WebGL 1 and Canvas.
+ The source is structured so a later Three.js migration can replace only Renderer/World.
+*/
+(() => {
+'use strict';
+const $ = (id) => document.getElementById(id);
+const canvas = $('world');
+const gl = canvas.getContext('webgl', { antialias:true, alpha:false, preserveDrawingBuffer:true, powerPreference:'high-performance' });
+if (!gl) {
+  $('intro').innerHTML = '<div class="intro-card"><h2>이 브라우저에서는 3D 화면을 열 수 없어요.</h2><p>Chrome, Safari 또는 Firefox의 최신 버전에서 다시 시도해 주세요. WebGL이 필요합니다.</p></div>';
+  return;
+}
+const touchDevice = matchMedia('(pointer:coarse)').matches || navigator.maxTouchPoints > 0;
+const TAU=Math.PI*2, clamp=(n,lo,hi)=>Math.max(lo,Math.min(hi,n));
+const rand=(a,b)=>{seed=(seed*1664525+1013904223)>>>0;return a+(seed/4294967296)*(b-a);};
+let seed=94826;
+const C = {
+  cream:[.91,.85,.75], offwhite:[.97,.91,.82], white:[.99,.97,.90], beige:[.83,.75,.63],
+  muted:[.73,.68,.60], pink:[.88,.60,.54], orange:[.90,.54,.38], palePink:[.97,.79,.71],
+  sage:[.56,.68,.56], deepGreen:[.28,.41,.36], green:[.44,.55,.42], dark:[.28,.34,.34],
+  blue:[.56,.71,.75], dustyBlue:[.46,.61,.69], roof:[.35,.41,.46], street:[.53,.55,.53],
+  road:[.48,.51,.50], sidewalk:[.81,.78,.69], yellow:[.97,.81,.49], brown:[.57,.46,.36],
+  brick:[.67,.44,.39], lilac:[.70,.65,.76], shadow:[.43,.44,.42], teal:[.31,.59,.59],
+  tileDark:[.23,.29,.33], tileBase:[.30,.37,.41], tileLight:[.39,.45,.47], tileRidge:[.19,.24,.27],
+  timber:[.37,.25,.19], timberLight:[.54,.37,.27], woodShade:[.27,.21,.18], plaster:[.94,.89,.77], paper:[.98,.95,.84],
+  stoneFoundation:[.63,.60,.53], stoneLight:[.76,.74,.66], gateWood:[.42,.30,.23], copper:[.71,.53,.30]
+};
+const color=(v)=>Array.isArray(v)?v:C[v]||C.white;
+const positions=[],normals=[],uvs=[],colors=[];
+const atlasSize=2048,atlas=document.createElement('canvas');atlas.width=atlas.height=atlasSize;
+const ctx=atlas.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,atlasSize,atlasSize);
+let tileX=4,tileY=4,rowH=0;
+function tile(text,bg,fg,options={}){
+  const w=options.w||320,h=options.h||108;
+  if(tileX+w+4>atlasSize){tileX=4;tileY+=rowH+4;rowH=0;}
+  if(tileY+h+4>atlasSize) throw new Error('Atlas full');
+  const x=tileX,y=tileY;tileX+=w+4;rowH=Math.max(rowH,h);
+  ctx.fillStyle=bg;ctx.fillRect(x,y,w,h);
+  if(options.border){ctx.strokeStyle=options.border;ctx.lineWidth=6;ctx.strokeRect(x+4,y+4,w-8,h-8);}
+  if(options.stripe){ctx.fillStyle=options.stripe;ctx.fillRect(x,y,w,12);}
+  ctx.fillStyle=fg;ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.font=`${options.bold===false?'500':'bold'} ${options.size||48}px 'NanumSquare','Arial',sans-serif`;
+  ctx.fillText(text,x+w/2,y+h*.49,w-26);
+  if(options.sub){ctx.font=`bold 17px Arial,sans-serif`;ctx.letterSpacing='3px';ctx.fillText(options.sub,x+w/2,y+h*.84,w-26);ctx.letterSpacing='0px';}
+  return [(x+.5)/atlasSize,(y+.5)/atlasSize,(x+w-.5)/atlasSize,(y+h-.5)/atlasSize];
+}
+const whiteUV=[1/atlasSize,1/atlasSize,2/atlasSize,2/atlasSize];
+// The on-street lettering is original, fictional shop naming rather than a real brand.
+const signs={
+ cafe:tile('느린 오후','#325447','#fff1dc',{sub:'SLOW AFTERNOON',stripe:'#e6ab74'}),
+ market:tile('골목 편의점','#f6ead6','#2c6d69',{sub:'24 HOURS · OPEN',stripe:'#50a8a1'}),
+ book:tile('달빛 서점','#5a6275','#faf1d9',{sub:'MOON BOOKS',stripe:'#d5b991'}),
+ food:tile('서울 분식','#c66354','#fff7e8',{sub:'TTEOKBOKKI · KIMBAP'}),
+ flower:tile('오후의 꽃','#e3ad9f','#435c48',{sub:'FLOWER & GARDEN'}),
+ bakery:tile('소금빵집','#d2a87c','#fff9ec',{sub:'BAKERY'}),
+ photo:tile('네컷 사진관','#827a9a','#fff9f2',{sub:'PHOTO BOOTH'}),
+ record:tile('봄날 레코드','#657e89','#fff4dc',{sub:'MUSIC SHOP'}),
+ laundry:tile('동네 세탁소','#6c9ba7','#f4f5e9',{sub:'LAUNDRY'}),
+ noodle:tile('국수 한 그릇','#d5b177','#6c3d2e',{sub:'NOODLES'}),
+ tea:tile('작은 찻집','#a7b38e','#3d5544',{sub:'TEA HOUSE'}),
+ stationery:tile('연필 문구점','#e5bd9d','#4d605a',{sub:'STATIONERY'}),
+ travel:tile('안녕 서울','#f4f0dc','#bf654f',{sub:'HELLO SEOUL',size:55}),
+ hangul:tile('서울 산책','#334c4e','#f9edcf',{sub:'SEOUL STROLL'}),
+ noentry:tile('천천히 가요','#e4ac82','#523e39',{sub:'SLOW DOWN'}),
+ bus:tile('서촌 골목','#f7f1e8','#536b75',{sub:'VILLAGE STOP'}),
+};
+// Local building frame: keep traditional building components reusable and let
+// the hill pass continuously underneath houses, gates, trees and courtyards.
+let activeFrame=null;
+function hill(x,z){return .38+(43-z)*.062+.20*Math.sin(z*.14)+.09*Math.sin(x*.16);}
+function withFrame(x,z,angle,fn){const old=activeFrame;activeFrame={x,z,c:Math.cos(angle),s:Math.sin(angle)};try{fn();}finally{activeFrame=old;}}
+function transformPoint(p){if(!activeFrame)return p;const f=activeFrame,X=f.x+p[0]*f.c-p[2]*f.s,Z=f.z+p[0]*f.s+p[2]*f.c;return [X,p[1]+hill(X,Z),Z];}
+function transformNormal(n){if(!activeFrame)return n;const f=activeFrame;return [n[0]*f.c-n[2]*f.s,n[1],n[0]*f.s+n[2]*f.c];}
+function face(a,b,c,d,n,col,tex=whiteUV){
+  a=transformPoint(a);b=transformPoint(b);c=transformPoint(c);d=transformPoint(d);n=transformNormal(n);
+  const p=[a,b,c,a,c,d],u=[[tex[0],tex[3]],[tex[2],tex[3]],[tex[2],tex[1]],[tex[0],tex[3]],[tex[2],tex[1]],[tex[0],tex[1]]];
+  for(let i=0;i<6;i++){positions.push(...p[i]);normals.push(...n);uvs.push(...u[i]);colors.push(...color(col));}
+}
+function box(x,y,z,w,h,d,col){
+  const X=x-w/2,X2=x+w/2,Y=y-h/2,Y2=y+h/2,Z=z-d/2,Z2=z+d/2;
+  face([X,Y2,Z2],[X2,Y2,Z2],[X2,Y2,Z],[X,Y2,Z],[0,1,0],col);
+  face([X,Y,Z],[X2,Y,Z],[X2,Y,Z2],[X,Y,Z2],[0,-1,0],col);
+  face([X2,Y,Z2],[X2,Y2,Z2],[X2,Y2,Z],[X2,Y,Z],[1,0,0],col);
+  face([X,Y,Z],[X,Y2,Z],[X,Y2,Z2],[X,Y,Z2],[-1,0,0],col);
+  face([X,Y,Z2],[X,Y2,Z2],[X2,Y2,Z2],[X2,Y,Z2],[0,0,1],col);
+  face([X2,Y,Z],[X2,Y2,Z],[X,Y2,Z],[X,Y,Z],[0,0,-1],col);
+}
+function textured(x,y,z,w,h,plane,tex,side=1){
+  // wall front either x-constant, or a road-facing z-constant sign.
+  if(plane==='x') face([x,y-h/2,z-w/2],[x,y-h/2,z+w/2],[x,y+h/2,z+w/2],[x,y+h/2,z-w/2],[side,0,0],'white',tex);
+  else face([x-w/2,y-h/2,z],[x+w/2,y-h/2,z],[x+w/2,y+h/2,z],[x-w/2,y+h/2,z],[0,0,side],'white',tex);
+}
+function sphere(x,y,z,rx,ry,rz,col,seg=8,rings=5){
+  for(let i=0;i<rings;i++){
+    const t0=i*Math.PI/rings,t1=(i+1)*Math.PI/rings;
+    for(let j=0;j<seg;j++){
+      const p0=j*TAU/seg,p1=(j+1)*TAU/seg;
+      const v=(t,p)=>[x+rx*Math.sin(t)*Math.cos(p),y+ry*Math.cos(t),z+rz*Math.sin(t)*Math.sin(p)];
+      const a=v(t0,p0),b=v(t0,p1),c=v(t1,p1),d=v(t1,p0);
+      const n=[Math.cos((p0+p1)*.5),.15,Math.sin((p0+p1)*.5)];face(a,b,c,d,n,col);
+    }
+  }
+}
+function cylinder(x,y,z,r,h,col,segments=7){
+  for(let i=0;i<segments;i++){
+    const a=i*TAU/segments,b=(i+1)*TAU/segments,p0=[x+r*Math.cos(a),y-h/2,z+r*Math.sin(a)],p1=[x+r*Math.cos(b),y-h/2,z+r*Math.sin(b)],p2=[p1[0],y+h/2,p1[2]],p3=[p0[0],y+h/2,p0[2]];
+    face(p0,p1,p2,p3,[Math.cos((a+b)/2),0,Math.sin((a+b)/2)],col);
+    face([x,y+h/2,z],p3,p2,[x,y+h/2,z],[0,1,0],col);
+  }
+}
+function rod(ax,ay,az,bx,by,bz,r,col){ // diagonal beam with a flat rotated vertical rectangle
+  const dx=bx-ax,dy=by-ay,dz=bz-az,L=Math.hypot(dx,dy,dz)||1;
+  const up=[-dy/L*r,dx/L*r,0];
+  face([ax-up[0],ay-up[1],az-r],[bx-up[0],by-up[1],bz-r],[bx+up[0],by+up[1],bz+r],[ax+up[0],ay+up[1],az+r],[0,0,1],col);
+}
+// BUKCHON 01: small winding lanes and uphill views, not a georeferenced map.
+// Paths are real geometry and also define collision and the minimap.
+const paths=[
+ {name:'가회동 오르막',width:3.35,points:[[0,43],[-1,35],[.5,25],[-1.5,15],[-5.5,6],[-5,-3],[-1,-14],[.5,-24],[-2,-34],[-3,-44]]},
+ {name:'서쪽 담장길',width:2.75,points:[[-5.5,6],[-12,5],[-19,2],[-25,-5],[-24,-12],[-18,-18],[-9,-16],[-1,-14]]},
+ {name:'동쪽 공방길',width:2.8,points:[[.5,25],[9,23],[16,16],[17,7],[12,-2],[17,-10],[19,-17],[10,-24],[.5,-24]]}
+];
+// Smooth the hard turnpoints without opening a wide automotive street.
+function softened(points){let p=points.map(q=>q.slice());for(let pass=0;pass<2;pass++){
+ let next=[p[0]];for(let i=0;i<p.length-1;i++){let a=p[i],b=p[i+1];next.push([a[0]*.75+b[0]*.25,a[1]*.75+b[1]*.25],[a[0]*.25+b[0]*.75,a[1]*.25+b[1]*.75]);}next.push(p[p.length-1]);p=next;
+}return p;}
+paths.forEach(p=>p.samples=softened(p.points));
+function distanceFromPath(x,z,p){let best=Infinity;for(let i=0;i<p.samples.length-1;i++){
+ const a=p.samples[i],b=p.samples[i+1],vx=b[0]-a[0],vz=b[1]-a[1],t=clamp(((x-a[0])*vx+(z-a[1])*vz)/(vx*vx+vz*vz||1),0,1);
+ best=Math.min(best,Math.hypot(x-a[0]-vx*t,z-a[1]-vz*t));
+}return best;}
+function groundTile(x,z,r,shade='sage'){face([x-r,hill(x-r,z-r)-.24,z-r],[x+r,hill(x+r,z-r)-.24,z-r],[x+r,hill(x+r,z+r)-.24,z+r],[x-r,hill(x-r,z+r)-.24,z+r],[0,1,0],shade);}
+function ribbon(path){
+ const pts=path.samples,edges=[];
+ for(let i=0;i<pts.length;i++){
+  const a=pts[Math.max(0,i-1)],b=pts[Math.min(pts.length-1,i+1)];let dx=b[0]-a[0],dz=b[1]-a[1],len=Math.hypot(dx,dz)||1;const nx=-dz/len,nz=dx/len;
+  edges.push([[pts[i][0]+nx*path.width*.5,pts[i][1]+nz*path.width*.5],[pts[i][0]-nx*path.width*.5,pts[i][1]-nz*path.width*.5]]);
+ }
+ for(let i=0;i<edges.length-1;i++){
+  const [a,b]=edges[i],[d,c]=edges[i+1];
+  const v=q=>[q[0],hill(q[0],q[1])+.025,q[1]];
+  face(v(a),v(b),v(c),v(d),[0,1,0],i%9===0?'beige':'sidewalk');
+  // Subtle stone joints in pedestrian lanes, not automobile center lines.
+  if(i%4===0){const v1=q=>[q[0],hill(q[0],q[1])+.043,q[1]];
+   const f=.11,p=q=>[q[0]*(1-f)+edges[i+1][0][0]*f,q[1]*(1-f)+edges[i+1][0][1]*f];
+   const t=q=>[q[0]*(1-f)+edges[i+1][1][0]*f,q[1]*(1-f)+edges[i+1][1][1]*f];
+   face(v1(a),v1(b),v1(t(b)),v1(p(a)),[0,1,0],'cream');
+  }
+ }
+}
+function routeFloor(){
+ // green-grey terrain plate: city blocks are hidden behind walls and house rows.
+ for(let x=-52;x<55;x+=8)for(let z=-67;z<68;z+=8)groundTile(x+4,z+4,4,(x+z)%3===0?'sage':'muted');
+ paths.forEach(ribbon);
+}
+// Bukchon-inspired traditional house visual pass. Geometry is stylized, but the
+// components intentionally follow hanok construction: raised stone stylobate,
+// exposed timber frame, paper lattice doors and curved blue-charcoal tiled roof.
+// Model origin is the centre of a house, front faces the lane at -Z.
+function roofY(x,z,w){
+  const t=Math.min(1,Math.abs(z)/3.75);
+  const corner=Math.pow(Math.min(1,Math.abs(x)/(w*.5)),4);
+  // Shallow ridge, gently rolled tiles, corners lifting at each eave.
+  return 4.08 - .24*t - .72*Math.sin(t*Math.PI*.5) + .29*Math.pow(t,5)*corner;
+}
+function hanokRoof(w,type){
+  const halfX=(w+1.45)*.5;
+  const stripsX=12, stripsZ=8;
+  // Surface starts at the central ridge and runs down to each eave. Fine
+  // longitudinal raised seams suggest traditional convex roof-tile rows.
+  for(const side of [-1,1]){
+    for(let iz=0;iz<stripsZ;iz++){
+      const z0=side*3.75*iz/stripsZ,z1=side*3.75*(iz+1)/stripsZ;
+      for(let ix=0;ix<stripsX;ix++){
+        const x0=-halfX+ix*halfX*2/stripsX,x1=-halfX+(ix+1)*halfX*2/stripsX;
+        const seam=(ix%3===0),col=seam?'tileLight':(ix%3===1?'tileBase':'tileDark');
+        face([x0,roofY(x0,z0,w),z0],[x1,roofY(x1,z0,w),z0],
+             [x1,roofY(x1,z1,w),z1],[x0,roofY(x0,z1,w),z1],[0,1,0],col);
+        // Fine ridges on roof tiles, with a dark line under each course.
+        if(ix%3===0){
+          const x=x0+.045;
+          face([x,roofY(x,z0,w)+.025,z0],[x+.068,roofY(x+.068,z0,w)+.025,z0],
+               [x+.068,roofY(x+.068,z1,w)+.025,z1],[x,roofY(x,z1,w)+.025,z1],
+               [0,1,0],'tileLight');
+        }
+      }
+      if(iz%2===1){
+        for(let ix=0;ix<stripsX;ix++){
+          const x0=-halfX+ix*halfX*2/stripsX,x1=x0+.038;
+          const z=z1-side*.012;
+          face([x0,roofY(x0,z,w)+.022,z],[x1,roofY(x1,z,w)+.022,z],
+               [x1,roofY(x1,z,w)+.038,z+side*.035],[x0,roofY(x0,z,w)+.038,z+side*.035],
+               [0,1,0],'tileDark');
+        }
+      }
+    }
+    // Dark raised eave lip with little exposed tile ends (rounded by segments).
+    for(let j=0;j<stripsX;j++){
+      const x0=-halfX+j*(halfX*2/stripsX),x1=-halfX+(j+1)*(halfX*2/stripsX);
+      const y0=roofY(x0,side*3.75,w),y1=roofY(x1,side*3.75,w);
+      face([x0,y0,side*3.75],[x1,y1,side*3.75],
+           [x1,y1-.12,side*3.86],[x0,y0-.12,side*3.86],
+           [0,0,side],'tileRidge');
+      for(let k=0;k<2;k++){
+        const cx=x0+(k+.5)*(x1-x0)*.5;
+        box(cx,(roofY(cx,side*3.75,w)-.055),side*3.86,.10,.13,.13,'tileDark');
+      }
+    }
+    // Exposed underside and wooden beam under long eaves.
+    box(0,2.93,side*3.37,w+.8,.13,.14,'timber');
+    for(let x=-w*.5+.38;x<w*.5;x+=.86){
+      box(x,2.89,side*3.44,.085,.19,.69,'timberLight');
+    }
+  }
+  // Ridge cap, each short cap tile distinguished by daylight glints.
+  box(0,4.16,0,w+1.55,.17,.30,'tileRidge');
+  for(let x=-halfX+.18;x<halfX;x+=.41){
+    box(x,4.27,0,.28,.085,.37,((Math.round(x*7)&1)===0)?'tileDark':'tileLight');
+  }
+  // End gables: a subdued white triangular infill and curved roof edges.
+  for(const side of [-1,1]){
+    const x=side*(w*.5+.055);
+    const z=3.08;
+    face([x,2.91,-z],[x,2.91,z],[x,4.01,0],[x,4.01,0],[side,0,0],'plaster');
+    box(x,3.00,0,.09,.13,5.70,'timber');
+    for(let zz of [-2.4,-1.2,1.2,2.4]){
+      const yy=roofY(x,zz,w)-.11;
+      box(x,yy-.38,zz,.10,.46,.13,'timberLight');
+    }
+    // Outer verge tiles follow the roof curvature rather than a flat slab.
+    for(const s of [-1,1]){
+      for(let k=0;k<8;k++){
+        const za=s*3.75*k/8,zb=s*3.75*(k+1)/8;
+        const ya=roofY(x,za,w),yb=roofY(x,zb,w);
+        face([x-.12,ya+.035,za],[x+.12,ya+.035,za],
+             [x+.12,yb+.035,zb],[x-.12,yb+.035,zb],[0,1,0],'tileRidge');
+      }
+    }
+  }
+}
+function latticePanel(cx,cy,z,width,height,variant=0){
+  // Paper field, four-sided wooden surround, thin grid and a lower wood sill.
+  box(cx,cy,z,width,height,.09,'timber');
+  box(cx,cy,z-.065,width-.14,height-.14,.024,'paper');
+  for(const x of [cx-width*.5+.05,cx+width*.5-.05])box(x,cy,z-.094,.07,height,.036,'timber');
+  for(const y of [cy-height*.5+.045,cy+height*.5-.045])box(cx,y,z-.09,width,.068,.036,'timber');
+  // Fine wooden cross pieces allow the ivory paper to read as hanji, not glass.
+  const cols=variant===1?3:4,rows=variant===1?5:6;
+  for(let i=1;i<cols;i++)box(cx-width*.5+width*i/cols,cy,z-.102,.025,height-.11,.028,'timberLight');
+  for(let j=1;j<rows;j++)box(cx,cy-height*.5+height*j/rows,z-.104,width-.12,.027,.028,'timberLight');
+  box(cx,cy-height*.5+.20,z-.117,width-.1,.055,.045,'timber');
+}
+function hanok(type=0){
+  const w=6.35+(type%3)*.28;
+  const bodyColor=(type%4===2)?'cream':'plaster';
+  // Pale stacked stone base, projecting plinth and porch timber floor.
+  box(0,.18,0,w+.45,.36,6.40,'stoneFoundation');
+  box(0,.39,-.03,w+.25,.12,6.18,'stoneLight');
+  box(0,1.62,0,w,2.67,5.58,bodyColor);
+  box(0,.43,-3.11,w+.55,.12,1.05,'timberLight');
+  for(let xx=-w*.5+.3;xx<w*.5;xx+=.78)box(xx,.26,-3.21,.045,.15,1.0,'timber');
+  // Legible timber post-and-beam construction instead of plain cream blocks.
+  for(const x of [-w*.5+.12,-w*.25,0,w*.25,w*.5-.12]){
+    box(x,1.69,-2.91,.17,2.70,.22,'timber');
+    box(x,1.63,2.91,.15,2.70,.18,'timber');
+    box(x,.51,-2.91,.24,.19,.26,'stoneFoundation');
+  }
+  box(0,2.87,-2.91,w+.28,.19,.23,'timber');
+  box(0,.55,-2.91,w+.10,.21,.19,'timber');
+  box(0,2.66,-2.97,w+.15,.055,.07,'timberLight');
+  // Central twin door, two full-size lattice windows.
+  latticePanel(0,1.60,-3.032,1.57,2.08,1);
+  box(0,1.58,-3.143,.058,2.03,.04,'woodShade');
+  for(const x of [-.10,.10])sphere(x,1.48,-3.19,.035,.035,.035,'copper',6,3);
+  for(const x of [-1.96,1.96])latticePanel(x,1.70,-3.023,1.45,1.82,0);
+  // Grey roof tiles: real nonflat slopes, dark fascia, upturned corner tips.
+  hanokRoof(w,type);
+  // Street-facing low walls: mix brick foundation, warm plaster and wooden caps.
+  // The gate remains at the centre; you can still look into the hanok courtyard.
+  for(const side of [-1,1]){
+    const x=side*2.53;
+    box(x,.31,-4.48,2.12,.62,.32,'stoneFoundation');
+    box(x,1.12,-4.48,2.12,1.12,.29,bodyColor);
+    box(x,1.75,-4.48,2.23,.14,.40,'tileDark');
+    for(let j=0;j<3;j++){
+      const xx=x-.69+j*.69;
+      box(xx,1.13,-4.655,.045,.9,.035,'stoneLight');
+    }
+  }
+  for(const x of [-3.59,-1.39,1.39,3.59]){
+    box(x,.95,-4.52,.20,1.85,.36,'timber');
+    box(x,.27,-4.52,.30,.31,.38,'stoneFoundation');
+  }
+  // Gate header with understated hanok roof and two engraved vertical leaves.
+  box(0,2.03,-4.53,2.93,.18,.52,'timber');
+  box(0,2.23,-4.53,3.16,.13,.68,'tileRidge');
+  for(const x of [-.72,.72]){
+    box(x,1.04,-4.57,1.32,1.62,.055,'gateWood');
+    box(x,1.08,-4.63,1.14,1.35,.025,'timberLight');
+    for(let j=0;j<4;j++)box(x-.43+j*.285,1.08,-4.66,.024,1.29,.025,'woodShade');
+    for(let j=0;j<3;j++)box(x,.60+j*.49,-4.67,1.09,.029,.026,'woodShade');
+  }
+  for(const x of [-.12,.12])sphere(x,1.09,-4.70,.043,.043,.035,'copper',6,3);
+  // Vary the silhouette subtly, keeping a unified calm Bukchon palette.
+  if(type%3===1){
+    box(-w*.5-.12,1.32,1.00,.23,1.72,3.50,'plaster');
+    box(-w*.5-.14,2.25,1.00,.29,.13,3.68,'tileDark');
+  }
+  if(type%4===0){
+    for(const z of [-1.7,1.55])box(w*.5+.045,1.5,z,.03,1.55,.45,'timber');
+  }
+}
+function courtyard(type){
+ // Small walled homes enclosing a view rather than lining an endless street.
+ hanok(type);
+ if(type%3===0){sphere(-3.0,1.35,-2.6,.62,.68,.55,'sage',7,5);sphere(3,1.7,-3.6,.48,.55,.55,'green',7,5);}
+ if(type%4===1){cylinder(2.8,1,-4.25,.27,1.7,'brown');sphere(2.8,2,-4.25,.7,.61,.75,'sage',8,5);}
+}
+const houseSites=[];
+function housesAlong(path,pIndex){
+ const pts=path.samples;
+ let traveled=0;
+ for(let i=1;i<pts.length;i++){
+  const a=pts[i-1],b=pts[i],dx=b[0]-a[0],dz=b[1]-a[1],len=Math.hypot(dx,dz);traveled+=len;
+  if(traveled<8.4)continue;traveled=0;
+  const tx=dx/len,tz=dz/len,nx=-tz,nz=tx;
+  for(const side of [-1,1]){
+   const spacing=5.8+((i+pIndex)%3)*.36;
+   const x=b[0]+nx*side*spacing,z=b[1]+nz*side*spacing;
+   if(Math.abs(x)>36||Math.abs(z)>49)continue;
+   if(paths.some(other=>distanceFromPath(x,z,other)<4.75))continue;
+   if(houseSites.some(site=>Math.hypot(site.x-x,site.z-z)<7.7))continue;
+   // Negative local Z is the front gate: turn each house toward the lane.
+   const angle=Math.atan2(nx*side,-nz*side)+Math.PI;
+   houseSites.push({x,z,angle});
+   withFrame(x,z,angle,()=>courtyard((i+pIndex*3+(side===1?2:0))%8));
+  }
+ }
+}
+function laneDecoration(){
+ // Retaining walls near corners and a few objects make it feel inhabited.
+ for(const [x,z,angle] of [[-10,6,.7],[-19,-6,.5],[8,22,-.7],[14,-20,.9],[-2,-38,0]]){
+  withFrame(x,z,angle,()=>{
+   box(0,.65,0,3.4,1.15,.36,'beige');box(0,1.25,0,3.5,.2,.5,'roof');
+   cylinder(1.75,.83,.55,.18,1.65,'brown');sphere(1.7,1.98,.55,.7,.69,.75,'sage',8,5);
+  });
+ }
+ for(const [x,z] of [[-6,26],[-8,-32],[13,12],[-21,-12],[7,-10]]){
+  withFrame(x,z,.35,()=>{cylinder(0,1.23,0,.14,2.45,'brown');sphere(.05,2.64,0,.8,.72,.76,'sage',8,5);});
+ }
+ // An elevated overlook at the northwest side of the upper route.
+ withFrame(-3,-43,0,()=>{
+  box(0,.18,-1.35,4.0,.35,2.8,'beige');
+  for(const xx of [-2,2])box(xx,.90,-2.60,.18,1.55,.2,'brown');
+  box(0,1.57,-2.60,4.15,.17,.22,'brown');
+ });
+}
+function hillsideBackground(){
+ for(let x=-75;x<=75;x+=16){
+  let z=-93-(x%4)*2;
+  sphere(x,11,z,14,11,16,x%3===0?'sage':'green',9,5);
+ }
+ // This south-facing landmark is deliberately a far-off silhouette. A detailed
+ // N Seoul Tower model will be a separate visual pass.
+ const sx=17,sz=146;
+ for(let i=-8;i<=8;i++){
+   let x=i*10-3,h=8+(i%4+4)%4*3;
+   box(x,h*.5,125,8,h,7,'dustyBlue');
+ }
+ cylinder(sx,31,sz,1.12,39,'roof',9);
+ cylinder(sx,50,sz,4.4,4.6,'offwhite',10);
+ cylinder(sx,53,sz,2.2,3.5,'roof',9);
+ cylinder(sx,64,sz,.35,20,'dark',7);
+ for(let i=0;i<10;i++){
+  const x=rand(-80,80),z=rand(-135,-40),y=rand(25,38);
+  sphere(x,y,z,rand(4,9),1.1,3.4,'cream',8,4);
+ }
+}
+function makeWorld(){routeFloor();paths.forEach((p,i)=>housesAlong(p,i));laneDecoration();hillsideBackground();}
+makeWorld();
+function shader(type,src){const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(s));return s;}
+const VS=`attribute vec3 aPosition;attribute vec3 aNormal;attribute vec2 aUV;attribute vec3 aColor;
+uniform mat4 uProjection;uniform mat4 uView;varying vec2 vUV;varying vec3 vColor;varying float vLight;varying float vDistance;
+void main(){vec4 viewPos=uView*vec4(aPosition,1.0);gl_Position=uProjection*viewPos;vDistance=length(viewPos.xyz);vUV=aUV;vColor=aColor;
+vec3 lightDirection=normalize(vec3(-0.45,0.83,0.35));float diffuse=max(dot(normalize(aNormal),lightDirection),0.0);vLight=0.77+diffuse*0.32;}`;
+const FS=`precision mediump float;uniform sampler2D uAtlas;uniform float uNight;uniform vec3 uFogColor;varying vec2 vUV;varying vec3 vColor;varying float vLight;varying float vDistance;
+void main(){vec4 tex=texture2D(uAtlas,vUV);vec3 lit=tex.rgb*vColor*vLight;vec3 dusk=lit*vec3(.67,.73,.87)+vec3(.025,.033,.056);vec3 col=mix(lit,dusk,uNight);float fog=smoothstep(60.0,180.0,vDistance)*.83;gl_FragColor=vec4(mix(col,uFogColor,fog),1.0);}`;
+let program;
+try{program=gl.createProgram();gl.attachShader(program,shader(gl.VERTEX_SHADER,VS));gl.attachShader(program,shader(gl.FRAGMENT_SHADER,FS));gl.linkProgram(program);if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(program));}
+catch(e){console.error(e);$('intro').innerHTML=`<div class="intro-card"><h2>3D 초기화 오류</h2><p>${String(e.message).slice(0,180)}</p></div>`;return;}
+gl.useProgram(program);gl.disable(gl.CULL_FACE);gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);
+const dataCount=positions.length/3;
+function attr(name,arr,len){const buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(arr),gl.STATIC_DRAW);const loc=gl.getAttribLocation(program,name);gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,len,gl.FLOAT,false,0,0);}
+attr('aPosition',positions,3);attr('aNormal',normals,3);attr('aUV',uvs,2);attr('aColor',colors,3);
+const texture=gl.createTexture();gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,texture);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,atlas);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.generateMipmap(gl.TEXTURE_2D);gl.uniform1i(gl.getUniformLocation(program,'uAtlas'),0);
+const locProjection=gl.getUniformLocation(program,'uProjection'),locView=gl.getUniformLocation(program,'uView'),locNight=gl.getUniformLocation(program,'uNight'),locFog=gl.getUniformLocation(program,'uFogColor');
+function perspective(out, fov, aspect, near, far){let f=1/Math.tan(fov/2);out.fill(0);out[0]=f/aspect;out[5]=f;out[10]=(far+near)/(near-far);out[11]=-1;out[14]=(2*far*near)/(near-far);}
+function lookAt(out,eye,target){let zx=eye[0]-target[0],zy=eye[1]-target[1],zz=eye[2]-target[2];let L=Math.hypot(zx,zy,zz);zx/=L;zy/=L;zz/=L;let xx=zz,xz=-zx,L2=Math.hypot(xx,xz);xx/=L2;xz/=L2;let yx=zy*xz,yy=zz*xx-zx*xz,yz=-zy*xx;
+ out.set([xx,yx,zx,0,0,yy,zy,0,xz,yz,zz,0,-(xx*eye[0]+xz*eye[2]),-(yx*eye[0]+yy*eye[1]+yz*eye[2]),-(zx*eye[0]+zy*eye[1]+zz*eye[2]),1]);}
+const proj=new Float32Array(16),view=new Float32Array(16);
+const state={x:0,z:42,yaw:0,pitch:-.055,vy:0,vx:0,vz:0,night:false,running:false,started:false,modal:false,helpViewed:false,mute:true,elapsed:0,walked:0,quality:1};
+const keys=new Set();let lastFrame=0,lastMap=0,lastToast=0,nearSpot=null,stepPhase=0;
+const memoryStore={};
+const safeStore={getItem(k){try{return window.localStorage.getItem(k)}catch(e){return memoryStore[k]||null}},setItem(k,v){try{window.localStorage.setItem(k,v)}catch(e){memoryStore[k]=v}}};
+const discovered=new Set(JSON.parse(safeStore.getItem('seoul-stroll-places-bukchon-v02')||'[]'));
+const locations=[
+ {id:'entrance',name:'북촌 산책의 시작',detail:'낮은 담장 사이를 따라 작은 오르막이 이어져요.',x:0,z:40},
+ {id:'crossroad',name:'담장길 갈림길',detail:'오래된 한옥들 사이로 좁은 골목이 나뉘어요. 어느 쪽이든 천천히 걸어 보세요.',x:-5,z:6},
+ {id:'east',name:'공방길',detail:'골목이 구부러지는 곳. 지붕 너머로 또 다른 길이 열려요.',x:16,z:9},
+ {id:'west',name:'조용한 서쪽 골목',detail:'한옥 담장 옆에 숨은 아주 조용한 산책길이에요.',x:-24,z:-8},
+ {id:'turn',name:'굽은 골목',detail:'발걸음을 돌릴 때마다 전혀 다른 지붕의 선이 보여요.',x:0,z:-24},
+ {id:'view',name:'북촌 전망길',detail:'언덕 위에서 작은 한옥 지붕들이 겹쳐 보이는 전망 포인트예요.',x:-3,z:-42},
+];
+const toMap=(x,z)=>[clamp(8+(x+36)*2.12,2,168),clamp(5+(48-z)*1.19,2,123)];
+function drawMapLanes(){const root=$('map-roads'),ns='http://www.w3.org/2000/svg';for(const route of paths){const pl=document.createElementNS(ns,'polyline');pl.setAttribute('points',route.samples.map(p=>toMap(p[0],p[1]).join(',')).join(' '));pl.setAttribute('fill','none');pl.setAttribute('stroke','#fffaf0');pl.setAttribute('stroke-width',String(route.width*2.12));pl.setAttribute('stroke-linecap','round');pl.setAttribute('stroke-linejoin','round');root.appendChild(pl);}}
+drawMapLanes();
+function mapUpdate(){const spot=$('player-spot');const [px,py]=toMap(state.x,state.z);spot.setAttribute('cx',String(clamp(px,3,167)));spot.setAttribute('cy',String(clamp(py,3,122)));$('discovery-count').textContent=`${discovered.size} / ${locations.length}`;
+ $('compass-label').textContent=['N','NE','E','SE','S','SW','W','NW'][Math.round(((state.yaw%TAU+TAU)%TAU)/(TAU/8))%8];$('compass-needle').style.transform=`rotate(${state.yaw}rad)`;}
+function pointsMap(){const svg=$('map-pois');const ns='http://www.w3.org/2000/svg';locations.forEach(p=>{let e=document.createElementNS(ns,'circle');e.setAttribute('cx',String(toMap(p.x,p.z)[0]));e.setAttribute('cy',String(toMap(p.x,p.z)[1]));e.setAttribute('r','3.2');e.setAttribute('fill',discovered.has(p.id)?'#dc8b69':'#b9b2a4');e.dataset.id=p.id;svg.appendChild(e);});}
+pointsMap();mapUpdate();
+function markFound(p){if(discovered.has(p.id))return;discovered.add(p.id);safeStore.setItem('seoul-stroll-places-bukchon-v02',JSON.stringify([...discovered]));const marker=$('map-pois').querySelector(`[data-id="${p.id}"]`);if(marker)marker.setAttribute('fill','#dc8b69');mapUpdate();}
+function toast(msg,ms=3000){$('toast').textContent=msg;$('toast').classList.add('visible');lastToast=performance.now()+ms;}
+function modal(title,body,kicker='SEOUL STROLL'){state.modal=true;$('modal-content').innerHTML=`<span class="modal-kicker">${kicker}</span><h2 id="modal-title">${title}</h2>${body}`;$('modal').classList.add('visible');$('modal').setAttribute('aria-hidden','false');document.exitPointerLock?.();}
+function closeModal(){state.modal=false;$('modal').classList.remove('visible');$('modal').setAttribute('aria-hidden','true');}
+$('modal-close').onclick=closeModal;$('modal').addEventListener('click',e=>{if(e.target===$('modal'))closeModal();});
+function showHelp(){modal('천천히 걸어봐요',`<p>작은 서울의 골목을 자유롭게 산책해요. 별도의 미션이나 시간 제한은 없어요.</p><ul><li><b>W A S D / 방향키</b> — 이동</li><li><b>마우스 드래그</b> — 시점 회전</li><li><b>화면 클릭</b> — 포인터 고정 (ESC 해제)</li><li><b>SHIFT</b> — 조금 더 빠르게 걷기</li><li><b>E</b> — 가까운 장소 둘러보기</li><li><b>N</b> — 낮 / 저녁 변경</li><li><b>P</b> — 현재 화면 사진 저장</li><li><b>모바일</b> — 왼쪽 패드로 이동, 오른쪽 화면을 밀어 시점 회전</li></ul><p class="small-note">북촌에서 영감을 얻어 새롭게 구성한 가상 골목이야. 실제 주택과 주소를 정확하게 재현한 지도가 아니야.</p>`,'HOW TO WALK');}
+$('help-btn').onclick=showHelp;
+function showPostcards(){modal('발견한 골목 이야기',`<p>산책하다 발견한 장소는 여기 기록돼요. 가까이에서 <b>E</b>를 누르면 골목에 숨은 이야기를 볼 수 있어요.</p><div class="place-list">${locations.map((p,i)=>`<div class="place-chip ${discovered.has(p.id)?'found':''}">${discovered.has(p.id)?'✳ '+p.name:'○ 아직 발견하지 못한 곳 '+(i+1)}</div>`).join('')}</div><p class="small-note">기록은 현재 브라우저에만 저장돼요. 로그인이나 서버 계정은 없어.</p>`,'YOUR LITTLE MEMORIES');}
+$('postcards-btn').onclick=showPostcards;
+const voteChoices=['성수 골목','익선동 한옥길','홍대 밤거리','한강 산책로'];
+$('idea-btn').onclick=()=>{
+ const prev=safeStore.getItem('seoul-stroll-vote')||'';
+ modal('다음엔 어디를 걸을까요?',`<p>서울 산책은 아직 첫 번째 작은 골목만 열려 있어요. 다음에 보고 싶은 동네를 골라 주세요.</p><div class="vote-options">${voteChoices.map(s=>`<button class="vote-option ${prev===s?'selected':''}" data-choice="${s}">${s}</button>`).join('')}</div><p id="vote-result" class="small-note">${prev?'이 브라우저에서 선택한 동네: '+prev:'체험판: 투표는 이 브라우저에만 저장돼. 아직 개발자에게 자동 전송되지 않아.'}</p><hr style="border:0;border-top:1px solid #e1dfd6;margin:22px 0"><p>이 무료 산책 프로젝트가 마음에 들었다면, 나중에 연결될 <b>자율 후원</b>으로 새 골목 제작을 도울 수 있어요.</p><p class="small-note">후원 링크는 아직 설정되지 않았어. 실제 후원 계정을 만든 뒤 src/game.js의 SUPPORT_URL 값을 바꿔 연결할 수 있어.</p>${SUPPORT_URL?'<a class="modal-action" style="display:inline-block;text-decoration:none" href="'+SUPPORT_URL+'" target="_blank" rel="noopener noreferrer">커피 한 잔 후원하기 ↗</a>':''}`,'NEXT NEIGHBORHOOD');
+ document.querySelectorAll('.vote-option').forEach(b=>b.onclick=()=>{safeStore.setItem('seoul-stroll-vote',b.dataset.choice);document.querySelectorAll('.vote-option').forEach(x=>x.classList.toggle('selected',x===b));$('vote-result').textContent='이 브라우저에서 선택한 동네: '+b.dataset.choice+' (서버 전송 전)';});
+};
+const SUPPORT_URL=''; // Set your actual Buy Me a Coffee / Ko-fi link here when ready.
+function interact(){if(!nearSpot || state.modal)return;markFound(nearSpot);modal(nearSpot.name,`<p>${nearSpot.detail}</p><p class="small-note">발견한 장소 ${discovered.size} / ${locations.length} · 이 골목은 실제 지도의 정확한 재현이 아닌 서울에서 영감을 받은 공간이야.</p>`,'YOU FOUND A LITTLE PLACE');}
+function nearUpdate(){let m=null,dist=4.5;for(const p of locations){let d=Math.hypot(state.x-p.x,state.z-p.z);if(d<dist){dist=d;m=p;}}nearSpot=m;let hint=$('hint');if(m&&!state.modal&&state.started){hint.innerHTML=`<b>${touchDevice?'터치':'E'}</b>  ${m.name} 둘러보기`;hint.classList.add('visible');$('touch-interact').classList.add('visible');}else{hint.classList.remove('visible');$('touch-interact').classList.remove('visible');}}
+$('touch-interact').onclick=interact;
+function isWalkable(x,z){return paths.some(p=>distanceFromPath(x,z,p)<p.width*.5+.33);}
+function move(dt){if(!state.started||state.modal)return;
+ let forward=(keys.has('KeyW')||keys.has('ArrowUp')?1:0)-(keys.has('KeyS')||keys.has('ArrowDown')?1:0);
+ let strafe=(keys.has('KeyD')||keys.has('ArrowRight')?1:0)-(keys.has('KeyA')||keys.has('ArrowLeft')?1:0);
+ forward+=-touchInput.y;strafe+=touchInput.x;
+ let length=Math.hypot(forward,strafe);if(length>1){forward/=length;strafe/=length;}
+ const dx=Math.sin(state.yaw)*forward+Math.cos(state.yaw)*strafe;
+ const dz=-Math.cos(state.yaw)*forward+Math.sin(state.yaw)*strafe;
+ const speed=(keys.has('ShiftLeft')||keys.has('ShiftRight')?7:4.25);
+ const lerp=1-Math.exp(-dt*10);state.vx+=(dx*speed-state.vx)*lerp;state.vz+=(dz*speed-state.vz)*lerp;
+ const nx=state.x+state.vx*dt,nz=state.z+state.vz*dt;
+ if(isWalkable(nx,state.z))state.x=nx;else state.vx=0;
+ if(isWalkable(state.x,nz))state.z=nz;else state.vz=0;
+ const movement=Math.hypot(state.vx,state.vz);state.walked+=movement*dt;stepPhase+=movement*dt*.95;
+ if(movement>.5)audioStep(dt,movement);
+}
+const touchInput={x:0,y:0};let padPointer=null,padOrigin={x:0,y:0},lookPointer=null,lookLast={x:0,y:0},dragging=false,lastMouse={x:0,y:0};
+function updatePad(event){let dx=event.clientX-padOrigin.x,dy=event.clientY-padOrigin.y;const len=Math.hypot(dx,dy),max=37;if(len>max){dx*=max/len;dy*=max/len;}touchInput.x=dx/max;touchInput.y=dy/max;$('touch-knob').style.transform=`translate(${dx}px,${dy}px)`;}
+const pad=$('touch-pad');pad.addEventListener('pointerdown',e=>{if(!state.started)return;padPointer=e.pointerId;pad.setPointerCapture(e.pointerId);padOrigin={x:e.clientX,y:e.clientY};updatePad(e);});pad.addEventListener('pointermove',e=>{if(e.pointerId===padPointer)updatePad(e);});function resetPad(e){if(e.pointerId!==padPointer)return;padPointer=null;touchInput.x=touchInput.y=0;$('touch-knob').style.transform='translate(0,0)';}pad.addEventListener('pointerup',resetPad);pad.addEventListener('pointercancel',resetPad);
+const look=$('touch-look');look.addEventListener('pointerdown',e=>{if(!state.started)return;lookPointer=e.pointerId;look.setPointerCapture(e.pointerId);lookLast={x:e.clientX,y:e.clientY};});look.addEventListener('pointermove',e=>{if(e.pointerId!==lookPointer)return;state.yaw+=(e.clientX-lookLast.x)*.005;state.pitch=clamp(state.pitch-(e.clientY-lookLast.y)*.004,-.85,.85);lookLast={x:e.clientX,y:e.clientY};});look.addEventListener('pointerup',e=>{if(e.pointerId===lookPointer)lookPointer=null;});look.addEventListener('pointercancel',e=>{if(e.pointerId===lookPointer)lookPointer=null;});
+function requestPointer(){if(state.started&&!state.modal&&!touchDevice)canvas.requestPointerLock?.();}
+canvas.addEventListener('pointerdown',e=>{if(touchDevice)return;dragging=true;lastMouse={x:e.clientX,y:e.clientY};if(state.started&&!state.modal)requestPointer();});
+window.addEventListener('pointerup',()=>{dragging=false;});
+window.addEventListener('mousemove',e=>{if(!state.started||state.modal||touchDevice)return;let dx=0,dy=0;if(document.pointerLockElement===canvas){dx=e.movementX;dy=e.movementY;}else if(dragging){dx=e.clientX-lastMouse.x;dy=e.clientY-lastMouse.y;}state.yaw+=dx*.0027;state.pitch=clamp(state.pitch-dy*.0022,-.87,.87);lastMouse={x:e.clientX,y:e.clientY};});
+window.addEventListener('keydown',e=>{
+ if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code))e.preventDefault();
+ if(e.code==='Escape'){if(state.modal)closeModal();return;}
+ if(!state.started||state.modal)return;
+ keys.add(e.code);
+ if(e.repeat)return;
+ if(e.code==='KeyE')interact();if(e.code==='KeyN')toggleTime();if(e.code==='KeyP')savePhoto();if(e.code==='KeyH')showHelp();
+});window.addEventListener('keyup',e=>keys.delete(e.code));window.addEventListener('blur',()=>{keys.clear();touchInput.x=touchInput.y=0;});
+$('start-btn').onclick=()=>{state.started=true;$('intro').classList.remove('visible');if(touchDevice){$('touch-ui').setAttribute('aria-hidden','false');}toast('어서 와요. 오늘은 천천히 걸어요. ✳',3500);};
+function toggleTime(){state.night=!state.night;$('toggle-time').textContent=state.night?'☀':'☾';toast(state.night?'조용한 서울의 저녁이에요.':'햇살이 돌아왔어요.');}
+$('toggle-time').onclick=toggleTime;
+// Synthesized ambience avoids third-party sound/licensing dependencies. WebAudio begins after click.
+let audioCtx=null,ambientSource=null,ambientGain=null,footstepTimer=0;
+function audioInit(){if(audioCtx)return;const AudioContext=window.AudioContext||window.webkitAudioContext;if(!AudioContext)return;audioCtx=new AudioContext();let samples=audioCtx.sampleRate*2,buf=audioCtx.createBuffer(1,samples,audioCtx.sampleRate);let data=buf.getChannelData(0),lp=0;for(let i=0;i<samples;i++){lp=lp*.985+(Math.random()*2-1)*.015;data[i]=lp*.37;}ambientSource=audioCtx.createBufferSource();ambientSource.buffer=buf;ambientSource.loop=true;ambientGain=audioCtx.createGain();ambientGain.gain.value=.21;const low=audioCtx.createBiquadFilter();low.type='lowpass';low.frequency.value=400;ambientSource.connect(low);low.connect(ambientGain);ambientGain.connect(audioCtx.destination);ambientSource.start();}
+function audioStep(dt,movement){footstepTimer+=dt;if(footstepTimer<.38/Math.max(.8,movement/4))return;footstepTimer=0;if(!audioCtx||state.mute)return;const now=audioCtx.currentTime;let oscillator=audioCtx.createOscillator(),gain=audioCtx.createGain();oscillator.type='triangle';oscillator.frequency.setValueAtTime(155+Math.random()*35,now);oscillator.frequency.exponentialRampToValueAtTime(74,now+.095);gain.gain.setValueAtTime(.0001,now);gain.gain.exponentialRampToValueAtTime(.018,now+.014);gain.gain.exponentialRampToValueAtTime(.0001,now+.1);oscillator.connect(gain);gain.connect(audioCtx.destination);oscillator.start(now);oscillator.stop(now+.11);}
+$('toggle-sound').onclick=()=>{audioInit();state.mute=!state.mute;if(audioGainAvailable())ambientGain.gain.setTargetAtTime(state.mute?0:.22,audioCtx.currentTime,.1);$('toggle-sound').textContent=state.mute?'♩':'♪';toast(state.mute?'소리를 껐어요.':'조용한 바람 소리를 켰어요.');};
+function audioGainAvailable(){return audioCtx&&ambientGain;}
+function savePhoto(){const a=document.createElement('a');a.download='seoul-stroll-postcard.png';a.href=canvas.toDataURL('image/png');a.click();toast('산책 사진을 저장했어요.');}
+let pixelRatio=1;
+function resize(){pixelRatio=Math.min(window.devicePixelRatio||1,touchDevice?1.25:1.6);const w=Math.max(1,Math.floor(window.innerWidth*pixelRatio)),h=Math.max(1,Math.floor(window.innerHeight*pixelRatio));if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;gl.viewport(0,0,w,h);}perspective(proj,Math.PI/2.9,w/h,.1,240);gl.uniformMatrix4fv(locProjection,false,proj);}
+window.addEventListener('resize',resize);resize();
+function render(time=0){const dt=Math.min(.06,Math.max(.001,(time-lastFrame)/1000||.016));lastFrame=time;state.elapsed+=dt;move(dt);const moving=Math.hypot(state.vx,state.vz)>.3;let bob=moving&&state.started&&!state.modal?Math.sin(stepPhase*2)*.047:0;
+ const cam=[state.x,hill(state.x,state.z)+1.72+bob,state.z],forward=[Math.sin(state.yaw)*Math.cos(state.pitch),Math.sin(state.pitch),-Math.cos(state.yaw)*Math.cos(state.pitch)];
+ const target=[cam[0]+forward[0],cam[1]+forward[1],cam[2]+forward[2]];lookAt(view,cam,target);
+ const fog=state.night?[.31,.37,.45]:[.72,.78,.76];
+ gl.clearColor(...fog,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.uniformMatrix4fv(locView,false,view);gl.uniform1f(locNight,state.night?1:0);gl.uniform3fv(locFog,fog);
+ gl.drawArrays(gl.TRIANGLES,0,dataCount);
+ if(time-lastMap>180){lastMap=time;mapUpdate();nearUpdate();}
+ if(lastToast&&time>lastToast){$('toast').classList.remove('visible');lastToast=0;}
+ requestAnimationFrame(render);
+}
+requestAnimationFrame(render);
+console.info(`[Seoul Stroll Bukchon v0.3] WebGL ready: ${dataCount.toLocaleString()} vertices, ${houseSites.length} hanok houses, ${paths.length} walkable lanes, ${locations.length} discoveries.`);
+})();
+
+</script>
+</body>
+</html>
