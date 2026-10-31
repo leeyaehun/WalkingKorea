@@ -1,4 +1,4 @@
-name: Verify live WalkingKorea grounded walk v0.9
+name: Verify live WalkingKorea v0.10
 on:
   push:
     branches: [main]
@@ -23,8 +23,8 @@ jobs:
           curl -fsSL --retry 4 --retry-delay 3 -D /tmp/live-headers https://walkingkorea.leeyaehun.workers.dev/ -o /tmp/live.html
           # Native Wrangler builds do not carry the custom API fallback header.
           # Verify actual playable-v0.8 HTML instead of deployment transport.
-          grep -q 'VOL. 09' /tmp/live.html
-          grep -q 'YOU ARE DAMI' /tmp/live.html
+          grep -q 'VOL. 10' /tmp/live.html
+          grep -q 'data-avatar="girl"' /tmp/live.html
       - name: Check real-world third-person movement
         env:
           WK_BASE_URL: https://walkingkorea.leeyaehun.workers.dev/
@@ -32,5 +32,5 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: walkingkorea-live-grounded-gait-v09
+          name: walkingkorea-live-v010
           path: qa-screenshots/
