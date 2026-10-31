@@ -31,9 +31,13 @@ export function createHanokKit({ box, face, sphere, cylinder, textured, signs })
   const {pitchedEavesAndHips,gateRoof,wallCoping,openPorchGate}
     = createHanokArchitecture({box,face,sphere,roofHeight,roofHalfWidth,eave,span});
 
+  // Distance-tier geometry: hero fidelity in the showcase street, fewer
+  // small roof polygons on branch roads. This is build-time LOD, not a
+  // frame-by-frame pop or a second render mesh.
+  let detailProfile='hero';
   function pitchedRoof() {
-    const columns = 16;
-    const courses = 9;
+    const columns = detailProfile==='district' ? 12 : 16;
+    const courses = detailProfile==='district' ? 7 : 9;
     for (const side of [-1, 1]) {
       for (let row = 0; row < courses; row++) {
         const z0 = side * eave * row / courses;
@@ -273,8 +277,8 @@ export function createHanokKit({ box, face, sphere, cylinder, textured, signs })
     // Roof-sized color treatment: easier to see from gameplay distance than
     // tiny decorations. A continuous patch follows the same curved tile
     // profile; contrasting courses retain a real roof-tile rhythm.
-    const columns = 12;
-    const courses = 9;
+    const columns = detailProfile==='district' ? 8 : 12;
+    const courses = detailProfile==='district' ? 6 : 9;
     for (const side of [-1, 1]) {
       for (let row = 0; row < courses; row++) {
         const z0 = side * eave * row / courses;
@@ -378,7 +382,8 @@ export function createHanokKit({ box, face, sphere, cylinder, textured, signs })
     stoneWall(3.83,.64,-3.97,1.13);
   }
 
-  function build(type=0, detailVariant=0) {
+  function build(type=0, detailVariant=0, profile='hero') {
+    detailProfile = profile==='district' ? 'district' : 'hero';
     // Keep all original residential/café archetypes, but give many houses a
     // roof-sized, visually distinct upgrade instead of one hard-to-find A01.
     if (type === 100) {
