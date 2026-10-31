@@ -1,4 +1,4 @@
-# Seoul Stroll — Bukchon (Three.js migration v0.4)
+# Seoul Stroll — Bukchon (Hanok Set v0.5)
 
 This is the actual Three.js + Vite version of the previously single-file WebGL Seoul Stroll v0.3. The walking routes, procedural hanok geometry, input controls, map, day/night, 6 discovery points, screenshots, and local vote UI were retained.
 
@@ -34,7 +34,16 @@ Output: `dist/`. Deploy the `dist/` folder to static hosting (Vercel, Cloudflare
 - `index.html`: structural HTML UI
 - `src/style.css`: UI styling
 - `src/main.js`: input, UI, game loop, Three renderer
-- `src/world/BukchonWorld.js`: procedural lanes, terrain, detailed hanok, geometry/texture atlas, Three.js mesh
+- `src/world/BukchonWorld.js`: procedural lanes, terrain, site layout, geometry/texture atlas, Three.js mesh
+- `src/world/HanokKit.js`: approved Bukchon Hanok Set v1; wall-and-gate (A), front-facing (B), café/atelier (C), roof tiles, wooden columns, paper lattice windows, gate and courtyard details
+
+## Hanok visual pass v0.5
+
+- Replaced uniform house facades with three distinct building archetypes. A uses plaster walls and a timber gate, B exposes lattice doors and a porch, and C has a small Korean shop sign, warm entrance, planters and bench.
+- Shared roof geometry uses thin rolled charcoal-gray tile courses, raised seams and exposed wooden eaves.
+- All 25 existing hanok sites and routes, input controls, minimap and discoveries remain in place; houseSites now records an `archetype` for inspection.
+- Reference art is a **concept direction**, not a pixel-identical render. Exact architectural photography, per-building texture and roof silhouettes are not yet finished.
+- Browser visual verification remains necessary before public release.
 
 ## Notes
 
