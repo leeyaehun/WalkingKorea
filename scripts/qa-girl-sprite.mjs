@@ -11,7 +11,7 @@ try {
  await page.goto(base+'?qa=1',{waitUntil:'networkidle',timeout:60000});
  await page.locator('[data-avatar="girl"]').click();
  await page.locator('#start-btn').click();
- await page.waitForFunction(()=>{const x=window.__wkQA?.();return x?.selectedAvatar==='girl' && x?.avatar?.textureReady;},{timeout:30000});
+ await page.waitForFunction(()=>{const x=window.__wkQA?.();return x?.selectedAvatar==='girl' && x?.avatar?.textureReady && x?.avatar?.visible && x?.avatar?.position?.[2]>20;},null,{timeout:30000});
  await page.waitForTimeout(450);
  const before=await page.evaluate(()=>window.__wkQA());
  if(before.avatar.rendering!=='2.5d-sprite')errors.push('3D model still active instead of 2.5D sprite');
@@ -23,7 +23,7 @@ try {
  const during=await page.evaluate(()=>window.__wkQA());
  await page.screenshot({path:'qa-screenshots/girl-25d-walking.png',animations:'disabled',timeout:60000});
  await page.keyboard.up('w');
- await page.waitForTimeout(700);
+ await page.waitForFunction(()=>window.__wkQA?.().avatar?.pose==='idle',null,{timeout:30000});
  const stopped=await page.evaluate(()=>window.__wkQA());
  if(during.avatar.totalTravel-before.avatar.totalTravel<.23)errors.push('Character did not move');
  if(during.avatar.distancePhase-before.avatar.distancePhase<.5)errors.push('Walk frames did not advance from movement');
