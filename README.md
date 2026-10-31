@@ -78,3 +78,13 @@ npx wrangler deploy
 ```
 
 To deploy automatically on pushes, go to **Cloudflare → Workers & Pages → walkingkorea → Settings → Builds → Connect**, authorize `leeyaehun/WalkingKorea`, use the `main` branch, set **build command** `npm run build` and **deploy command** `npx wrangler deploy`. Cloudflare Workers Builds is separate from the GitHub Actions build-only workflow. Until this connection is made (or Wrangler deploy is run), GitHub changes do **not** update the public `workers.dev` site.
+
+
+## Dami v0.7 — 3D character and turnaround
+
+- `src/characters/DamiCompanion.js` is now a **fully 3D procedural sculpt** (not billboard art): cheek-shaped head, curved calico face patches, ear depth, eyes, separate cloth kerchief, leather satchel, gold charm, animated feet, and striped curved tail.
+- The same sculpt is used both in the world and in a separate **3D character studio** at `/character.html`. The studio provides front / 45° / side / back-45° / back presets and orbit zoom. It is a close procedural interpretation of the approved character-art direction, not an automatic exact reconstruction of its concept image.
+- In the main world, Dami follows ahead and to the side, leaving the centre of the walking lane visible.
+- `vite.config.js` builds both site pages.
+- The bespoke custom shader for streets and houses remains untouched; scene lights were added for Dami's PBR materials.
+- Source branches and GitHub CI build output are not live until a separate Cloudflare Worker deployment is completed and verified.
