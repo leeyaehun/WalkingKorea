@@ -240,7 +240,7 @@ export function createHanokKit({ box, face, sphere, cylinder, textured, signs })
     }
 
     // Pebble-footed ceramic onggi jars, with distinct lids and narrow
-    // necks, beside a low shrub: small Korean domestic details, not signs.
+    // necks: small Korean domestic details, not signs.
     for (const [x, z, r, h] of [
       [3.08, -4.68, .23, .52],
       [3.52, -4.54, .17, .38],
