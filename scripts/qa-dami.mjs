@@ -26,6 +26,11 @@ async function inspect(url,file,action){
 try{
  await inspect(base+'/character.html','dami-front.png',async(page)=>{
   await page.locator('[data-angle="0"]').click();await page.waitForTimeout(800);
+  const ready=page.waitForEvent('download',{timeout:30000});
+  await page.locator('#download-glb').click();
+  const model=await ready;
+  if(!model.suggestedFilename().endsWith('.glb'))errors.push('GLB download did not return a .glb filename');
+  else console.log('GLB_DOWNLOAD=PASS '+model.suggestedFilename());
  });
  await inspect(base+'/character.html','dami-back.png',async(page)=>{
   await page.locator('[data-angle="180"]').click();await page.waitForTimeout(1000);
