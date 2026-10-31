@@ -22,13 +22,13 @@ function shortestAngle(angle) {
   return Math.atan2(Math.sin(angle), Math.cos(angle));
 }
 
-function chooseFacing(heading, camera, position) {
+export function chooseFacing(heading, camera, position) {
   const relative = shortestAngle(Math.atan2(camera.position.x - position.x, camera.position.z - position.z) - heading);
   const magnitude = Math.abs(relative);
   const direction = THREE.MathUtils.clamp(Math.floor((magnitude + HALF_SLICE) / (Math.PI / 4)), 0, 4);
-  // Both poses face to the right on their artwork; flip them when viewing from
-  // the opposite side of the avatar. Front and back do not need mirroring.
-  return {direction, mirror: relative < -0.02 && direction > 0 && direction < 4};
+  // Atlas side poses look SCREEN-RIGHT by default. From behind, moving
+  // world -X is screen-left; a positive relative bearing requires mirroring.
+  return {direction, mirror: relative > 0.02 && direction > 0 && direction < 4};
 }
 
 export function createGirlSpriteCompanion(scene, hill, camera) {
@@ -140,8 +140,9 @@ export function createGirlSpriteCompanion(scene, hill, camera) {
     lastZ = z;
     totalTravel += travel;
     if (speed > 0.11) {
-      const desired = Math.atan2(vx, vz);
-      heading += shortestAngle(desired - heading) * (1 - Math.exp(-dt * 11));
+      // Five-direction 2.5D sprites must face the actual motion immediately:
+      // interpolated heading made the feet moonwalk on sideways inputs.
+      heading = Math.atan2(vx, vz);
     }
     const active = walking && speed > 0.13 && travel > 0.0005;
     motionBlend += ((active ? 1 : 0) - motionBlend) * (1 - Math.exp(-dt * 10));
