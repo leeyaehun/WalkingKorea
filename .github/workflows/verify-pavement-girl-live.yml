@@ -1,0 +1,28 @@
+name: Verify public v0.10 pavement and girl
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify-live:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Cloudflare public app and girl studio
+        shell: bash
+        run: |
+          set -euo pipefail
+          url="https://walkingkorea.leeyaehun.workers.dev"
+          curl -fsSL --retry 5 --retry-delay 2 "$url/" -o /tmp/game.html
+          grep -q 'VOL. 10' /tmp/game.html
+          grep -q 'data-avatar="girl"' /tmp/game.html
+          curl -fsSL --retry 4 --retry-delay 2 "$url/girl.html" -o /tmp/girl.html
+          grep -q 'id="viewer"' /tmp/girl.html
+          grep -q 'id="download-glb"' /tmp/girl.html
+          curl -fsSL "$url/girl-portrait.svg" -o /tmp/portrait.svg
+          grep -q '<svg' /tmp/portrait.svg
+          echo "PUBLIC_HOME=PASS"
+          echo "PUBLIC_GIRL_STUDIO=PASS"
+          echo "PUBLIC_PORTRAIT=PASS"
+          echo '✅ WalkingKorea v0.10 and girl studio are online.' >> "$GITHUB_STEP_SUMMARY"
