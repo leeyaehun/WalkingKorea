@@ -33,7 +33,7 @@ jobs:
           mkdir -p /tmp/dami-compiled
           cp -R dist/. /tmp/dami-compiled/
           git switch --orphan compiled-dami-v07
-          git rm -rf . >/dev/null
+          # --orphan removes tracked source files; copy only built files.
           cp -R /tmp/dami-compiled/. .
           git add -A
           git -c user.name='WalkingKorea Build Bot' -c user.email='actions@users.noreply.github.com' commit -m "Build Dami 3D v0.7 from ${GITHUB_SHA}" >/dev/null
