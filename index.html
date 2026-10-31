@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#e8dbcf" />
+  <meta name="description" content="브라우저에서 바로 산책하는 작은 서울 골목. 설치도 로그인도 필요 없어요." />
+  <title>Seoul Stroll — 작은 서울 산책</title>
+  <script type="module" crossorigin src="/assets/main-dTlUkQBH.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/DamiCompanion-Faeyrf8S.js">
+  <link rel="stylesheet" crossorigin href="/assets/main-D5p6a5G-.css">
+</head>
+<body>
+  <canvas id="world" aria-label="서울 골목 3D 산책 화면"></canvas>
+  <div id="grain"></div>
+  <div class="vignette"></div>
+
+  <div class="hud">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">ㅅ</div>
+        <div class="brand-lines"><strong>SEOUL <i>STROLL</i></strong><span>작은 서울을 천천히 걷다</span></div>
+      </div>
+      <div class="header-actions">
+        <span class="pill location"><span class="live-dot"></span> 북촌 한옥마을에서 영감을 받은 골목</span>
+        <button id="toggle-time" class="icon-button" title="낮과 저녁 전환" aria-label="낮과 저녁 전환">☾</button>
+        <button id="toggle-sound" class="icon-button" title="소리 켜기 또는 끄기" aria-label="소리 켜기 또는 끄기">♩</button>
+        <button id="help-btn" class="icon-button" title="조작 방법" aria-label="조작 방법">?</button>
+      </div>
+    </header>
+
+    <div class="left-label">
+      <span class="eyebrow">A LITTLE WALK THROUGH SEOUL</span>
+      <h1>북촌의 골목을<br><em>천천히 걷다.</em></h1>
+      <p>서두르지 않아도 괜찮아요.</p>
+    </div>
+
+    <div class="compass"><span id="compass-label">N</span><div class="compass-needle" id="compass-needle"></div></div>
+    <div id="reticle" class="reticle">+</div>
+    <div id="hint" class="nearby-hint" aria-live="polite"></div>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <button id="dami-card" type="button" class="dami-card" aria-label="북촌 수호냥이 담이 소개 보기">
+      <img src="/guide-cat.svg" alt="" width="70" height="70">
+      <span class="dami-message">
+        <span class="dami-kicker">YOU ARE DAMI · THIRD PERSON</span>
+        <strong>나의 산책 · 담이</strong>
+        <span id="dami-line">오늘은 내가 직접 골목을 탐험하는 날!</span>
+      </span>
+    </button>
+
+    <footer class="bottom-bar">
+      <div class="map-card">
+        <div class="map-top"><span>북촌 골목</span><small>WALK MAP · 01</small></div>
+        <svg id="minimap" viewBox="0 0 170 125" aria-label="현재 위치 지도">
+          <rect x="0" y="0" width="170" height="125" rx="8" fill="#e8e1d4" />
+          <g id="map-roads"></g>
+          <g fill="#b7c5a8" opacity=".48"><rect x="12" y="24" width="31" height="26" rx="3"/><rect x="127" y="16" width="31" height="27" rx="3"/><rect x="19" y="83" width="32" height="31" rx="3"/></g>
+          <g id="map-pois"></g>
+          <circle id="player-spot" cx="84" cy="14" r="5.5" fill="#eb6f52" stroke="white" stroke-width="2.5" />
+        </svg>
+      </div>
+      <div class="bottom-center"><span id="discovery-count">0 / 6</span> 발견한 장소 <span class="dot-separator">·</span> <span class="desktop-keys">W A S D 담이 걷기 · 마우스 카메라 · E 둘러보기</span><span class="mobile-keys">왼쪽 담이 이동 · 오른쪽 카메라</span></div>
+      <div class="right-actions">
+        <button class="secondary-button" id="postcards-btn">▧ <span>산책 기록</span></button>
+        <button class="primary-button" id="idea-btn">♡ <span>다음 동네</span></button>
+      </div>
+    </footer>
+  </div>
+
+  <div id="touch-ui" class="touch-ui" aria-hidden="true"><div id="touch-pad" class="touch-pad"><div id="touch-knob" class="touch-knob"></div></div><button id="touch-interact" class="touch-interact">둘러보기</button><div id="touch-look" class="touch-look"></div></div>
+
+  <div id="intro" class="screen-overlay visible">
+    <div class="intro-card">
+      <div class="intro-character"><img src="/guide-cat.svg" alt="북촌 수호냥이 담이" width="104" height="104"><div><strong>반가워요! 저는 담이예요.</strong><span>이제 저를 직접 움직여 서울 골목을 걸어봐요!</span></div></div>
+      <div class="intro-kicker"><span class="tiny-flower">✳</span> NO HURRY, JUST SEOUL <span class="tiny-flower">✳</span></div>
+      <h2>조금만<br><em>걸어볼까요?</em></h2>
+      <p>한옥 담장과 굽은 오르막길.<br>서울의 어느 조용한 오후를 담았어요.</p>
+      <button id="start-btn" class="start-button">산책 시작하기 <span>↗</span></button>
+      <div class="intro-guide">PC: WASD = 담이 이동 · 마우스 = 카메라 <span>·</span> 모바일: 화면 터치<br><a href="/character.html" class="intro-character-link">담이 3D 캐릭터 360° 미리보기 ↗</a></div>
+    </div>
+    <div class="intro-edge">SEOUL STROLL <span>—</span> VOL. 09 <span>©</span> A PERSONAL WEB EXPERIMENT</div>
+  </div>
+
+  <div id="modal" class="modal-backdrop" aria-hidden="true">
+    <section class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <button id="modal-close" class="close-btn" aria-label="닫기">×</button>
+      <div id="modal-content"></div>
+    </section>
+  </div>
+
+  <div class="mobile-signature">SEOUL STROLL <span>·</span> VOL.09</div>
+</body>
+</html>
