@@ -24,15 +24,36 @@ if(start&&Math.hypot(start.player[0]-start.avatar.position[0],start.player[1]-st
 await page.screenshot({path:'qa-screenshots/dami-thirdperson-start.png',animations:'disabled'});
 
 await page.keyboard.down('w');
-await page.waitForTimeout(2300);
+await page.waitForTimeout(900);
+const stepA=await sample();
+await page.waitForTimeout(650);
+const stepB=await sample();
+await page.waitForTimeout(1050);
 const during=await sample();
 await page.keyboard.up('w');
 await page.screenshot({path:'qa-screenshots/dami-thirdperson-walk.png',animations:'disabled'});
-await page.waitForTimeout(350);
+await page.waitForTimeout(850);
 const stopped=await sample();
 await page.screenshot({path:'qa-screenshots/dami-thirdperson-stop.png',animations:'disabled'});
 
 if(start&&during&&stopped){
+ const startGait=start.avatar.gait,walkGait=during.avatar.gait,stopGait=stopped.avatar.gait;
+ if(!startGait||!walkGait||!stopGait)errors.push('Procedural gait data unavailable');
+ else {
+  console.log(JSON.stringify({stepA:stepA?.avatar?.gait,stepB:stepB?.avatar?.gait,
+    idle:startGait,moving:walkGait,stopped:stopGait}));
+  if(startGait.paws.length!==4)errors.push('Dami lacks four articulated paws');
+  if(!startGait.paws.every(p=>p.grounded))errors.push('At rest, not all paws are grounded');
+  if(walkGait.traveled<.35)errors.push('Stride is not tied to real ground travel');
+  if(stepA&&stepB&&stepB.avatar.gait.phase-stepA.avatar.gait.phase<.38)
+    errors.push('Paw cycle does not advance while walking');
+  if(!walkGait.paws.some(p=>p.y>.10))
+    errors.push('No visible swinging paw lift');
+  if(walkGait.contactCount<2)
+    errors.push('Two diagonally planted paws are not maintained');
+  if(stopGait.blend>.45)
+    errors.push('Feet do not settle after releasing W');
+ }
  const playerTravel=Math.hypot(during.player[0]-start.player[0],during.player[1]-start.player[1]);
  const modelTravel=Math.hypot(during.avatar.position[0]-start.avatar.position[0],during.avatar.position[2]-start.avatar.position[2]);
  const cameraTravel=Math.hypot(during.camera.camera[0]-start.camera.camera[0],during.camera.camera[2]-start.camera.camera[2]);
@@ -44,6 +65,11 @@ if(start&&during&&stopped){
  if(Math.hypot(stopped.avatar.position[0]-stopped.player[0],stopped.avatar.position[2]-stopped.player[1])>.05)
    errors.push('Stopped player and avatar coordinates diverged');
  // Rotating the camera alone must not walk or rotate the character.
+ // Stationary Dami must not keep treading in place.
+ await page.waitForTimeout(550);
+ const still=await sample();
+ if(stopped?.avatar?.gait&&still?.avatar?.gait&&still.avatar.gait.phase-stopped.avatar.gait.phase>.15)
+   errors.push('Feet keep cycling when the player is no longer moving');
  const beforeOrbit=await sample();
  await page.mouse.move(600,450);
  await page.mouse.down();
