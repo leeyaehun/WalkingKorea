@@ -120,7 +120,7 @@ function rod(ax,ay,az,bx,by,bz,r,col){ // diagonal beam with a flat rotated vert
 // BUKCHON 01: small winding lanes and uphill views, not a georeferenced map.
 // Paths are real geometry and also define collision and the minimap.
 const paths=[
- {name:'가회동 오르막',width:3.35,points:[[0,43],[-1,35],[.5,25],[-1.5,15],[-5.5,6],[-5,-3],[-1,-14],[.5,-24],[-2,-34],[-3,-44]]},
+ {name:'가회동 오르막',width:3.35,points:[[0,55],[0,43],[-1,35],[.5,25],[-1.5,15],[-5.5,6],[-5,-3],[-1,-14],[.5,-24],[-2,-34],[-3,-44]]},
  {name:'서쪽 담장길',width:2.75,points:[[-5.5,6],[-12,5],[-19,2],[-25,-5],[-24,-12],[-18,-18],[-9,-16],[-1,-14]]},
  {name:'동쪽 공방길',width:2.8,points:[[.5,25],[9,23],[16,16],[17,7],[12,-2],[17,-10],[19,-17],[10,-24],[.5,-24]]}
 ];
