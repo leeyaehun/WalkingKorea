@@ -1,0 +1,33 @@
+name: Package WalkingKorea v0.10
+on:
+  push:
+    branches: [feature/paved-alley-girl-v010]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  bundle-static-site:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: true}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - run: npm install --no-audit --no-fund
+      - run: npm run build
+      - name: Check output includes avatar portrait
+        run: |
+          test -s dist/index.html
+          test -s dist/character.html
+          test -s dist/girl-portrait.svg
+      - name: Publish compiled files to isolated release branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/wk-v010
+          cp -R dist/. /tmp/wk-v010/
+          git switch --orphan compiled-v010
+          cp -R /tmp/wk-v010/. .
+          git add -A -- index.html character.html assets guide-cat.svg girl-portrait.svg
+          git -c user.name="WalkingKorea Build Bot" -c user.email="actions@users.noreply.github.com" commit -m "Build v0.10 pavement and girl from ${GITHUB_SHA}" >/dev/null
+          git push origin HEAD:refs/heads/deploy/compiled-v010 --force
