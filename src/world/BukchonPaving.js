@@ -40,10 +40,12 @@ export function buildPavedAlleys({paths,face,hill}) {
   }
   for(let pi=0;pi<paths.length;pi++){
     const path=paths[pi],st=stations(path);
-    const half=path.width*.5;
-    const gutter=.23,inner=half-gutter;
+    const gutter=.23;
     for(let i=0;i<st.length-1;i++){
       const a=st[i],b=st[i+1];
+      // Use the SAME street-width profile as collision and house setbacks.
+      const half=(path.widthAt?path.widthAt((a.z+b.z)*.5):path.width)*.5;
+      const inner=half-gutter;
       const foot=pi*10007+i*53;
       const lift=pi*.004; // no flicker at route intersections
       // Grout shadow surface is visible in the fine gaps between real slabs.
