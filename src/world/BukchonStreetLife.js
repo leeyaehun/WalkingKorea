@@ -25,9 +25,9 @@ export function buildBukchonStreetLife({
     const add=key=>{counts[key]++;summary.details.push(key)};
     withFrame(site.x,site.z,site.angle,()=>{
       // Compact stone step: stops near the kerb, not on the walking roadway.
-      box(0,-.017,-4.73,1.44,.16,.24,'stoneFoundation');
-      box(0,.082,-4.61,1.24,.075,.25,'stoneLight');
-      box(0,.118,-4.56,1.10,.03,.18,'stoneMasonry');
+      box(0,-.017,-4.61,1.44,.16,.24,'stoneFoundation');
+      box(0,.082,-4.50,1.24,.075,.25,'stoneLight');
+      box(0,.118,-4.45,1.10,.03,.18,'stoneMasonry');
       add('doorsteps');
 
       // Small dark wood address plaque with fictional poetic house title.
