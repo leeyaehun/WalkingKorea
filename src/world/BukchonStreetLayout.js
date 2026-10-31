@@ -41,7 +41,7 @@ export const SCENIC_HOUSE_ROWS=[
   {z:-17.6,side: 1,setback:.39,type:1,variant:4},
   // West-facing house at -14 intentionally omitted: visible branch entrance.
   {z:-9.2,side: 1,setback:.34,type:7,variant:1},
-  {z:-8.1,side:-1,setback:.33,type:3,variant:1},
+  {z:-6.1,side:-1,setback:.33,type:3,variant:1},
 ];
 
 export function sampleMainLaneAtZ(samples,z) {
