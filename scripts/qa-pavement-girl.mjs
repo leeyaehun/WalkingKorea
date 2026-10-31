@@ -61,6 +61,27 @@ await mobile.waitForTimeout(450);
 await mobile.screenshot({path:'qa-screenshots/mobile-girl-on-pavement.png',animations:'disabled'});
 const mobileAvatar=await mobile.evaluate(()=>window.__wkQA?.().selectedAvatar);
 if(mobileAvatar!=='girl')errors.push('Mobile selection lost');
+// Rotate the real girl mesh from front to back in a dedicated GLB-ready studio.
+const studio=await browser.newPage({viewport:{width:1050,height:850},deviceScaleFactor:1,acceptDownloads:true});
+studio.on('pageerror',e=>errors.push('GIRL STUDIO: '+e.message));
+const studioResponse=await studio.goto(base+'girl.html',{waitUntil:'networkidle',timeout:60000});
+if(studioResponse?.status()!==200)errors.push('Girl studio not served');
+await studio.waitForTimeout(450);
+await studio.screenshot({path:'qa-screenshots/girl-studio-front.png',animations:'disabled'});
+await studio.locator('[data-angle="180"]').click();
+await studio.waitForTimeout(700);
+await studio.screenshot({path:'qa-screenshots/girl-studio-back.png',animations:'disabled'});
+const filePromise=studio.waitForEvent('download',{timeout:35000});
+await studio.locator('#download-glb').click();
+const file=await filePromise;
+if(!file.suggestedFilename().endsWith('.glb'))errors.push('Girl GLB download name incorrect');
+else {
+ await file.saveAs('qa-screenshots/WalkingKorea_SeoulGirl_v010.glb');
+ const stats=await fs.stat('qa-screenshots/WalkingKorea_SeoulGirl_v010.glb');
+ if(stats.size<60000)errors.push('Girl GLB export too small: '+stats.size);
+ summaries.push({girlGlbBytes:stats.size});
+}
+await studio.close();
 await browser.close();
 console.log(JSON.stringify({check:'paving-and-girl-v010',summaries,errors}));
 if(errors.length)process.exitCode=1;
