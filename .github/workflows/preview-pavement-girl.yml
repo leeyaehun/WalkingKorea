@@ -1,0 +1,31 @@
+name: Preview v0.10 pavement and girl
+on:
+  push:
+    branches: [feature/paved-alley-girl-v010]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - run: npm install --no-audit --no-fund
+      - run: npm install --no-save playwright@1.56.1
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+      - name: Start local preview server
+        shell: bash
+        run: |
+          npm run preview -- --port 4173 --strictPort > /tmp/walkingkorea-v010.log 2>&1 &
+          for i in {1..50}; do curl -fsS http://127.0.0.1:4173/ >/dev/null && exit 0; sleep .5; done
+          cat /tmp/walkingkorea-v010.log; exit 1
+      - name: Verify pavement, girl character, switching, and mobile
+        run: node scripts/qa-pavement-girl.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: walkingkorea-v010-paving-girl-screenshots
+          path: qa-screenshots/
