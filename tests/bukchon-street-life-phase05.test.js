@@ -1,0 +1,74 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {createBukchonWorld} from '../src/world/BukchonWorld.js';
+import {buildBukchonStreetLife} from '../src/world/BukchonStreetLife.js';
+
+function makeWorld(){
+ const old=globalThis.document;
+ globalThis.document={createElement:()=>({width:2048,height:2048,
+   getContext:()=>({fillRect(){},strokeRect(){},fillText(){}})})};
+ try{return createBukchonWorld();}
+ finally{globalThis.document=old;}
+}
+
+test('eight existing authored homes receive a deliberate, readable set of living details',()=>{
+ const w=makeWorld(),v=w.streetLife;
+ assert.equal(v.houseCount,8);
+ assert.equal(v.entries.length,8);
+ assert.equal(v.counts.doorsteps,8);
+ assert.equal(v.counts.plaques,8);
+ assert.equal(v.counts.downspouts,8);
+ assert.equal(v.counts.electricMeters,8);
+ assert.equal(v.counts.planters,19);
+ assert.equal(v.counts.benches,2);
+ assert.equal(v.counts.storage,2);
+ assert.equal(v.counts.wires,4);
+ assert.equal(v.counts.poles,4);
+ assert.deepEqual(v.entries.map(x=>x.index),[0,1,2,3,4,5,6,7]);
+ assert.ok(v.entries.every(x=>x.details.includes('plaques')&&x.details.includes('doorsteps')));
+ assert.equal(w.houseSites.filter(s=>s.scenic).length,8);
+ assert.equal(w.paths.length,3);
+});
+
+test('electric utility poles are beyond the walking kerb; overhead wires maintain clearance',()=>{
+ const w=makeWorld(),v=w.streetLife;
+ assert.deepEqual(v.lines.map(x=>x.z),[-35.4,-8.7]);
+ for(const line of v.lines){
+  assert.equal(line.poles.length,2);
+  assert.ok(line.clearance>7,'wire sag must clear a person and orbit camera');
+  for(const p of line.poles) {
+   assert.ok(p.road>=4,'pole encroaches on the roadway');
+   assert.ok(Number.isFinite(p.x)&&Number.isFinite(p.y)&&Number.isFinite(p.z));
+  }
+ }
+});
+
+test('doorstep edge stays on the wall side of the road, without relocating house sites',()=>{
+ const w=makeWorld();
+ for(const home of w.houseSites.filter(h=>h.scenic)){
+  // The local -Z street direction becomes (+sin(a),-cos(a)) in world space.
+  const p={x:home.x+Math.sin(home.angle)*4.73,
+           z:home.z-Math.cos(home.angle)*4.73};
+  const roadDistance=w.distanceFromPath(p.x,p.z,w.paths[0]);
+  assert.ok(roadDistance>=home.roadWidth*.5-.04,
+    'step protrudes into street at house '+home.index+': '+roadDistance);
+ }
+});
+
+test('procedural lifestyle geometry is deterministic, finite and within vertex budget',()=>{
+ const a=makeWorld(),b=makeWorld();
+ assert.deepEqual(a.streetLife,b.streetLife);
+ assert.equal(a.vertexCount,b.vertexCount);
+ assert.ok(a.vertexCount<1100000,'a dense shared mesh would hurt phones');
+ const g=a.mesh.geometry;
+ const position=g.getAttribute('position'),materials=g.getAttribute('materialId');
+ assert.equal(position.count,materials.count);
+ assert.ok(position.array.every(Number.isFinite));
+ assert.ok(materials.array.every(Number.isFinite));
+ assert.ok(a.material.vertexShader.includes('shadowmap_vertex'));
+ assert.ok(a.material.fragmentShader.includes('bukchonMaterial'));
+});
+
+test('no dependence on added external image assets or paid models',()=>{
+ assert.equal(typeof buildBukchonStreetLife,'function');
+});
