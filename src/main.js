@@ -88,7 +88,7 @@ function move(dt){if(!state.started||state.modal)return;
  let length=Math.hypot(forward,strafe);if(length>1){forward/=length;strafe/=length;}
  const dx=Math.sin(state.yaw)*forward+Math.cos(state.yaw)*strafe;
  const dz=-Math.cos(state.yaw)*forward+Math.sin(state.yaw)*strafe;
- const speed=(keys.has('ShiftLeft')||keys.has('ShiftRight')?5.9:3.15);
+ const speed=(keys.has('ShiftLeft')||keys.has('ShiftRight')?3.35:1.85);
  const lerp=1-Math.exp(-dt*10);state.vx+=(dx*speed-state.vx)*lerp;state.vz+=(dz*speed-state.vz)*lerp;
  const nx=state.x+state.vx*dt,nz=state.z+state.vz*dt;
  if(isWalkable(nx,state.z))state.x=nx;else state.vx=0;
@@ -162,4 +162,4 @@ if(new URLSearchParams(location.search).has('qa')) {
   });
 }
 
-console.info(`[Seoul Stroll Bukchon v0.8] Three.js ready: ${vertexCount.toLocaleString()} vertices, ${houseSites.length} hanok houses, ${paths.length} walkable lanes, ${locations.length} discoveries.`);
+console.info(`[Seoul Stroll Bukchon v0.9] Three.js ready: ${vertexCount.toLocaleString()} vertices, ${houseSites.length} hanok houses, ${paths.length} walkable lanes, ${locations.length} discoveries.`);
