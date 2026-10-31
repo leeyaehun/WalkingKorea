@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { createBukchonWorld } from './world/BukchonWorld.js';
 import { createDamiCompanion } from './characters/DamiCompanion.js';
+import { createThirdPersonCamera } from './controllers/ThirdPersonCamera.js';
 
 const $ = (id) => document.getElementById(id);
 const canvas = $('world');
@@ -11,12 +12,12 @@ const renderer = new THREE.WebGLRenderer({canvas,antialias:true,alpha:false,pres
 renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
 renderer.toneMapping = THREE.NoToneMapping;
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera((Math.PI/2.9)*180/Math.PI,1,.1,240);
+const camera = new THREE.PerspectiveCamera(57,1,.1,240);
 const {mesh,material,paths,hill,distanceFromPath,houseSites,vertexCount} = createBukchonWorld();
 scene.add(mesh);
 const dami=createDamiCompanion(scene,hill);
 
-const state={x:0,z:42,yaw:0,pitch:-.055,vy:0,vx:0,vz:0,night:false,running:false,started:false,modal:false,helpViewed:false,mute:true,elapsed:0,walked:0,quality:1};
+const state={x:0,z:42,yaw:0,pitch:-.34,vy:0,vx:0,vz:0,night:false,running:false,started:false,modal:false,helpViewed:false,mute:true,elapsed:0,walked:0,quality:1};
 const keys=new Set();let lastFrame=0,lastMap=0,lastToast=0,nearSpot=null,stepPhase=0;
 const memoryStore={};
 const safeStore={getItem(k){try{return window.localStorage.getItem(k)}catch(e){return memoryStore[k]||null}},setItem(k,v){try{window.localStorage.setItem(k,v)}catch(e){memoryStore[k]=v}}};
@@ -41,7 +42,7 @@ function toast(msg,ms=3000){$('toast').textContent=msg;$('toast').classList.add(
 function modal(title,body,kicker='SEOUL STROLL'){state.modal=true;$('modal-content').innerHTML=`<span class="modal-kicker">${kicker}</span><h2 id="modal-title">${title}</h2>${body}`;$('modal').classList.add('visible');$('modal').setAttribute('aria-hidden','false');document.exitPointerLock?.();}
 function closeModal(){state.modal=false;$('modal').classList.remove('visible');$('modal').setAttribute('aria-hidden','true');}
 $('modal-close').onclick=closeModal;$('modal').addEventListener('click',e=>{if(e.target===$('modal'))closeModal();});
-function showHelp(){modal('천천히 걸어봐요',`<p>작은 서울의 골목을 자유롭게 산책해요. 별도의 미션이나 시간 제한은 없어요.</p><ul><li><b>W A S D / 방향키</b> — 이동</li><li><b>마우스 드래그</b> — 시점 회전</li><li><b>화면 클릭</b> — 포인터 고정 (ESC 해제)</li><li><b>SHIFT</b> — 조금 더 빠르게 걷기</li><li><b>E</b> — 가까운 장소 둘러보기</li><li><b>N</b> — 낮 / 저녁 변경</li><li><b>P</b> — 현재 화면 사진 저장</li><li><b>모바일</b> — 왼쪽 패드로 이동, 오른쪽 화면을 밀어 시점 회전</li></ul><p class="small-note">북촌에서 영감을 얻어 새롭게 구성한 가상 골목이야. 실제 주택과 주소를 정확하게 재현한 지도가 아니야.</p>`,'HOW TO WALK');}
+function showHelp(){modal('담이가 되어 산책해요',`<p>고양이 담이를 직접 움직이며 작은 서울의 골목을 산책해요. 카메라는 뒤에서 따라오고, 별도의 시간 제한은 없어요.</p><ul><li><b>W A S D / 방향키</b> — 담이 이동 (카메라 방향 기준)</li><li><b>마우스 드래그</b> — 담이 주변 시점 회전</li><li><b>화면 클릭</b> — 포인터 고정 (ESC 해제)</li><li><b>SHIFT</b> — 조금 더 빠르게 걷기</li><li><b>E</b> — 가까운 장소 둘러보기</li><li><b>N</b> — 낮 / 저녁 변경</li><li><b>P</b> — 현재 화면 사진 저장</li><li><b>모바일</b> — 왼쪽 패드로 이동, 오른쪽 화면을 밀어 시점 회전</li></ul><p class="small-note">북촌에서 영감을 얻어 새롭게 구성한 가상 골목이야. 실제 주택과 주소를 정확하게 재현한 지도가 아니야.</p>`,'HOW TO WALK');}
 $('help-btn').onclick=showHelp;
 function showPostcards(){modal('발견한 골목 이야기',`<p>산책하다 발견한 장소는 여기 기록돼요. 가까이에서 <b>E</b>를 누르면 골목에 숨은 이야기를 볼 수 있어요.</p><div class="place-list">${locations.map((p,i)=>`<div class="place-chip ${discovered.has(p.id)?'found':''}">${discovered.has(p.id)?'✳ '+p.name:'○ 아직 발견하지 못한 곳 '+(i+1)}</div>`).join('')}</div><p class="small-note">기록은 현재 브라우저에만 저장돼요. 로그인이나 서버 계정은 없어.</p>`,'YOUR LITTLE MEMORIES');}
 $('postcards-btn').onclick=showPostcards;
@@ -53,25 +54,24 @@ $('idea-btn').onclick=()=>{
 };
 const SUPPORT_URL=''; // Set your actual Buy Me a Coffee / Ko-fi link here when ready.
 
-// Dami is the game's first visible guide character, not a replacement for the
-// first-person walking controls. The concept art is adapted into a small Three.js
-// cat + an illustrated UI card so it is visible on desktop and touch devices.
+// Dami is the player avatar in third-person. The camera orbits and follows;
+// movement keys translate Dami in world space and steer her body independently.
 const guideLines={
- entrance:'여기가 오늘 산책의 시작이에요. 담장 너머 지붕을 봐요.',
- crossroad:'갈림길에선 마음이 가는 쪽으로 천천히 걸어 봐요.',
- east:'공방길에서는 작은 가게들이 기다리고 있어요.',
- west:'서쪽 골목은 조용해요. 발걸음도 느려지는 느낌이죠.',
- turn:'골목이 휘어지는 곳에서 지붕의 곡선을 살펴봐요.',
- view:'전망길에서는 오늘 걸어온 풍경이 한눈에 보여요.'
+ entrance:'오늘은 내가 북촌 골목을 걸어볼 차례야.',
+ crossroad:'갈림길이네. 어느 골목으로 가볼까?',
+ east:'공방길엔 작은 가게들이 있겠지?',
+ west:'서쪽 골목은 조용하네. 천천히 걸어야지.',
+ turn:'골목이 굽어지는 곳이야. 지붕도 예쁘다.',
+ view:'저 위에서 오늘 걸어온 길을 내려다볼까?'
 };
 function updateDamiGuide(){
  const p=nearSpot||locations.find(q=>!discovered.has(q.id))||locations[0];
- const line=discovered.size===locations.length?'오늘의 골목을 다 찾았어요. 마음껏 쉬어가요.':(guideLines[p?.id]||'천천히 걷다 보면 작은 아름다움이 보여요.');
+ const line=discovered.size===locations.length?'오늘의 골목을 다 찾았어. 이제 쉬어볼까?':(guideLines[p?.id]||'천천히 걷다 보면 작은 아름다움이 보여요.');
  const el=$('dami-line');if(el&&el.textContent!==line)el.textContent=line;
 }
 function showDami(){
- modal('담이와 함께 걷는 북촌',
- '<div class="dami-about"><img src="/guide-cat.svg" alt="북촌 수호냥이 담이"><p>안녕! 나는 북촌 골목의 작은 수호냥이 <b>담이</b>야. 초록 스카프와 작은 부적 가방을 매고, 네가 서울의 골목을 천천히 발견하도록 곁에서 안내할게.</p></div><p class="small-note">새로운 담이는 둥근 머리와 삼색 무늬, 스카프와 한옥 참을 실제 입체 메시로 만든 3D 캐릭터예요. 정면과 뒷면까지 직접 돌려볼 수 있어요.</p><a class="modal-action" style="display:inline-block;text-decoration:none" href="/character.html">담이 3D 모델 360° 보기 ↗</a>',
+ modal('내가 바로 담이!',
+ '<div class="dami-about"><img src="/guide-cat.svg" alt="북촌 수호냥이 담이"><p>안녕! 나는 북촌 골목의 작은 수호냥이 <b>담이</b>야. 이제 네가 직접 날 움직여서 골목을 탐험하는 거야. 초록 스카프와 부적 가방을 챙겼으니 출발해볼까?</p></div><p class="small-note">새로운 담이는 둥근 머리와 삼색 무늬, 스카프와 한옥 참을 실제 입체 메시로 만든 3D 캐릭터예요. 정면과 뒷면까지 직접 돌려볼 수 있어요.</p><a class="modal-action" style="display:inline-block;text-decoration:none" href="/character.html">담이 3D 모델 360° 보기 ↗</a>',
  'MEET YOUR LITTLE GUIDE');
 }
 $('dami-card')?.addEventListener('click',showDami);
@@ -80,6 +80,7 @@ function interact(){if(!nearSpot || state.modal)return;markFound(nearSpot);modal
 function nearUpdate(){let m=null,dist=4.5;for(const p of locations){let d=Math.hypot(state.x-p.x,state.z-p.z);if(d<dist){dist=d;m=p;}}nearSpot=m;updateDamiGuide();let hint=$('hint');if(m&&!state.modal&&state.started){hint.innerHTML=`<b>${touchDevice?'터치':'E'}</b>  ${m.name} 둘러보기`;hint.classList.add('visible');$('touch-interact').classList.add('visible');}else{hint.classList.remove('visible');$('touch-interact').classList.remove('visible');}}
 $('touch-interact').onclick=interact;
 function isWalkable(x,z){return paths.some(p=>distanceFromPath(x,z,p)<p.width*.5+.33);}
+const followCamera=createThirdPersonCamera({camera,hill,isWalkable});
 function move(dt){if(!state.started||state.modal)return;
  let forward=(keys.has('KeyW')||keys.has('ArrowUp')?1:0)-(keys.has('KeyS')||keys.has('ArrowDown')?1:0);
  let strafe=(keys.has('KeyD')||keys.has('ArrowRight')?1:0)-(keys.has('KeyA')||keys.has('ArrowLeft')?1:0);
@@ -87,7 +88,7 @@ function move(dt){if(!state.started||state.modal)return;
  let length=Math.hypot(forward,strafe);if(length>1){forward/=length;strafe/=length;}
  const dx=Math.sin(state.yaw)*forward+Math.cos(state.yaw)*strafe;
  const dz=-Math.cos(state.yaw)*forward+Math.sin(state.yaw)*strafe;
- const speed=(keys.has('ShiftLeft')||keys.has('ShiftRight')?7:4.25);
+ const speed=(keys.has('ShiftLeft')||keys.has('ShiftRight')?5.9:3.15);
  const lerp=1-Math.exp(-dt*10);state.vx+=(dx*speed-state.vx)*lerp;state.vz+=(dz*speed-state.vz)*lerp;
  const nx=state.x+state.vx*dt,nz=state.z+state.vz*dt;
  if(isWalkable(nx,state.z))state.x=nx;else state.vx=0;
@@ -98,11 +99,11 @@ function move(dt){if(!state.started||state.modal)return;
 const touchInput={x:0,y:0};let padPointer=null,padOrigin={x:0,y:0},lookPointer=null,lookLast={x:0,y:0},dragging=false,lastMouse={x:0,y:0};
 function updatePad(event){let dx=event.clientX-padOrigin.x,dy=event.clientY-padOrigin.y;const len=Math.hypot(dx,dy),max=37;if(len>max){dx*=max/len;dy*=max/len;}touchInput.x=dx/max;touchInput.y=dy/max;$('touch-knob').style.transform=`translate(${dx}px,${dy}px)`;}
 const pad=$('touch-pad');pad.addEventListener('pointerdown',e=>{if(!state.started)return;padPointer=e.pointerId;pad.setPointerCapture(e.pointerId);padOrigin={x:e.clientX,y:e.clientY};updatePad(e);});pad.addEventListener('pointermove',e=>{if(e.pointerId===padPointer)updatePad(e);});function resetPad(e){if(e.pointerId!==padPointer)return;padPointer=null;touchInput.x=touchInput.y=0;$('touch-knob').style.transform='translate(0,0)';}pad.addEventListener('pointerup',resetPad);pad.addEventListener('pointercancel',resetPad);
-const look=$('touch-look');look.addEventListener('pointerdown',e=>{if(!state.started)return;lookPointer=e.pointerId;look.setPointerCapture(e.pointerId);lookLast={x:e.clientX,y:e.clientY};});look.addEventListener('pointermove',e=>{if(e.pointerId!==lookPointer)return;state.yaw+=(e.clientX-lookLast.x)*.005;state.pitch=clamp(state.pitch-(e.clientY-lookLast.y)*.004,-.85,.85);lookLast={x:e.clientX,y:e.clientY};});look.addEventListener('pointerup',e=>{if(e.pointerId===lookPointer)lookPointer=null;});look.addEventListener('pointercancel',e=>{if(e.pointerId===lookPointer)lookPointer=null;});
+const look=$('touch-look');look.addEventListener('pointerdown',e=>{if(!state.started)return;lookPointer=e.pointerId;look.setPointerCapture(e.pointerId);lookLast={x:e.clientX,y:e.clientY};});look.addEventListener('pointermove',e=>{if(e.pointerId!==lookPointer)return;state.yaw+=(e.clientX-lookLast.x)*.005;state.pitch=clamp(state.pitch-(e.clientY-lookLast.y)*.004,-.85,-.16);lookLast={x:e.clientX,y:e.clientY};});look.addEventListener('pointerup',e=>{if(e.pointerId===lookPointer)lookPointer=null;});look.addEventListener('pointercancel',e=>{if(e.pointerId===lookPointer)lookPointer=null;});
 function requestPointer(){if(state.started&&!state.modal&&!touchDevice)canvas.requestPointerLock?.();}
 canvas.addEventListener('pointerdown',e=>{if(touchDevice)return;dragging=true;lastMouse={x:e.clientX,y:e.clientY};if(state.started&&!state.modal)requestPointer();});
 window.addEventListener('pointerup',()=>{dragging=false;});
-window.addEventListener('mousemove',e=>{if(!state.started||state.modal||touchDevice)return;let dx=0,dy=0;if(document.pointerLockElement===canvas){dx=e.movementX;dy=e.movementY;}else if(dragging){dx=e.clientX-lastMouse.x;dy=e.clientY-lastMouse.y;}state.yaw+=dx*.0027;state.pitch=clamp(state.pitch-dy*.0022,-.87,.87);lastMouse={x:e.clientX,y:e.clientY};});
+window.addEventListener('mousemove',e=>{if(!state.started||state.modal||touchDevice)return;let dx=0,dy=0;if(document.pointerLockElement===canvas){dx=e.movementX;dy=e.movementY;}else if(dragging){dx=e.clientX-lastMouse.x;dy=e.clientY-lastMouse.y;}state.yaw+=dx*.0027;state.pitch=clamp(state.pitch-dy*.0022,-.85,-.16);lastMouse={x:e.clientX,y:e.clientY};});
 window.addEventListener('keydown',e=>{
  if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code))e.preventDefault();
  if(e.code==='Escape'){if(state.modal)closeModal();return;}
@@ -111,7 +112,7 @@ window.addEventListener('keydown',e=>{
  if(e.repeat)return;
  if(e.code==='KeyE')interact();if(e.code==='KeyN')toggleTime();if(e.code==='KeyP')savePhoto();if(e.code==='KeyH')showHelp();
 });window.addEventListener('keyup',e=>keys.delete(e.code));window.addEventListener('blur',()=>{keys.clear();touchInput.x=touchInput.y=0;});
-$('start-btn').onclick=()=>{state.started=true;$('intro').classList.remove('visible');if(touchDevice){$('touch-ui').setAttribute('aria-hidden','false');}toast('담이와 함께 북촌 골목을 걸어 봐요. ✳',3500);};
+$('start-btn').onclick=()=>{state.started=true;$('intro').classList.remove('visible');if(touchDevice){$('touch-ui').setAttribute('aria-hidden','false');}toast('이제 내가 담이야! WASD로 골목을 걸어보자. ✳',3500);};
 function toggleTime(){state.night=!state.night;$('toggle-time').textContent=state.night?'☀':'☾';toast(state.night?'조용한 서울의 저녁이에요.':'햇살이 돌아왔어요.');}
 $('toggle-time').onclick=toggleTime;
 // Synthesized ambience avoids third-party sound/licensing dependencies. WebAudio begins after click.
@@ -134,23 +135,31 @@ function render(time=0) {
   lastFrame=time;
   state.elapsed+=dt;
   move(dt);
-  const moving=Math.hypot(state.vx,state.vz)>.3;
-  const bob=moving&&state.started&&!state.modal?Math.sin(stepPhase*2)*.047:0;
-  const cx=state.x, cy=hill(state.x,state.z)+1.72+bob, cz=state.z;
-  camera.position.set(cx,cy,cz);
-  const fx=Math.sin(state.yaw)*Math.cos(state.pitch);
-  const fy=Math.sin(state.pitch);
-  const fz=-Math.cos(state.yaw)*Math.cos(state.pitch);
-  camera.lookAt(cx+fx,cy+fy,cz+fz);
+  const moving=Math.hypot(state.vx,state.vz)>.15;
+  // Movement is owned by the visible character. The camera follows after a
+  // small leash delay, so WASD visibly walks Dami through the scene.
+  dami.update({x:state.x,z:state.z,vx:state.vx,vz:state.vz,dt,elapsed:state.elapsed,walking:moving,visible:state.started});
+  followCamera.update({x:state.x,z:state.z,yaw:state.yaw,pitch:state.pitch,dt,moving});
   const fog=state.night?[.31,.37,.45]:[.72,.78,.76];
   material.uniforms.uNight.value=state.night?1:0;
   material.uniforms.uFogColor.value.setRGB(...fog);
   renderer.setClearColor(new THREE.Color().setRGB(...fog),1);
-  dami.update({x:state.x,z:state.z,yaw:state.yaw,elapsed:state.elapsed,walking:moving,visible:state.started});
   renderer.render(scene,camera);
   if(time-lastMap>180){lastMap=time;mapUpdate();nearUpdate();}
   if(lastToast&&time>lastToast){$('toast').classList.remove('visible');lastToast=0;}
   requestAnimationFrame(render);
 }
 requestAnimationFrame(render);
-console.info(`[Seoul Stroll Bukchon v0.7] Three.js ready: ${vertexCount.toLocaleString()} vertices, ${houseSites.length} hanok houses, ${paths.length} walkable lanes, ${locations.length} discoveries.`);
+
+// Read-only QA sampling for automated third-person control tests. Active only
+// with ?qa=1; does not modify input, player state or normal gameplay.
+if(new URLSearchParams(location.search).has('qa')) {
+  window.__wkQA=()=>({
+    mode:'third-person',player:[state.x,state.z],
+    velocity:[state.vx,state.vz],
+    avatar:dami.snapshot(),camera:followCamera.snapshot(),
+    viewYaw:state.yaw,started:state.started
+  });
+}
+
+console.info(`[Seoul Stroll Bukchon v0.8] Three.js ready: ${vertexCount.toLocaleString()} vertices, ${houseSites.length} hanok houses, ${paths.length} walkable lanes, ${locations.length} discoveries.`);
