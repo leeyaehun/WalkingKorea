@@ -39,3 +39,6 @@
 }
 
 .intro-character-link{display:inline-block;margin-top:9px;color:#70806a;font-size:11px;text-decoration:underline;text-underline-offset:3px;pointer-events:auto;}
+
+/* v0.8 third-person: no first-person crosshair over the playable character. */
+#reticle{display:none}
