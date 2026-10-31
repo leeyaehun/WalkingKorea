@@ -301,10 +301,10 @@ export function createDamiCompanion(scene, hill) {
 
   // The streets use a separate shader; these lights illuminate Dami's PBR
   // materials without altering the environment's existing palette.
-  const ambient = new THREE.AmbientLight(0xfff5e8, 2.15);
-  const sun = new THREE.DirectionalLight(0xffe6bf, 2.10);
+  const ambient = new THREE.AmbientLight(0xfff5e8, 1.35);
+  const sun = new THREE.DirectionalLight(0xffe6bf, 1.20);
   sun.position.set(-2,7,5);
-  const fill = new THREE.DirectionalLight(0xc9dbff,.95);
+  const fill = new THREE.DirectionalLight(0xc9dbff,.55);
   fill.position.set(4,4,-2);
   scene.add(ambient,sun,fill);
 
