@@ -21,7 +21,9 @@ jobs:
         run: |
           set -euo pipefail
           curl -fsSL --retry 4 --retry-delay 3 -D /tmp/live-headers https://walkingkorea.leeyaehun.workers.dev/ -o /tmp/live.html
-          grep -qi 'X-WalkingKorea-Version: 0.8.0' /tmp/live-headers
+          # Native Wrangler builds do not carry the custom API fallback header.
+          # Verify actual playable-v0.8 HTML instead of deployment transport.
+          grep -q 'VOL. 08' /tmp/live.html
           grep -q 'YOU ARE DAMI' /tmp/live.html
       - name: Check real-world third-person movement
         env:
