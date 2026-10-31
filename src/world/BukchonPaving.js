@@ -71,6 +71,22 @@ export function buildPavedAlleys({paths,face,hill}) {
           drains++;
         }
       }
+      // The iconic Gahoe-dong descending lane is smooth muted asphalt
+      // between pale stone kerbs, not a bright checkerboard of paving.
+      // Branch alleys retain their smaller warm stone slabs.
+      if(pi===0){
+        quad(a,b,-inner+.035,inner-.035,0,1,.052+lift,
+             i%23===0?'asphaltPatch':'asphalt');
+        if(i%31===11){
+          const repair={...a,x:mix(a.x,b.x,.25),z:mix(a.z,b.z,.25)};
+          const repairEnd={...a,x:mix(a.x,b.x,.79),z:mix(a.z,b.z,.79)};
+          repair.nx=a.nx;repair.nz=a.nz;
+          repairEnd.nx=b.nx;repairEnd.nz=b.nz;
+          quad(repair,repairEnd,-.65,.66,0,1,.054+lift,'asphaltPatch');
+        }
+        tiles++;
+        continue;
+      }
       // Offset joints and mixed slab widths avoid the generic tiled-grid look.
       const rowWidth=inner*2;
       const columns=pi===0?4:3;
