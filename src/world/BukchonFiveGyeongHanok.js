@@ -282,7 +282,9 @@ export function buildFiveGyeongReferenceHanok({box,face,sphere,cylinder}){
 
   // Wooden gateway set toward one end of the frontage, matching the
   // reference's asymmetry. Opposite from a symmetric village prop.
-  const gateX=2.02,gateZ=lowerWallZ-.13;
+  // Inset the entire timber gateway into the wall, so its real projecting
+  // giwa canopy ends BEHIND the road's 1.62m + 0.33m playable margin.
+  const gateX=2.02,gateZ=lowerWallZ+.30;
   for(const x of [gateX-1.03,gateX+1.03]){
     box(x,1.17,gateZ,.20,2.32,.35,'woodShade');
     box(x,.24,gateZ,.34,.46,.46,'stoneFoundation');

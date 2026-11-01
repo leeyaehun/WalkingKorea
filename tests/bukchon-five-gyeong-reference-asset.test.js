@@ -74,7 +74,7 @@ test('every physical roof, lattice, stone and timber vertex is finite and stays 
     register(x-r,y-h*.5,z-r);register(x+r,y+h*.5,z+r);
   }
   assert.ok(ext.xmin>=-4.0&&ext.xmax<=4.0,'asset extends into neighbor lot');
-  assert.ok(ext.zmin>=-5.25&&ext.zmax<=4.10,'asset roof touches next lot');
+  assert.ok(ext.zmin>=-4.78&&ext.zmax<=4.10,'entrance canopy intrudes on walking street');
   assert.ok(ext.ymin>=-.10&&ext.ymax<=5.0,'roof height inconsistent');
   console.info('5-gyeong hero local 3D bounds',JSON.stringify(ext));
 });
@@ -105,7 +105,7 @@ test('new masonry and gate do not obstruct the playable road or multiplayer',()=
   // outside the server/client walkway even when measured at its front edge.
   const c=Math.cos(h.angle),s=Math.sin(h.angle);
   const points=[
-    [2.02,-5.09], // gateway canopy and ceramic caps
+    [2.02,-4.63], // recessed gateway canopy and ceramic caps
     [-3.53,-4.47], // outside corner of stone wall
     [3.53,-4.47],
     [0,-3.56] // main roof drip edge
