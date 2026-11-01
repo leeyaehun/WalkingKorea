@@ -18,13 +18,14 @@ const GAP_PADDING=.12;
 const min=Math.min,max=Math.max;
 
 export function buildContinuousFrontages({
-  path,houses,hill,face,box,distanceFromPath,existingConnectors=[],openings=[]
+  path,houses,hill,face,box,distanceFromPath,existingConnectors=[],openings=[],customFrontages=[]
 }){
   const fromZ=path.points.at(-1)[1],toZ=path.points[0][1];
   const summary={wallSegments:0,coveredMeters:0,bySide:{west:0,east:0},
     pillars:0,gates:0,gatePositions:[],runs:[],roadClearance:Infinity,
     existingConnectorMeters:existingConnectors.reduce((n,s)=>n+s.length,0),
-    reservedConnectorSpans:[],openings:openings.map(o=>({...o}))};
+    reservedConnectorSpans:[],openings:openings.map(o=>({...o})),
+    customFrontages:customFrontages.map(o=>({...o}))};
   const sample=(z,side)=>{
     const lane=sampleMainLaneAtZ(path.samples,z);
     if(!lane)throw new Error('No main street center at '+z);
@@ -129,6 +130,11 @@ export function buildContinuousFrontages({
     for(const opening of openings.filter(o=>o.side===side))
       spans.push({begin:opening.lowerZ-opening.halfWidth,
         end:opening.lowerZ+opening.halfWidth});
+    // The sculpted 5-gyeong grey fret-and-granite boundary is drawn by
+    // a dedicated module. Do not draw the old RED band through it.
+    // Reserve exact occupied z-metres for the coverage auditor.
+    for(const special of customFrontages.filter(o=>o.side===side))
+      spans.push({begin:special.begin,end:special.end});
     // Step 04: Original short connecting stone walls are ALREADY present
     // in the shared mesh. In Step 03 we added a second wall over precisely
     // those spans, causing depth-buffer flickering in grey foundations.
@@ -181,6 +187,9 @@ export function buildContinuousFrontages({
         }]:[]),
         ...openings.filter(o=>o.side===side).map(o=>({
           begin:o.lowerZ-o.halfWidth,end:o.lowerZ+o.halfWidth
+        })),
+        ...customFrontages.filter(o=>o.side===side).map(o=>({
+          begin:o.begin,end:o.end
         }))
       ].filter(s=>s.end>s.begin).sort((a,b)=>a.begin-b.begin);
       let end=fromZ;
