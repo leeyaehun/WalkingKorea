@@ -22,7 +22,7 @@ test('only ONE continuous asphalt main route exists from uphill overlook to end'
  assert.equal(w.paths[0].name,MAIN_STREET_ROUTE.name);
  assert.equal(w.paths[0].points.length,MAIN_STREET_ROUTE.points.length);
  assert.ok(w.paths[0].samples.length>30);
- assert.deepEqual(w.paths[0].points[0],[0,55]);
+ assert.deepEqual(w.paths[0].points[0],[-1,55]);
  assert.deepEqual(w.paths[0].points.at(-1),[-3,-44]);
  assert.ok(w.paths[0].samples.every(([x,z])=>onStreet(w,x,z)));
  for(let i=1;i<w.paths[0].samples.length;i++){
@@ -56,7 +56,7 @@ test('all six places, spawn and end stay on the one reachable street',()=>{
    ids.add(place.id);
  }
  assert.ok(onStreet(w,-3,-42),'player spawn off street');
- assert.ok(onStreet(w,0,55),'street lower endpoint off road');
+ assert.ok(onStreet(w,-1,55),'street lower endpoint off road');
  const main=readFileSync(new URL('../src/main.js',import.meta.url),'utf8');
  assert.match(main,/const locations=MAIN_STREET_DISCOVERIES/);
  assert.match(main,/girl\.update\(/);
@@ -66,12 +66,12 @@ test('all six places, spawn and end stay on the one reachable street',()=>{
 test('scenic houses retained; off-route houses and their lanterns removed',()=>{
  const w=makeWorld();
  assert.equal(w.houseSites.filter(h=>h.scenic).length,8);
- assert.equal(w.houseSites.filter(h=>h.district).length,10);
- assert.equal(w.houseSites.length,18);
+ assert.equal(w.houseSites.filter(h=>h.district).length,11);
+ assert.equal(w.houseSites.length,19);
  assert.ok(w.houseSites.every(h=>!h.district||h.routeIndex===0));
- assert.equal(w.nightFixtures.stats.hanokSconces,18);
+ assert.equal(w.nightFixtures.stats.hanokSconces,19);
  assert.equal(w.nightFixtures.stats.streetLamps,3);
- assert.equal(w.nightFixtures.fixtures.length,21);
+ assert.equal(w.nightFixtures.fixtures.length,22);
  assert.equal(w.skyline.buildings,39);
  assert.ok(w.namsan.topY>100);
  assert.equal('planters' in w.streetLife.counts,false);

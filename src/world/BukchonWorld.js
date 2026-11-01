@@ -1,6 +1,6 @@
 import { createHanokKit } from './HanokKit.js';
 import { buildPavedAlleys } from './BukchonPaving.js';
-import {mainLaneWidth,scenicHillLift,scenicHouseSites} from './BukchonStreetLayout.js';
+import {mainLaneWidth,mainLaneTerrainHeight,smoothMainLane,scenicHouseSites} from './BukchonStreetLayout.js';
 import {MAIN_STREET_ROUTE} from './BukchonMainStreet.js';
 import {buildFrontageConnectors} from './BukchonFrontage.js';
 import {buildBukchonStreetLife} from './BukchonStreetLife.js';
@@ -119,7 +119,7 @@ signs.residences=[
 // Local building frame: keep traditional building components reusable and let
 // the hill pass continuously underneath houses, gates, trees and courtyards.
 let activeFrame=null;
-function hill(x,z){return .38+(43-z)*.062+.20*Math.sin(z*.14)+.09*Math.sin(x*.16)+scenicHillLift(z);}
+function hill(x,z){return mainLaneTerrainHeight(x,z);}
 function withFrame(x,z,angle,fn,{level=false}={}){
  const old=activeFrame;
  activeFrame={x,z,c:Math.cos(angle),s:Math.sin(angle),level,baseY:hill(x,z)};
@@ -196,11 +196,9 @@ function rod(ax,ay,az,bx,by,bz,r,col){ // diagonal beam with a flat rotated vert
 // This is still a stylized route, not yet a surveyed Bukchonro 11-gil trace.
 // No fork paving, branch houses, or hidden alternative navigation paths.
 const paths=[{...MAIN_STREET_ROUTE,points:MAIN_STREET_ROUTE.points.map(p=>p.slice())}];
-// Smooth the hard turnpoints without opening a wide automotive street.
-function softened(points){let p=points.map(q=>q.slice());for(let pass=0;pass<2;pass++){
- let next=[p[0]];for(let i=0;i<p.length-1;i++){let a=p[i],b=p[i+1];next.push([a[0]*.75+b[0]*.25,a[1]*.75+b[1]*.25],[a[0]*.25+b[0]*.75,a[1]*.25+b[1]*.75]);}next.push(p[p.length-1]);p=next;
-}return p;}
-paths.forEach((p,i)=>{p.samples=softened(p.points);if(i===0)p.widthAt=mainLaneWidth;});
+// Every world layer reads the same tangent-continuous sample sequence:
+// paved asphalt, curb edges, gates, walkable collision, lamps and minimap.
+paths.forEach(p=>{p.samples=smoothMainLane(p.points);p.widthAt=mainLaneWidth;});
 function distanceFromPath(x,z,p){let best=Infinity;for(let i=0;i<p.samples.length-1;i++){
  const a=p.samples[i],b=p.samples[i+1],vx=b[0]-a[0],vz=b[1]-a[1],t=clamp(((x-a[0])*vx+(z-a[1])*vz)/(vx*vx+vz*vz||1),0,1);
  best=Math.min(best,Math.hypot(x-a[0]-vx*t,z-a[1]-vz*t));

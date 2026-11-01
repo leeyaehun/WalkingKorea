@@ -15,10 +15,10 @@ test('residential details now extend to all houses, excluding all planter vegeta
  const w=makeWorld(),v=w.streetLife;
  assert.equal(v.houseCount,w.houseSites.length);
  assert.equal(v.entries.length,w.houseSites.length);
- assert.equal(v.counts.doorsteps,14);
- assert.equal(v.counts.plaques,14);
- assert.equal(v.counts.downspouts,18);
- assert.equal(v.counts.electricMeters,18);
+ assert.equal(v.counts.doorsteps,18);
+ assert.equal(v.counts.plaques,18);
+ assert.equal(v.counts.downspouts,19);
+ assert.equal(v.counts.electricMeters,19);
  assert.equal('planters' in v.counts,false);
  assert.equal(v.counts.benches,3);
  assert.equal(v.counts.storage,3);
