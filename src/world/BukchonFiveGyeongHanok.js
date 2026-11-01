@@ -117,10 +117,19 @@ export function buildFiveGyeongReferenceHanok({box,face,sphere,cylinder}){
   }
   for(const x of [-2.22,-.80,.75,2.20])
     windowLattice(x,1.80,-2.68,1.12,1.66,4,6);
-  // A side elevation is visible when looking up the road; create real
-  // under-eave side windows, rather than leaving a featureless cube.
-  for(const z of [-1.06,1.50])
-    windowLattice(-3.169,1.83,z,1.0,1.54,4,5);
+  // Side elevation lattice must face the x-plane; rotating a front
+  // window would leave opaque bars floating through the plaster.
+  function sideLattice(x,cy,cz,w=1.0,h=1.54){
+    box(x,cy,cz,.085,h,w,'timber');
+    box(x-.061,cy,cz,.027,h-.14,w-.14,'hanokPaperWindow');
+    for(let i=1;i<4;i++)
+      box(x-.095,cy,cz-w*.5+i*w/4,.035,h-.13,.033,'timberLight');
+    for(let j=1;j<6;j++)
+      box(x-.100,cy-h*.5+j*h/6,cz,.032,.036,w-.13,'timberLight');
+    box(x-.098,cy-h*.5+.18,cz,.040,.068,w-.09,'timber');
+    detail.latticeWindows++;
+  }
+  for(const z of [-1.06,1.50])sideLattice(-3.171,1.83,z);
 
   // Reference-specific LARGE FRONT GABLE: warm lime plaster enclosed
   // between strong diagonal aged wooden rafters, not a generic hip box.
