@@ -346,5 +346,112 @@ export function buildFiveGyeongReferenceHanok({box,face,sphere,cylinder}){
       i%2===0?'stoneLight':'stoneMasonry');
   }
   detail.courtyardDepth=4;
+
+  // The attached REAR WING is the same ONE hanok compound, not another
+  // cloned house. From the lower 5-gyeong entrance it fills the previously
+  // empty sandy vista LEFT of the primary gable with a second, lower tiled
+  // roof, richly exposed posts and old plaster walls.
+  //
+  // Extending only toward local +Z (AWAY from the street) means the main
+  // alley, neighboring house frontage, the 7-gyeong road and multiplayer
+  // collision are unchanged. The compound silhouette is L-shaped in 3D.
+  const wingZ=7.64,wingW=6.30,wingD=8.06;
+  box(0,.31,wingZ,wingW+.18,.58,wingD+.18,'stoneFoundation');
+  box(0,.60,wingZ,wingW+.18,.12,wingD+.20,'stoneLight');
+  box(0,1.83,wingZ,wingW,2.51,wingD,'plaster');
+  box(0,3.07,wingZ,wingW+.17,.21,wingD+.24,'woodShade');
+  // Structural timber posts along both exposed elevations (both visible
+  // from an orbiting third-person camera) and actual paper lattice.
+  for(const side of [-1,1]){
+    const xx=side*3.10;
+    for(const zz of [4.06,6.44,8.85,11.20]){
+      box(xx,1.84,zz,.19,2.66,.24,'timber');
+      box(xx,.60,zz,.32,.23,.32,'stoneMasonry');
+      box(xx,3.15,zz,.38,.15,.39,'timberLight');
+      detail.woodPosts++;
+    }
+    box(xx,2.99,wingZ,.24,.24,wingD+.05,'timber');
+    box(xx,.58,wingZ,.24,.23,wingD+.12,'timberLight');
+    // These are windows physically built in the X-facing wall plane.
+    for(const zz of [5.16,7.58,10.00]){
+      const yy=1.91,w=.98,h=1.23;
+      const outerX=xx+side*.124;
+      box(outerX,yy,zz,.075,h,w,'timber');
+      box(outerX+side*.045,yy,zz,.027,h-.15,w-.15,'hanokPaperWindow');
+      for(let k=1;k<4;k++)
+        box(outerX+side*.068,yy,zz-w*.5+k*w/4,.036,h-.12,.033,'timberLight');
+      for(let k=1;k<5;k++)
+        box(outerX+side*.070,yy-h*.5+k*h/5,zz,.035,.034,w-.12,'timberLight');
+      detail.latticeWindows++;
+    }
+  }
+  // A raised giwa side roof, with a different pitch and ridge height from
+  // the original large front gable: clearly an attached historic rear wing.
+  const wingHalf=3.69,wingHalfD=4.35;
+  const wingHeight=(x,z)=>{
+    const a=Math.min(1,Math.abs(x)/wingHalf);
+    const b=Math.min(1,Math.abs(z-wingZ)/wingHalfD);
+    return 4.58-1.27*Math.pow(a,1.32)+.105*Math.pow(a,4)*Math.pow(b,3);
+  };
+  const wpt=(x,z,lift=0)=>[x,wingHeight(x,z)+lift,z];
+  for(const side of [-1,1]){
+    for(let r=0;r<9;r++){
+      const x0=side*wingHalf*r/9,x1=side*wingHalf*(r+1)/9;
+      for(let j=0;j<15;j++){
+        const z0=wingZ-wingHalfD+j*2*wingHalfD/15;
+        const z1=wingZ-wingHalfD+(j+1)*2*wingHalfD/15;
+        const tone=(r*5+j)%13===0?'tileInkLight':
+          (r+j)%4===0?'tileIndigo':'tileInk';
+        face(wpt(x0,z0),wpt(x1,z0),
+          wpt(x1,z1),wpt(x0,z1),[side*.40,1,0],tone);
+        detail.roofQuads++;
+      }
+      for(let j=0;j<15;j+=2){
+        const z=wingZ-wingHalfD+(j+.45)*2*wingHalfD/15;
+        const dz=.085;
+        face(wpt(x0,z,.045),wpt(x1,z,.045),
+          wpt(x1,z+dz,.027),wpt(x0,z+dz,.027),
+          [side*.35,1,0],'tileRidge');
+        detail.tileRibs++;
+      }
+    }
+    const xx=side*wingHalf;
+    for(let j=0;j<12;j++){
+      const z=wingZ-wingHalfD+(j+.5)*2*wingHalfD/12;
+      box(xx,wingHeight(xx,z)-.09,z,.12,.13,2*wingHalfD/12-.035,
+        j%3===0?'tileInkLight':'tileRidge');
+    }
+  }
+  box(0,4.67,wingZ,.29,.16,wingD+1.02,'tileInkLight');
+  for(let j=0;j<22;j++){
+    const z=wingZ-wingHalfD+(j+.5)*2*wingHalfD/22;
+    box(0,4.75,z,.37,.105,.23,j%5===0?'tileEnd':'tileRidge');
+  }
+  for(let j=0;j<13;j++){
+    const x=-3.30+(j+.5)*6.60/13;
+    for(const z of [wingZ-wingHalfD,wingZ+wingHalfD]){
+      box(x,3.03,z,.13,.17,.59,'timber');
+      sphere(x,3.25,z+(z<wingZ?-.10:.10),
+        .105,.083,.08,j%4===0?'stoneLight':'tileEnd',7,3);
+      detail.tileEndCaps++;
+      detail.woodRafters++;
+    }
+  }
+  // Granite retaining wall around the back of the same household; the
+  // photo's left edge is now made of house and courtyard, not open sand.
+  for(const side of [-1,1]){
+    const xx=side*3.56;
+    for(let j=0;j<12;j++){
+      const z0=3.58+j*.67;
+      const zz=z0+.32;
+      box(xx,.44,zz,.30,.83,.62,
+        j%4===0?'stoneGrey':'stoneMasonry');
+      box(xx,1.38,zz,.26,1.05,.62,'plaster');
+      box(xx,1.92,zz,.50,.12,.67,'tileInk');
+      detail.graniteBlocks++;
+    }
+  }
+  detail.rearWing={width:wingW,depth:wingD,centerZ:wingZ,
+    attached:true,roofStyle:'low pitched dark giwa',windows:6};
   return detail;
 }
