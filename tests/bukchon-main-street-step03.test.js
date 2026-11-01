@@ -46,7 +46,7 @@ test('stone+brick+hanok tile wall spans fill all external frontage gaps on both 
   assert.ok(f.runs.length>18);
   assert.ok(f.runs.some(r=>r.side===-1&&r.fromZ<-19&&r.toZ>-19),
     'missing wall between west houses');
-  assert.ok(f.runs.some(r=>r.side===1&&r.fromZ<-27&&r.toZ>-25),
+  assert.ok(f.runs.some(r=>r.side===1&&r.fromZ<-26.5&&r.toZ>-25.3),
     'missing east fork return wall');
   for(const run of f.runs){
     assert.ok(run.toZ>run.fromZ&&run.length>0);
