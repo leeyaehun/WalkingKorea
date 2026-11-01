@@ -156,6 +156,41 @@ export function buildContinuousFrontages({
       cursor=max(cursor,entry.end);
     }
   }
+  // Step 05: audit both full-length street-facing edges. A house, gate,
+  // original connector or new infill wall must close every large vacant run.
+  function auditCoverage(){
+    const gaps=[];
+    for(const side of [-1,1]){
+      const occupied=[
+        ...houses.filter(h=>h.side===side).map(h=>({
+          begin:max(fromZ,(h.laneZ??h.z)-FRONTAGE_HALF_SPAN),
+          end:min(toZ,(h.laneZ??h.z)+FRONTAGE_HALF_SPAN)
+        })),
+        ...summary.runs.filter(r=>r.side===side).map(r=>({
+          begin:r.fromZ,end:r.toZ
+        })),
+        ...summary.reservedConnectorSpans.filter(r=>r.side===side),
+        ...(side===GAP_GATE.side?[{
+          begin:GAP_GATE.z-GAP_GATE.halfWidth,
+          end:GAP_GATE.z+GAP_GATE.halfWidth
+        }]:[])
+      ].filter(s=>s.end>s.begin).sort((a,b)=>a.begin-b.begin);
+      let end=fromZ;
+      for(const span of occupied){
+        if(span.begin>end+1e-6)
+          gaps.push({side,begin:end,end:span.begin,length:span.begin-end});
+        end=max(end,span.end);
+      }
+      if(end<toZ-1e-6)
+        gaps.push({side,begin:end,end:toZ,length:toZ-end});
+    }
+    const longestGap=gaps.reduce((n,s)=>max(n,s.length),0);
+    summary.coverageAudit={gaps,longestGap,
+      largeGaps:gaps.filter(s=>s.length>.35)};
+    if(summary.coverageAudit.largeGaps.length)
+      throw new Error('Bare main-street frontage exceeded 0.35m');
+  }
   roofedGateway();
+  auditCoverage();
   return summary;
 }

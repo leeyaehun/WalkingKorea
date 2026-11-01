@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { createBukchonWorld } from './world/BukchonWorld.js';
-import { MAIN_STREET_DISCOVERIES } from './world/BukchonMainStreet.js';
+import { MAIN_STREET_DISCOVERIES, DEFAULT_MAIN_STREET_PITCH } from './world/BukchonMainStreet.js';
 import { createGirlSpriteCompanion } from './characters/GirlSprite.js';
 import { createThirdPersonCamera } from './controllers/ThirdPersonCamera.js';
 import { cameraRelativeDirection } from './controllers/MovementDirections.js';
@@ -40,7 +40,7 @@ const girl=createGirlSpriteCompanion(scene,hill,camera);
 
 // Begin at the upper lookout on the only accessible Bukchon main alley.
 // Keep the original third-person camera and camera-relative WASD controls.
-const state={x:-3,z:-42,yaw:Math.PI,pitch:(new URLSearchParams(location.search).get('view')==='night-sky'?0.28:(new URLSearchParams(location.search).get('view')==='namsan'?0.01:-0.35)),vy:0,vx:0,vz:0,night:new URLSearchParams(location.search).get('night')==='1',running:false,started:false,modal:false,helpViewed:false,mute:true,elapsed:0,walked:0,quality:1};
+const state={x:-3,z:-42,yaw:Math.PI,pitch:(new URLSearchParams(location.search).get('view')==='night-sky'?0.28:(new URLSearchParams(location.search).get('view')==='namsan'?0.01:DEFAULT_MAIN_STREET_PITCH)),vy:0,vx:0,vz:0,night:new URLSearchParams(location.search).get('night')==='1',running:false,started:false,modal:false,helpViewed:false,mute:true,elapsed:0,walked:0,quality:1};
 const keys=new Set();let lastFrame=0,lastMap=0,lastToast=0,nearSpot=null,stepPhase=0;
 const memoryStore={};
 const safeStore={getItem(k){try{return window.localStorage.getItem(k)}catch(e){return memoryStore[k]||null}},setItem(k,v){try{window.localStorage.setItem(k,v)}catch(e){memoryStore[k]=v}}};

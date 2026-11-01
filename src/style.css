@@ -59,3 +59,25 @@ body.playing .left-label{opacity:0;transform:translateY(-8px);transition:opacity
  .intro-card h2{font-size:30px;margin:7px 0 8px}
  .intro-character img{width:46px;height:46px}
 }
+
+
+/* Main-street Step 05: do not let the info card block joystick or safe areas. */
+@media (max-width:850px) {
+  body.playing .walker-card { bottom:calc(290px + env(safe-area-inset-bottom, 0px)); }
+  .touch-pad { bottom:calc(157px + env(safe-area-inset-bottom, 0px)); }
+  .touch-interact { bottom:calc(179px + env(safe-area-inset-bottom, 0px)); }
+  .bottom-bar { bottom:calc(12px + env(safe-area-inset-bottom, 0px)); }
+}
+@media (max-width:450px) {
+  body.playing .walker-card { bottom:calc(263px + env(safe-area-inset-bottom, 0px)); }
+  .touch-pad { bottom:calc(147px + env(safe-area-inset-bottom, 0px)); }
+}
+@media (max-width:850px) and (max-height:590px) {
+  body.playing .walker-card { top:calc(75px + env(safe-area-inset-top, 0px));bottom:auto;max-width:165px; }
+  .touch-pad { bottom:calc(104px + env(safe-area-inset-bottom, 0px)); }
+  .touch-interact { bottom:calc(125px + env(safe-area-inset-bottom, 0px)); }
+  .nearby-hint { bottom:68px; }
+}
+@media (max-width:850px) and (max-height:420px) {
+  body.playing .walker-card { display:none; }
+}

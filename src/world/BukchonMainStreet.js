@@ -6,6 +6,9 @@
  * Bukchon-ro 11-gil photos. This 99m game segment is deliberately condensed,
  * NOT a georeferenced survey, property map or 1:1 historic reconstruction.
  */
+// Uphill first impression: frame N Seoul Tower without a special URL.
+export const DEFAULT_MAIN_STREET_PITCH=-.07;
+
 export const MAIN_STREET_ROUTE={
   name:'북촌로11길 메인 골목 (게임 재구성)',
   width:3.24,
