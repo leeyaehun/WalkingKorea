@@ -1,5 +1,5 @@
 /**
- * Bukchon art direction / Phase 01: an authored 40m street composition.
+ * Bukchon art direction / Step 02: one photo-guided gentle uphill street.
  * A local spatial study, NOT a surveyed map of Gahoe-dong.
  * No materials, lighting, or hanok mesh changes belong in this module.
  */
@@ -14,9 +14,54 @@ export function scenicAmount(z) {
   return Math.sin(Math.PI*t)**2;
 }
 
+export const MAIN_LANE_LOWER_Z=55;
+/**
+ * Photo-guided street width: a little wider toward the lower city, narrow
+ * between the old tiled walls. These numbers are GAME DESIGN dimensions,
+ * NOT measurements of the real Bukchon-ro 11-gil.
+ * The same profile feeds the asphalt, kerbs, house setbacks and collision.
+ */
 export function mainLaneWidth(z) {
-  // A little wider at either end; a slightly more intimate 2.95m midblock.
-  return 3.35 - .40*scenicAmount(z);
+  const t=clamp((z-SCENIC_TOP_Z)/(MAIN_LANE_LOWER_Z-SCENIC_TOP_Z),0,1);
+  return 3.24+.08*smooth(t)-.22*scenicAmount(z);
+}
+
+/** Continuous south-to-north grade with the 40m scenic crest.
+ * Remove high-frequency lateral ripples that had made kerbs and gates step.
+ * y increases toward the north (negative z), with only minute crossfall.
+ */
+export function mainLaneTerrainHeight(x,z) {
+  return .38+(43-z)*.065+.045*Math.sin(z*.07)
+    +.018*Math.sin(x*.12)+scenicHillLift(z);
+}
+
+/**
+ * Monotone-Z cubic Hermite street sampling. Unlike the old double-Chaikin
+ * zigzag, every longitudinal station has a continuous tangent and the
+ * result never doubles back or jumps over an unpaved gap. Using z as the
+ * interpolation parameter prevents corner overshoot in a narrow alley.
+ */
+export function smoothMainLane(points,step=1.15) {
+  if(points.length<2)throw new Error('Main lane needs two or more stations');
+  if(!Number.isFinite(step)||step<=0)throw new Error('Invalid road sample step');
+  const slopes=points.map((p,i)=>{
+    const a=points[Math.max(0,i-1)],b=points[Math.min(points.length-1,i+1)];
+    return (b[0]-a[0])/(b[1]-a[1]);
+  });
+  const result=[points[0].slice()];
+  for(let i=0;i<points.length-1;i++){
+    const [x0,z0]=points[i],[x1,z1]=points[i+1],dz=z1-z0;
+    if(!(dz<0)||!Number.isFinite(x0)||!Number.is(x1))
+      throw new Error('Street anchor Z must be strictly descending');
+    const parts=Math.max(1,Math.ceil(-dz/step));
+    for(let j=1;j<=parts;j++){
+      const t=j/parts,t2=t*t,t3=t2*t;
+      const x=(2*t3-3*t2+1)*x0+(t3-2*t2+t)*dz*slopes[i]
+        +(-2*t3+3*t2)*x1+(t3-t2)*dz*slopes[i+1];
+      result.push([x,z0+dz*t]);
+    }
+  }
+  return result;
 }
 
 export function scenicHillLift(z) {
