@@ -427,6 +427,9 @@ makeWorld();
       varying vec3 vColor;
       varying float vLight;
       varying float vContactAO;
+      varying float vNightEmission;
+      varying vec3 vWorldPosition;
+      varying float vWorldNormalY;
       varying float vDistance;
       ${MATERIAL_GLSL}
       void main() {
