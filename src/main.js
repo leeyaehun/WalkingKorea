@@ -62,6 +62,11 @@ if(new URLSearchParams(location.search).get('view')==='hanok5'){
 if(new URLSearchParams(location.search).get('view')==='hanok5upper'){
   state.x=-1.0;state.z=42.4;state.yaw=0;state.pitch=-.12;
 }
+// A second independent preview: starts between houses #10 and #12,
+// looking uphill at the carved-rosette roof and timber gate.
+if(new URLSearchParams(location.search).get('view')==='hanok5third'){
+  state.x=-1.15;state.z=33.1;state.yaw=0;state.pitch=-.12;
+}
 const keys=new Set();let lastFrame=0,lastMap=0,lastToast=0,nearSpot=null,stepPhase=0;
 const memoryStore={};
 const safeStore={getItem(k){try{return window.localStorage.getItem(k)}catch(e){return memoryStore[k]||null}},setItem(k,v){try{window.localStorage.setItem(k,v)}catch(e){memoryStore[k]=v}}};
@@ -405,6 +410,9 @@ if(new URLSearchParams(location.search).has('qa')) {
     multiplayer:multiplayer.getStatus(),
     paving,camera:followCamera.snapshot(),
     seventhPhoto:{...photoSpot,nearby:isNearPhotoSpot(),roofPeeks:seventhViewpoint.roofPeeks.length},
+    third5Gyeong:{index:fiveGyeongThird.site.index,
+      id:fiveGyeongThird.asset.id,x:fiveGyeongThird.site.x,z:fiveGyeongThird.site.z,
+      drip:fiveGyeongThird.asset.eaves.projectedDepth},
     decoratedHouses:houseSites.filter(site=>site.decorated).length+seventhBuildings.buildings.length,
     houses:houseSites.length+seventhBuildings.buildings.length,
     seventhHouses:seventhBuildings.buildings.map(b=>({id:b.id,style:b.style,x:b.x,z:b.z})),
