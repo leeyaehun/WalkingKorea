@@ -5,6 +5,7 @@ import {MAIN_STREET_ROUTE} from './BukchonMainStreet.js';
 import {SEVENTH_LOOP_ROUTE,SEVENTH_LOOP_SAMPLES,SEVENTH_JOIN,buildSeventhLoopWalls} from './BukchonSeventhLoop.js';
 import {buildSeventhPhotoEnvironment} from './BukchonSeventhViewpoint.js';
 import {planSeventhHanokSites,buildSeventhHanoks} from './BukchonSeventhBuildings.js';
+import {planSeventhInfill,buildSeventhInfill} from './BukchonSeventhInfill.js';
 import {buildFrontageConnectors} from './BukchonFrontage.js';
 import {buildContinuousFrontages} from './BukchonContinuousFrontage.js';
 import {buildBukchonStreetLife} from './BukchonStreetLife.js';
@@ -344,6 +345,7 @@ let districtFrontage={count:0,segments:[]};
 let continuousFrontages=null;
 let seventhLoopWalls=null;
 let seventhBuildings=null;
+let seventhInfill=null;
 let seventhViewpoint=null;
 let streetLife=null;
 let nightFixtures=null;
@@ -375,6 +377,12 @@ function makeWorld(){
  seventhBuildings=buildSeventhHanoks({
    plan:sevenPlan,withFrame,box,face,cylinder,sphere,textured,signs,hill
  });
+ // D-5 fills both visible sides of the curve with clearance-tested solids.
+ // It does not alter path samples, client collision, or server protocol.
+ const infillPlan=planSeventhInfill({
+   path:paths[1],paths,houses:[...houseSites,...seventhBuildings.buildings]
+ });
+ seventhInfill=buildSeventhInfill({plan:infillPlan,withFrame,box,face});
  seventhLoopWalls=buildSeventhLoopWalls({
    samples:paths[1].samples,face,hill,
    reservedFrontages:seventhBuildings.frontageSpans
@@ -383,7 +391,7 @@ function makeWorld(){
  // without moving a single navigable point or replacing D-3 buildings.
  seventhViewpoint=buildSeventhPhotoEnvironment({
    path:paths[1],paths,
-   houses:[...houseSites,...seventhBuildings.buildings],
+   houses:[...houseSites,...seventhBuildings.buildings,...seventhInfill.buildings],
    face,box,hill,withFrame,textured,signs,cylinder
  });
  nightFixtures=buildBukchonNightFixtures({
@@ -553,5 +561,5 @@ makeWorld();
   });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.frustumCulled = false;
-  return {mesh,material,paths,hill,distanceFromPath,houseSites,frontage,districtFrontage,continuousFrontages,seventhLoopWalls,seventhBuildings,seventhViewpoint,streetLife,nightFixtures,namsan:namsanStats,skyline:skylineStats,paving,vertexCount:positions.length/3};
+  return {mesh,material,paths,hill,distanceFromPath,houseSites,frontage,districtFrontage,continuousFrontages,seventhLoopWalls,seventhBuildings,seventhInfill,seventhViewpoint,streetLife,nightFixtures,namsan:namsanStats,skyline:skylineStats,paving,vertexCount:positions.length/3};
 }
