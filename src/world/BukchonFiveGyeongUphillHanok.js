@@ -41,7 +41,9 @@ export function buildFiveGyeongUphillHanok({box,face,sphere,cylinder}){
     gatewayLeaves:0,utilities:0,photoMatchedFacades:1
   };
   const FRONT=-4.15;
-  const roofW=3.79,roofD=4.08;
+  // The photographed house needs a DEEP rain-shedding eave above its
+  // street-facing windows: previously the roof lip extended only 7cm.
+  const roofW=3.79,frontEave=4.64,backEave=4.08;
   const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 
   // Raised stone plinth of the SAME original plot; heavy, weathered
@@ -165,18 +167,30 @@ export function buildFiveGyeongUphillHanok({box,face,sphere,cylinder}){
   pairedWindow(-1.68,2.54);
   pairedWindow(1.70,2.54);
 
-  // Heavy roof brackets and hundreds of visible small true eave elements.
+  // Exposed timber rafters BELOW the downhill roof. Their lower edge
+  // extends beyond the window frames, shading the paper lattice.
   for(let x=-3.32;x<3.37;x+=.56){
-    box(x,3.55,-3.80,.23,.18,.72,'timber');
-    box(x,3.63,-3.97,.17,.18,.60,'woodShade');
-    box(x,3.71,-4.04,.11,.13,.59,'timberLight');
+    box(x,3.28,-4.02,.21,.14,.83,'timber');
+    box(x,3.22,-4.30,.15,.15,.61,'woodShade');
+    box(x,3.19,-4.40,.10,.12,.52,'timberLight');
+    stats.rafters++;
+  }
+  box(0,3.21,-4.40,7.48,.10,.55,'woodShade');
+  box(0,3.13,-4.53,7.53,.075,.24,'timber');
+  for(let x=-3.44;x<3.51;x+=.31){
+    box(x,3.115,-4.54,.09,.075,.24,'timberLight');
     stats.rafters++;
   }
 
   function roofY(x,z){
-    const a=clamp(Math.abs(z)/roofD,0,1),b=clamp(Math.abs(x)/roofW,0,1);
-    const bowed= .145*Math.pow(a,4)*Math.pow(b,4);
-    return 4.76-1.30*Math.pow(a,1.21)-.12*Math.pow(b,4)+bowed;
+    const span=z<0?frontEave:backEave;
+    const a=clamp(Math.abs(z)/span,0,1),
+      b=clamp(Math.abs(x)/roofW,0,1);
+    const bowed=.145*Math.pow(a,4)*Math.pow(b,4);
+    // Front lip is ~25cm LOWER than before: an actual descending roof
+    // outside the timber sash rather than a narrow wall-top fascia.
+    return 4.76-(z<0?1.53:1.30)*Math.pow(a,1.21)
+      -.12*Math.pow(b,4)+bowed;
   }
   const pt=(x,z,dy=0)=>[x,roofY(x,z)+dy,z];
   // Two wide pitched GIWA planes, with ridges parallel to the road:
@@ -184,7 +198,8 @@ export function buildFiveGyeongUphillHanok({box,face,sphere,cylinder}){
   // broad *road-facing* triangular plaster gable.
   for(const direction of [-1,1]){
     for(let row=0;row<12;row++){
-      const z0=direction*roofD*row/12,z1=direction*roofD*(row+1)/12;
+      const span=direction<0?frontEave:backEave;
+      const z0=direction*span*row/12,z1=direction*span*(row+1)/12;
       for(let col=0;col<17;col++){
         const x0=-roofW+(2*roofW)*col/17;
         const x1=-roofW+(2*roofW)*(col+1)/17;
@@ -204,17 +219,19 @@ export function buildFiveGyeongUphillHanok({box,face,sphere,cylinder}){
     }
     // Dark clay fascia with rounded ceramic eave ends and aged timber
     // circles painted white from weathering, as in both reference photos.
-    box(0,3.40,direction*(roofD+.03),7.67,.14,.16,'tileRidge');
+    const span=direction<0?frontEave:backEave;
+    const fasciaY=direction<0?3.17:3.40;
+    box(0,fasciaY,direction*(span+.01),7.67,.14,.16,'tileRidge');
     for(let i=0;i<22;i++){
       const x=-3.56+(i+.5)*7.12/22;
-      const edgeY=roofY(x,direction*roofD);
-      sphere(x,edgeY-.032,direction*(roofD+.12),
-        .111,.093,.085,i%4===0?'stoneLight':'tileEnd',8,4);
+      const edgeY=roofY(x,direction*span);
+      sphere(x,edgeY-.032,direction*(span+.070),
+        .111,.093,.071,i%4===0?'stoneLight':'tileEnd',8,4);
       stats.whiteEaveEnds++;
       if(direction===-1){
         // 1 more small white rafter END PER tile rhythm is important:
         // the photo has bright round white dots all along the low eaves.
-        sphere(x,3.43,direction*(roofD+.25),.10,.103,.08,
+        sphere(x,3.12,direction*(span+.080),.10,.103,.067,
           i%3===0?'mortar':'stoneLight',8,4);
         stats.whiteEaveEnds++;
       }
@@ -305,6 +322,10 @@ export function buildFiveGyeongUphillHanok({box,face,sphere,cylinder}){
     box(x,.042,FRONT-.32,6.74/13-.014,.065,.18,
       i%3===0?'drainIron':'stoneGrey');
   }
+  stats.eaves={frontLipZ:-frontEave,facadeZ:FRONT,
+    projectedDepth:frontEave+FRONT,lowDripY:roofY(0,-frontEave),
+    whiteTerminalRowY:3.12,realSlopedTileCourses:12,
+    protectsWindows:true};
   stats.streetFacade={xFrom:-3.58,xTo:3.58,frontZ:FRONT,
     wallHeight:1.95,windowPairs:2,
     signatures:['dark timber','two pairs lattice','thin red brick','charcoal Korean meander','white rafter ends']};
