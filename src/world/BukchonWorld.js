@@ -437,7 +437,10 @@ makeWorld();
         // Texture-like surface response without external images. Existing
         // labels keep their UVs in the original 2048px sign atlas.
         vec3 finish=bukchonMaterial(vSurfaceUV,vSurfaceId);
-        float occluded=clamp(1.0-getShadowMask(),0.0,1.0);
+        // The directional sun is almost off at night. Avoid a shadow-map
+        // texture read on every fragment of an otherwise static alley.
+        float occluded=0.0;
+        if(uNight<0.5)occluded=clamp(1.0-getShadowMask(),0.0,1.0);
         // Actual sun shadow map occlusion + subtle local architectural AO.
         // Only the direct component darkens: the sky still fills the shadows.
         float castShade=1.0-.38*occluded*uShadowStrength;
@@ -454,8 +457,11 @@ makeWorld();
           for(int i=0;i<8;i++){
             vec4 lamp=uNightLampPositions[i];
             if(lamp.w>0.1){
-              float d=length(vWorldPosition-lamp.xyz);
-              float f=1.0-smoothstep(0.0,lamp.w,d);
+              // Squared-distance falloff: 8 lights per pixel without
+              // expensive square roots, softer on the lantern housings.
+              vec3 offset=vWorldPosition-lamp.xyz;
+              float d2=dot(offset,offset);
+              float f=1.0-smoothstep(0.0,lamp.w*lamp.w,d2);
               pool=max(pool,f*f);
             }
           }
@@ -465,10 +471,10 @@ makeWorld();
           // Surface emission is independent of roof/shadow occlusion,
           // but fog still attenuates distant lit apartment windows.
           vec3 glow=vec3(0.0);
-          if(vNightEmission>3.5) glow=vec3(.62,.38,.18)*.68;
-          else if(vNightEmission>2.5) glow=vec3(1.0,.67,.30)*1.05;
-          else if(vNightEmission>1.5) glow=vec3(.48,.62,.77)*.65;
-          else if(vNightEmission>.5) glow=vec3(.97,.64,.28)*.90;
+          if(vNightEmission>3.5) glow=vec3(.62,.38,.18)*.59;
+          else if(vNightEmission>2.5) glow=vec3(1.0,.67,.30)*.90;
+          else if(vNightEmission>1.5) glow=vec3(.48,.62,.77)*.56;
+          else if(vNightEmission>.5) glow=vec3(.97,.64,.28)*.78;
           col+=glow*uNight;
         }
         // Keep Seoul's distant hill and Namsan landmark legible while
