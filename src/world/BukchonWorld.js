@@ -3,6 +3,7 @@ import { buildPavedAlleys } from './BukchonPaving.js';
 import {mainLaneWidth,scenicHillLift,scenicHouseSites} from './BukchonStreetLayout.js';
 import {buildFrontageConnectors} from './BukchonFrontage.js';
 import {buildBukchonStreetLife} from './BukchonStreetLife.js';
+import {buildNamsanLandmark} from './NamsanLandmark.js';
 import * as THREE from 'three';
 import {surfaceMaterialId,surfaceCoordinates,MATERIAL_GLSL} from './BukchonMaterials.js';
 
@@ -39,7 +40,17 @@ const C = {
   paveStone:[.86,.77,.70],paveHoney:[.92,.81,.68],
   pavePatch:[.83,.77,.71],paveMossStone:[.79,.77,.72],
   edgeStone:[.84,.77,.67],edgeStoneLight:[.90,.83,.73],
-  drainIron:[.50,.47,.43],drainGrill:[.69,.64,.56]
+  drainIron:[.50,.47,.43],drainGrill:[.69,.64,.56],
+  // Distant Namsan is a continuous faceted forest ridge, not round shrubs.
+  namsanForest:[.31,.43,.37],namsanPine:[.23,.35,.31],
+  namsanOlive:[.42,.49,.40],namsanCanopy:[.35,.46,.39],
+  namsanShade:[.33,.40,.35],
+  // Pale ivory tower shaft, deep-blue observatory glazing, metallic bands,
+  // restrained red/white antenna, distinct from local hanok materials.
+  towerIvory:[.91,.94,.92],towerConcrete:[.73,.79,.80],
+  towerStone:[.65,.72,.73],towerTrim:[.84,.89,.91],
+  towerGlass:[.20,.39,.48],towerSilver:[.65,.72,.76],
+  towerRed:[.75,.29,.27]
 };
 const color=(v)=>Array.isArray(v)?v:C[v]||C.white;
 const positions=[],normals=[],uvs=[],colors=[],materialIds=[],surfaceUVs=[],contactAO=[];
@@ -271,15 +282,12 @@ function laneDecoration(){
  }
 }
 
+let namsanStats=null;
 function hillsideBackground(){
- // The celebrated Bukchon view: the roofs open toward Seoul's city skyline
- // and the Namsan tower beyond. This is a stylized silhouette, not exact GIS.
- // The high lookout is at z~-42, and the road descends toward positive Z.
- for(let x=-86;x<=86;x+=16) {
-   const z=155+(Math.abs(x)%3)*4;
-   const height=9+3*Math.cos(x*.04);
-   sphere(x,height,z,20,height+2,19,x%3===0?'deepGreen':'sage',9,5);
- }
+ // Nearby skyline stays unchanged until background Step 03, while
+ // Namsan's landform and tower are built as a cohesive actual 3D model.
+ const landmark=buildNamsanLandmark({face,box});
+ namsanStats=landmark;
  // Nearest skyline rows: alternate pale concrete and warm stone to resemble
  // the layered urban landscape visible between residential rooflines.
  for(let row=0;row<3;row++) {
@@ -297,14 +305,6 @@ function hillsideBackground(){
      }
    }
  }
- // N Seoul Tower as a recognizable landmark above its dark green hill.
- const tx=17,tz=153;
- sphere(tx,16,tz,30,14,23,'deepGreen',12,6);
- cylinder(tx,35,tz,1.24,39,'stoneLight',11);
- cylinder(tx,54,tz,4.6,4.9,'offwhite',12);
- cylinder(tx,57.1,tz,2.6,2.7,'roof',12);
- cylinder(tx,67,tz,.43,20,'dark',8);
- cylinder(tx,78.5,tz,.20,3.5,'brickTerracotta',7);
  // Clouds now belong to the moving sky dome shader, not the city mesh.
  // The old flattened white spheres against Namsan are deliberately removed.
 
@@ -438,5 +438,5 @@ makeWorld();
   });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.frustumCulled = false;
-  return {mesh,material,paths,hill,distanceFromPath,houseSites,frontage,districtFrontage,streetLife,paving,vertexCount:positions.length/3};
+  return {mesh,material,paths,hill,distanceFromPath,houseSites,frontage,districtFrontage,streetLife,namsan:namsanStats,paving,vertexCount:positions.length/3};
 }
