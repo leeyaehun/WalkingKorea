@@ -63,11 +63,11 @@ export function nearSeventhPhotoSpot(x,z,spot){
 }
 
 export const SEVENTH_ROOF_PEEK_SEEDS=Object.freeze([
-  {id:'roofline-west-01',s:18.8,side:1,tone:'tileInk'},
-  {id:'roofline-west-02',s:28.5,side:1,tone:'tileIndigo'},
-  {id:'roofline-corner',s:53.0,side:1,tone:'tileJade'}
+  {id:'roofline-west-01',s:40.6,side:-1,tone:'tileInk'},
+  {id:'roofline-west-02',s:54.4,side:1,tone:'tileIndigo'},
+  {id:'roofline-corner',s:67.2,side:1,tone:'tileJade'}
 ]);
-const PEEK_WIDTH=5.0,PEEK_DEPTH=4.60,PEEK_SETBACK=6.5;
+const PEEK_WIDTH=5.0,PEEK_DEPTH=4.60;
 function roadMargin(site,path){
   let nearest=Infinity;
   for(const [x,z] of path.samples){
@@ -86,22 +86,27 @@ export function planSeventhRoofPeeks({path,paths,houses}){
     let found=null;
     // One side is preferred, the opposite side is permitted only if both
     // road clearance and house footprint tests are met.
-    for(const change of [0,-1.2,1.2,-2.4,2.4]){
-      const lane=sampleRouteAtDistance(path.samples,seed.s+change);
-      for(const side of [seed.side,-seed.side]){
-        const angle=Math.atan2(-lane.nx*side,lane.nz*side);
-        const site={
-          ...seed,s:seed.s+change,side,angle,
-          x:lane.x+lane.nx*side*PEEK_SETBACK,
-          z:lane.z+lane.nz*side*PEEK_SETBACK,
-          width:PEEK_WIDTH,depth:PEEK_DEPTH
-        };
-        const clearance=Math.min(...paths.map(p=>roadMargin(site,p)));
-        if(clearance<.55)continue;
-        if([...houses,...roofs].some(h=>hanokFootprintsOverlap(site,h,.53)))
-          continue;
-        found={...site,clearance};
-        break;
+    for(const change of [0,-1.2,1.2,-2.4,2.4,-3.6,3.6]){
+      const distance=seed.s+change;
+      if(distance<10||distance>72)continue;
+      const lane=sampleRouteAtDistance(path.samples,distance);
+      for(const setback of [6.5,8.0,10.0,12.0]){
+        for(const side of [seed.side,-seed.side]){
+          const angle=Math.atan2(-lane.nx*side,lane.nz*side);
+          const site={
+            ...seed,s:distance,side,angle,setback,
+            x:lane.x+lane.nx*side*setback,
+            z:lane.z+lane.nz*side*setback,
+            width:PEEK_WIDTH,depth:PEEK_DEPTH
+          };
+          const clearance=Math.min(...paths.map(p=>roadMargin(site,p)));
+          if(clearance<.55)continue;
+          if([...houses,...roofs].some(h=>hanokFootprintsOverlap(site,h,.53)))
+            continue;
+          found={...site,clearance};
+          break;
+        }
+        if(found)break;
       }
       if(found)break;
     }
