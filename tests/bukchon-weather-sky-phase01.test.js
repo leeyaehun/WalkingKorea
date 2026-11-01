@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import {readFileSync} from 'node:fs';
 import {
   createBukchonSky,SKY_DAY_PALETTE,SKY_FOG_DAY,SKY_FOG_NIGHT,
-  SKY_NIGHT_TINT,skyFragmentShader
+  SKY_NIGHT_PALETTE,skyFragmentShader
 } from '../src/world/BukchonSky.js';
 
 test('blue, naturally graded daytime sky palette and haze replace warm peach sunset',()=>{
@@ -16,7 +16,7 @@ test('blue, naturally graded daytime sky palette and haze replace warm peach sun
   assert.ok(zenith.b>zenith.r*1.6,'zenith is a saturated but gentle blue');
   assert.ok(horizon.r>zenith.r,'day sky gradually lightens toward horizon');
   assert.ok(SKY_FOG_DAY[2]>SKY_FOG_DAY[0],'day fog must stay blue');
-  assert.deepEqual(SKY_FOG_NIGHT,[.31,.37,.45]);
+  assert.deepEqual(SKY_FOG_NIGHT,[.14,.20,.30]);
 });
 
 test('one camera-following sky dome draws feathered cloud wisps without cloud blob meshes',()=>{
@@ -41,13 +41,18 @@ test('one camera-following sky dome draws feathered cloud wisps without cloud bl
   assert.equal(sky.mesh.material.uniforms.uNight.value,1);
 });
 
-test('legacy nighttime tint remains identical until the separate night-sky update',()=>{
+test('distinct night palette is deep navy and never changes the clear day gradient',()=>{
   const sky=createBukchonSky(new THREE.Scene());
-  const oldTint=new THREE.Color(SKY_NIGHT_TINT);
-  const oldHorizon=new THREE.Color(0xe6bda8).multiply(oldTint);
-  const oldZenith=new THREE.Color(0x9cb7dd).multiply(oldTint);
-  assert.ok(sky.mesh.material.uniforms.uNightHorizon.value.equals(oldHorizon));
-  assert.ok(sky.mesh.material.uniforms.uNightZenith.value.equals(oldZenith));
+  const uniform=sky.mesh.material.uniforms;
+  assert.ok(uniform.uNightHorizon.value.equals(new THREE.Color(SKY_NIGHT_PALETTE.horizon)));
+  assert.ok(uniform.uNightMiddle.value.equals(new THREE.Color(SKY_NIGHT_PALETTE.middle)));
+  assert.ok(uniform.uNightZenith.value.equals(new THREE.Color(SKY_NIGHT_PALETTE.zenith)));
+  assert.ok(uniform.uDayHorizon.value.equals(new THREE.Color(SKY_DAY_PALETTE.horizon)));
+  assert.ok(uniform.uDayMiddle.value.equals(new THREE.Color(SKY_DAY_PALETTE.middle)));
+  assert.ok(uniform.uDayZenith.value.equals(new THREE.Color(SKY_DAY_PALETTE.zenith)));
+  assert.match(skyFragmentShader,/moonHalo/);
+  assert.match(skyFragmentShader,/crescent/);
+  assert.match(skyFragmentShader,/distantStars/);
 });
 
 test('daylight sky update does not alter the city, shadows, houses or gameplay scripts',()=>{

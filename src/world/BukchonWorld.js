@@ -421,14 +421,18 @@ makeWorld();
         // Only the direct component darkens: the sky still fills the shadows.
         float castShade=1.0-.38*occluded*uShadowStrength;
         vec3 lit = tex.rgb * vColor * finish * vLight * vContactAO * castShade;
-        vec3 dusk = lit * vec3(.67,.73,.87) + vec3(.025,.033,.056);
+        // Moonlit surfaces are cool and legible without pretending that every
+        // window and alley has an artificial lamp (reserved for step 05).
+        // Keep soft blue skylight on eaves and enough detail in the stone.
+        vec3 dusk = lit * vec3(.52,.61,.77) + vec3(.025,.034,.052);
         vec3 col = mix(lit,dusk,uNight);
         // Keep Seoul's distant hill and Namsan landmark legible while
         // retaining gentle atmospheric depth down the narrow residential lane.
         // Cool blue atmospheric distance falloff matches the daytime sky.
         // The existing evening strength remains unchanged for phase 04.
         float dayFog=smoothstep(77.0,225.0,vDistance)*.62;
-        float nightFog=smoothstep(80.0,240.0,vDistance)*.60;
+        // Deep-blue night aerial perspective: atmospheric layers remain visible.
+        float nightFog=smoothstep(73.0,220.0,vDistance)*.52;
         float fog=mix(dayFog,nightFog,uNight);
         gl_FragColor = vec4(mix(col,uFogColor,fog),1.0);
       }
