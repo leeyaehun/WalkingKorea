@@ -5,34 +5,34 @@
 
 
 
-/* v0.6 · Dami companion — deliberately small enough not to obscure the lanes. */
-.dami-card{position:absolute;bottom:194px;left:36px;display:flex;align-items:center;gap:12px;text-align:left;pointer-events:auto;max-width:292px;padding:11px 14px 11px 11px;background:rgba(255,250,240,.91);border:1px solid rgba(255,255,255,.84);border-radius:23px;box-shadow:0 10px 34px rgba(54,49,36,.15);backdrop-filter:blur(16px);color:#343c33;transition:transform .18s,background .18s}
-.dami-card:hover{transform:translateY(-3px);background:#fffaf0}
-.dami-card img{flex:none;width:70px;height:70px;border-radius:17px;object-fit:cover;background:#f0e5d5}
-.dami-message{display:flex;min-width:0;flex-direction:column;align-items:flex-start;gap:3px}
-.dami-kicker{font-size:9px;font-weight:750;letter-spacing:.12em;color:#b87761}
-.dami-message strong{font-size:15px;line-height:1.2;letter-spacing:-.02em}
-.dami-message #dami-line{font-size:11px;line-height:1.5;color:#77796b}
+/* Compact single-walker portrait card; preserves original HUD layout. */
+.walker-card{position:absolute;bottom:194px;left:36px;display:flex;align-items:center;gap:12px;text-align:left;pointer-events:auto;max-width:292px;padding:11px 14px 11px 11px;background:rgba(255,250,240,.91);border:1px solid rgba(255,255,255,.84);border-radius:23px;box-shadow:0 10px 34px rgba(54,49,36,.15);backdrop-filter:blur(16px);color:#343c33;transition:transform .18s,background .18s}
+.walker-card:hover{transform:translateY(-3px);background:#fffaf0}
+.walker-card img{flex:none;width:70px;height:70px;border-radius:17px;object-fit:cover;background:#f0e5d5}
+.walker-message{display:flex;min-width:0;flex-direction:column;align-items:flex-start;gap:3px}
+.walker-kicker{font-size:9px;font-weight:750;letter-spacing:.12em;color:#b87761}
+.walker-message strong{font-size:15px;line-height:1.2;letter-spacing:-.02em}
+.walker-message #walker-line{font-size:11px;line-height:1.5;color:#77796b}
 .intro-character{display:flex;align-items:center;justify-content:center;gap:14px;margin:2px 0 17px;padding:9px 11px;background:#f0e8da;border-radius:19px}
 .intro-character img{flex:none;width:69px;height:69px;object-fit:cover;border-radius:16px}
 .intro-character div{display:flex;flex-direction:column;text-align:left;gap:4px}
 .intro-character strong{font-size:13px;letter-spacing:-.04em}
 .intro-character span{font-size:11px;color:#818275;line-height:1.5}
-.dami-about{display:flex;align-items:center;gap:16px}
-.dami-about img{width:108px;height:108px;border-radius:19px;flex:none}
-.dami-about p{margin:0}
+.walker-about{display:flex;align-items:center;gap:16px}
+.walker-about img{width:108px;height:108px;border-radius:19px;flex:none}
+.walker-about p{margin:0}
 @media(max-width:850px){
- .dami-card{left:16px;bottom:129px;max-width:203px;gap:8px;padding:7px 9px;border-radius:17px}
- .dami-card img{width:45px;height:45px;border-radius:12px}
- .dami-message strong{font-size:12px}
- .dami-kicker{font-size:8px}
- .dami-message #dami-line{font-size:10px}
+ .walker-card{left:16px;bottom:129px;max-width:203px;gap:8px;padding:7px 9px;border-radius:17px}
+ .walker-card img{width:45px;height:45px;border-radius:12px}
+ .walker-message strong{font-size:12px}
+ .walker-kicker{font-size:8px}
+ .walker-message #walker-line{font-size:10px}
  .intro-character img{width:58px;height:58px}
 }
 @media(max-width:450px){
- .dami-card{left:14px;bottom:120px;max-width:160px}
- .dami-card img{width:42px;height:42px}
- .dami-message #dami-line{display:none}
+ .walker-card{left:14px;bottom:120px;max-width:160px}
+ .walker-card img{width:42px;height:42px}
+ .walker-message #walker-line{display:none}
  .intro-card{max-height:90dvh;overflow:auto}
  .intro-character img{width:50px;height:50px}
  .intro-character span{font-size:10px}
@@ -61,7 +61,7 @@ body.playing .left-label{opacity:0;transform:translateY(-8px);transition:opacity
 .modal-character-choices{margin-top:16px}
 .modal-character-choices .avatar-option img{width:78px;height:78px}
 .modal-character-choices .avatar-option{flex-direction:column;text-align:center;justify-content:center;gap:8px}
-.avatar-swap{font-size:20px}
+
 @media(max-width:850px){
  .intro-card{padding:24px 25px 22px;max-height:92dvh;overflow-y:auto}
  .intro-card h2{font-size:34px;margin:9px 0 10px}
@@ -75,7 +75,7 @@ body.playing .left-label{opacity:0;transform:translateY(-8px);transition:opacity
  .intro-character{margin:0 0 10px;padding:8px}
 }
 @media(max-width:450px){
- .avatar-swap{font-size:17px}
+ 
  .character-picker{margin-bottom:9px}
  .intro-card h2{font-size:30px;margin:7px 0 8px}
  .intro-character img{width:46px;height:46px}
