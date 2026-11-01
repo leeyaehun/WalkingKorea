@@ -4,6 +4,7 @@ import {mainLaneWidth,scenicHillLift,scenicHouseSites} from './BukchonStreetLayo
 import {buildFrontageConnectors} from './BukchonFrontage.js';
 import {buildBukchonStreetLife} from './BukchonStreetLife.js';
 import {buildNamsanLandmark} from './NamsanLandmark.js';
+import {buildSeoulSkyline} from './SeoulSkyline.js';
 import * as THREE from 'three';
 import {surfaceMaterialId,surfaceCoordinates,MATERIAL_GLSL} from './BukchonMaterials.js';
 
@@ -50,7 +51,18 @@ const C = {
   towerIvory:[.91,.94,.92],towerConcrete:[.73,.79,.80],
   towerStone:[.65,.72,.73],towerTrim:[.84,.89,.91],
   towerGlass:[.20,.39,.48],towerSilver:[.65,.72,.76],
-  towerRed:[.75,.29,.27]
+  towerRed:[.75,.29,.27],
+  // Seoul's distant residential and office layers: quiet blue-grey
+  // concrete, ochre limestone, and desaturated balcony/sill materials.
+  cityConcreteA:[.75,.80,.80],cityShadowA:[.63,.69,.72],cityTrimA:[.84,.86,.84],
+  cityConcreteB:[.83,.81,.77],cityShadowB:[.70,.68,.64],cityTrimB:[.92,.88,.81],
+  cityConcreteC:[.71,.76,.80],cityShadowC:[.57,.65,.70],cityTrimC:[.83,.87,.89],
+  cityPodium:[.61,.65,.66],cityParapet:[.80,.83,.82],
+  cityRoofHouse:[.75,.78,.77],cityUtility:[.63,.69,.71],
+  cityWindowFrame:[.78,.81,.82],cityStairwell:[.65,.69,.72],
+  cityBalconySlab:[.81,.82,.80],cityBalconyRail:[.66,.71,.73],
+  cityGlassBlue:[.37,.50,.59],cityGlassPale:[.54,.64,.70],
+  cityGlassWarm:[.65,.65,.61]
 };
 const color=(v)=>Array.isArray(v)?v:C[v]||C.white;
 const positions=[],normals=[],uvs=[],colors=[],materialIds=[],surfaceUVs=[],contactAO=[];
@@ -283,28 +295,16 @@ function laneDecoration(){
 }
 
 let namsanStats=null;
+let skylineStats=null;
 function hillsideBackground(){
  // Nearby skyline stays unchanged until background Step 03, while
  // Namsan's landform and tower are built as a cohesive actual 3D model.
  const landmark=buildNamsanLandmark({face,box});
  namsanStats=landmark;
- // Nearest skyline rows: alternate pale concrete and warm stone to resemble
- // the layered urban landscape visible between residential rooflines.
- for(let row=0;row<3;row++) {
-   for(let i=-9;i<=9;i++) {
-     const x=i*9+(row%2)*4;
-     const z=99+row*14;
-     const height=7+((Math.abs(i*17+row*11))%6)*2.8;
-     const tone=(i+row)%4===0?'stoneLight':(i+row)%3===0?'dustyBlue':'beige';
-     box(x,height*.5,z,6.2,height,6.8,tone);
-     // A few subtle stacked window rhythms catch the light.
-     if(row<2 && i%2===0) {
-       for(let wy=4;wy<height-1;wy+=2.5)
-         for(let wx of [-1.7,0,1.7])
-           box(x+wx,wy,z-3.46,.58,.88,.045,'shadow');
-     }
-   }
- }
+ // Real Seoul is layered rather than a wall of repeated identical boxes.
+ // Detailed nearby mixed-use blocks, concrete apartment slabs and office
+ // towers frame Namsan without cutting off the tower and ridge.
+ skylineStats=buildSeoulSkyline({box,face});
  // Clouds now belong to the moving sky dome shader, not the city mesh.
  // The old flattened white spheres against Namsan are deliberately removed.
 
@@ -438,5 +438,5 @@ makeWorld();
   });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.frustumCulled = false;
-  return {mesh,material,paths,hill,distanceFromPath,houseSites,frontage,districtFrontage,streetLife,namsan:namsanStats,paving,vertexCount:positions.length/3};
+  return {mesh,material,paths,hill,distanceFromPath,houseSites,frontage,districtFrontage,streetLife,namsan:namsanStats,skyline:skylineStats,paving,vertexCount:positions.length/3};
 }
