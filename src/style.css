@@ -107,3 +107,17 @@ body.playing .left-label{opacity:0;transform:translateY(-8px);transition:opacity
 /* Keep the start CTA label readable after adding the separate arrow span. */
 .start-button #start-button-label{font-size:14px;line-height:1.2;letter-spacing:-.015em;text-align:left}
 @media(max-width:450px){.start-button #start-button-label{font-size:13px}}
+
+/* D-4: a contextual photo action, only visible at the real 7-gyeong spot.
+ * Keep the sky and lanes unobstructed outside the viewpoint. */
+.photo-save{position:absolute;right:38px;bottom:111px;pointer-events:auto;
+ background:rgba(42,62,51,.91);color:#fffaf0;border:1px solid rgba(255,255,255,.60);
+ box-shadow:0 8px 22px rgba(43,48,37,.18);backdrop-filter:blur(12px);
+ padding:10px 16px;border-radius:30px;font-size:12px;font-weight:700}
+.photo-save:hover{background:#4a6755}
+@media(max-width:850px){
+ .photo-save{right:22px;bottom:calc(238px + env(safe-area-inset-bottom,0px));padding:11px 13px}
+}
+@media(max-width:850px) and (max-height:590px){
+ .photo-save{right:20px;bottom:calc(186px + env(safe-area-inset-bottom,0px))}
+}
