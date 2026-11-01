@@ -56,6 +56,12 @@ const state={x:-3,z:-42,yaw:Math.PI,pitch:(new URLSearchParams(location.search).
 if(new URLSearchParams(location.search).get('view')==='hanok5'){
   state.x=-1.0;state.z=52;state.yaw=0;state.pitch=-.12;
 }
+// The NEW uphill neighbor can be reviewed immediately without traversing
+// the rest of town. Standard players and the original hanok5 preview are
+// unchanged; there is no teleport or custom new road.
+if(new URLSearchParams(location.search).get('view')==='hanok5upper'){
+  state.x=-1.0;state.z=42.4;state.yaw=0;state.pitch=-.12;
+}
 const keys=new Set();let lastFrame=0,lastMap=0,lastToast=0,nearSpot=null,stepPhase=0;
 const memoryStore={};
 const safeStore={getItem(k){try{return window.localStorage.getItem(k)}catch(e){return memoryStore[k]||null}},setItem(k,v){try{window.localStorage.setItem(k,v)}catch(e){memoryStore[k]=v}}};
@@ -402,6 +408,8 @@ if(new URLSearchParams(location.search).has('qa')) {
     decoratedHouses:houseSites.filter(site=>site.decorated).length+seventhBuildings.buildings.length,
     houses:houseSites.length+seventhBuildings.buildings.length,
     seventhHouses:seventhBuildings.buildings.map(b=>({id:b.id,style:b.style,x:b.x,z:b.z})),
+    photographic5GyeongHouses:houseSites.filter(h=>h.referenceAsset)
+      .map(h=>({index:h.index,id:h.assetId,x:h.x,z:h.z,laneZ:h.laneZ,side:h.side})),
     streetDetails:streetLife.counts, utilityCrossings:streetLife.lines.length,
     viewYaw:state.yaw,started:state.started,
     night:state.night,
