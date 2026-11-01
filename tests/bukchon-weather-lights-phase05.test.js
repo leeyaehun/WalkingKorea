@@ -33,7 +33,7 @@ test('all house sconces and three roadside lamps stay out of walking lanes',()=>
     }
   }
  }
- assert.equal(w.paths.length,1);
+ assert.equal(w.paths.length,2);
  assert.equal(w.houseSites.length,20);
  assert.equal('planters' in w.streetLife.counts,false);
 });

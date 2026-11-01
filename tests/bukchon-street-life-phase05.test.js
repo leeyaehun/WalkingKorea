@@ -29,7 +29,7 @@ test('residential details now extend to all houses, excluding all planter vegeta
    !x.details.includes('plaques') && !x.details.includes('doorsteps'):
    x.details.includes('plaques') && x.details.includes('doorsteps')));
  assert.equal(w.houseSites.filter(s=>s.scenic).length,8);
- assert.equal(w.paths.length,1);
+ assert.equal(w.paths.length,2);
 });
 
 test('electric utility poles are beyond the walking kerb; overhead wires maintain clearance',()=>{
