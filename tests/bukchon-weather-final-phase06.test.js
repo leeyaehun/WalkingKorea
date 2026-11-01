@@ -59,7 +59,8 @@ test('resolution restores slowly after sustained fast frames without constant to
  assert.equal(budget.getStatus().pixelRatio,1.35);
  time=frames(budget,{ms:16,number:120,now:time});
  assert.equal(budget.getStatus().pixelRatio,1.35);
- time=frames(budget,{ms:16,number:360,now:time});
+ // Recovery waits at least 8s since the last quality change (600 x 16ms).
+ time=frames(budget,{ms:16,number:480,now:time});
  assert.ok(budget.getStatus().pixelRatio>1.35);
  assert.ok(budget.getStatus().pixelRatio<=1.5);
 });
