@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import {createBukchonWorld} from '../src/world/BukchonWorld.js';
 import {MAIN_STREET_ROUTE} from '../src/world/BukchonMainStreet.js';
 import {SEVENTH_LOOP_ROUTE} from '../src/world/BukchonSeventhLoop.js';
@@ -118,6 +119,13 @@ test('new masonry and gate do not obstruct the playable road or multiplayer',()=
   }
   for(const road of w.paths)for(const [x,z] of road.samples)
     assert.equal(onMainStreet(x,z),true,'existing shared path was changed');
+});
+test('optional 5-gyeong preview URL begins at the lower street only when explicitly requested',()=>{
+  const source=readFileSync(new URL('../src/main.js',import.meta.url),'utf8');
+  assert.match(source,/get\('view'\)==='hanok5'/);
+  assert.match(source,/state\.x=-1\.0;state\.z=52;state\.yaw=0/);
+  assert.match(source,/const state=\{x:-3,z:-42,yaw:Math\.PI/);
+  assert.match(source,/multiplayer\.start\(\)/);
 });
 test('single-mesh photoreal hanok remains within scene triangle and world fidelity budget',()=>{
   const w=world(),mesh=w.mesh,geo=mesh.geometry;
