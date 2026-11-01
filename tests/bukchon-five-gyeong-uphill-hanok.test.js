@@ -43,7 +43,7 @@ test('uphill next-door is original house #10, NOT first photo-house #8',()=>{
  assert.equal(newHouse.site.assetId,FIVE_GYEONG_UPHILL_HANOK.id);
  assert.equal(newHouse.asset.id,FIVE_GYEONG_UPHILL_HANOK.id);
  assert.equal(newHouse.asset.kind,'reference-uphill-lattice-hanok');
- assert.equal(w.houseSites.filter(h=>h.referenceAsset).length,2);
+ assert.equal(w.houseSites.filter(h=>h.referenceAsset).length,3);
  assert.deepEqual(w.paths[0].points,MAIN_STREET_ROUTE.points);
  assert.deepEqual(w.paths[1].points,SEVENTH_LOOP_ROUTE.points);
  assert.equal(w.nightFixtures.fixtures.length,23);
