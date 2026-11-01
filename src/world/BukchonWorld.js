@@ -3,6 +3,7 @@ import { buildPavedAlleys } from './BukchonPaving.js';
 import {mainLaneWidth,mainLaneTerrainHeight,smoothMainLane,scenicHouseSites,sampleMainLaneAtZ} from './BukchonStreetLayout.js';
 import {MAIN_STREET_ROUTE} from './BukchonMainStreet.js';
 import {SEVENTH_LOOP_ROUTE,SEVENTH_LOOP_SAMPLES,SEVENTH_JOIN,buildSeventhLoopWalls} from './BukchonSeventhLoop.js';
+import {buildSeventhPhotoEnvironment} from './BukchonSeventhViewpoint.js';
 import {planSeventhHanokSites,buildSeventhHanoks} from './BukchonSeventhBuildings.js';
 import {buildFrontageConnectors} from './BukchonFrontage.js';
 import {buildContinuousFrontages} from './BukchonContinuousFrontage.js';
@@ -111,6 +112,7 @@ const signs={
  bus:tile('서촌 골목','#f7f1e8','#536b75',{sub:'VILLAGE STOP'}),
  hanokCafe:tile('차 한 잔','#e9d8b9','#654733',{size:43,border:'#81614a'}),
  hanokAtelier:tile('작은 공방','#eadbc7','#594b3e',{size:41,border:'#806d58'}),
+ seventh:tile('북촌 7경','#34453d','#fbf4e6',{w:224,h:86,size:40,border:'#bca68a'}),
 };
 // These are fictional poetic residence names, not actual home addresses.
 signs.residences=[
@@ -342,6 +344,7 @@ let districtFrontage={count:0,segments:[]};
 let continuousFrontages=null;
 let seventhLoopWalls=null;
 let seventhBuildings=null;
+let seventhViewpoint=null;
 let streetLife=null;
 let nightFixtures=null;
 function makeWorld(){
@@ -375,6 +378,13 @@ function makeWorld(){
  seventhLoopWalls=buildSeventhLoopWalls({
    samples:paths[1].samples,face,hill,
    reservedFrontages:seventhBuildings.frontageSpans
+ });
+ // D-4 adds low-key residential roof layering and an optional photo cue,
+ // without moving a single navigable point or replacing D-3 buildings.
+ seventhViewpoint=buildSeventhPhotoEnvironment({
+   path:paths[1],paths,
+   houses:[...houseSites,...seventhBuildings.buildings],
+   face,box,hill,withFrame,textured,signs,cylinder
  });
  nightFixtures=buildBukchonNightFixtures({
    houseSites,paths,hill,withFrame,box,cylinder,sphere,distanceFromPath
@@ -543,5 +553,5 @@ makeWorld();
   });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.frustumCulled = false;
-  return {mesh,material,paths,hill,distanceFromPath,houseSites,frontage,districtFrontage,continuousFrontages,seventhLoopWalls,seventhBuildings,streetLife,nightFixtures,namsan:namsanStats,skyline:skylineStats,paving,vertexCount:positions.length/3};
+  return {mesh,material,paths,hill,distanceFromPath,houseSites,frontage,districtFrontage,continuousFrontages,seventhLoopWalls,seventhBuildings,seventhViewpoint,streetLife,nightFixtures,namsan:namsanStats,skyline:skylineStats,paving,vertexCount:positions.length/3};
 }
