@@ -150,7 +150,12 @@ export function buildSeoulSkyline({box,face}) {
         // (the separately planned lighting step will handle emissive glow).
         const glass=((index+c+f)%7===0)?'cityGlassWarm':
           ((index+c*3+f)%4===0)?'cityGlassPale':'cityGlassBlue';
-        front(wx,cy,frontZ-.037,colSpacing*.67,windowH,glass);
+        // Fixed, sparse occupied-window pattern: no synchronized rows or
+        // blinking random numbers, and no warm light in daytime.
+        const occupied=((index*29+c*17+f*11)%19);
+        const windowType=occupied<4?'cityLitWindowWarm':
+          occupied<6?'cityLitWindowCool':glass;
+        front(wx,cy,frontZ-.037,colSpacing*.67,windowH,windowType);
         stats.windowPanels++;
         if(!isFar) {
           box(wx,cy,frontZ-.074,.045,windowH,.10,'cityWindowFrame');
