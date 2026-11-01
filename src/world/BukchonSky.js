@@ -89,6 +89,13 @@ export const skyFragmentShader=`
     cloud+=cloudWisp(p,vec2(2.05,.18),vec2(.32,.070));
     cloud=clamp(cloud*.45,0.0,.44);
     daylight=mix(daylight,vec3(.96,.98,1.0),cloud);
+    // The moon's acos + hashed star field is relatively expensive.
+    // The UI selects DAY or NIGHT immediately, never tweened; skip all
+    // astronomical math for daytime frames without changing day pixels.
+    if(uNight<.01){
+      gl_FragColor=vec4(daylight,1.0);
+      return;
+    }
 
     // Three-tone midnight: clear near-black blue overhead, a gentle haze
     // above Seoul's roofs and a very restrained warm city-horizon glow.
