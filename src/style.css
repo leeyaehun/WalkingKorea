@@ -103,3 +103,7 @@ body.playing .left-label{opacity:0;transform:translateY(-8px);transition:opacity
 .invite-actions .modal-action{margin-top:0}
 .invite-url{width:100%;padding:12px;border-radius:11px;border:1px solid #d8d8cb;background:#f5f4eb;color:#4c574d;font-size:12px;user-select:all}
 @media(max-width:450px){.intro-card{max-height:91dvh;overflow-y:auto}.invite-create{padding:10px 12px;font-size:11px}.invite-mini{padding:8px 10px}}
+
+/* Keep the start CTA label readable after adding the separate arrow span. */
+.start-button #start-button-label{font-size:14px;line-height:1.2;letter-spacing:-.015em;text-align:left}
+@media(max-width:450px){.start-button #start-button-label{font-size:13px}}
