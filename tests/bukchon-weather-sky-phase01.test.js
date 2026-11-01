@@ -31,7 +31,7 @@ test('one camera-following sky dome draws feathered cloud wisps without cloud bl
   assert.ok(sky.mesh.geometry.getAttribute('position').count<1000);
   assert.equal(sky.mesh.renderOrder,-1000);
   assert.match(skyFragmentShader,/cloudWisp/);
-  assert.match(skyFragmentShader,/smoothstep\(\.55,1\.50,shape\)/);
+  assert.match(skyFragmentShader,/smoothstep\(\.55,1\.50,length\(d\)\+grain\)/);
   assert.match(skyFragmentShader,/mix\(daylight,nightSky/);
   sky.update(camera,false);
   assert.deepEqual(sky.mesh.position.toArray(),camera.position.toArray());
