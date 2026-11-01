@@ -27,10 +27,14 @@ test('original connector grey plinth has NO coplanar overlapping plaster face',(
   assert.equal(base.length,r.count*2);
   for(let i=0;i<front.length;i++){
     const p=front[i],g=base[i];
-    const low=Math.min(...p.slice(0,4).map(q=>q[1]));
-    const high=Math.max(...g.slice(0,4).map(q=>q[1]));
-    assert.ok(low>=high-1e-6,
-      'coplanar foundation plaster overlap at connector '+i+' '+low+' < '+high);
+    // Both wall endpoints sit at different elevations on the hill.
+    // Compare vertical intervals AT THE SAME ENDPOINT, not the global
+    // low of one sloping quad to the high of another.
+    for(const [upper,lower] of [[p[0],g[3]],[p[1],g[2]]]){
+      assert.ok(Math.abs(upper[1]-lower[1])<1e-6,
+        'two surfaces must touch ONLY along their shared y edge');
+    }
+    assert.ok(p[3][1]>g[0][1]&&p[2][1]>g[1][1]);
   }
   const src=readFileSync(new URL('../src/world/BukchonFrontage.js',import.meta.url),'utf8');
   assert.match(src,/polygon\(plinthF0,plinthF1,topF1,topF0/);
