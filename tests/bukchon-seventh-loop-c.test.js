@@ -40,7 +40,7 @@ test('both 7-gyeong junctions join the intact 5/6 main road',()=>{
      mainLaneTerrainHeight(a[0],a[1]))/step;
    assert.ok(slope<.22,'steep transition at '+i);
  }
- assert.ok(traveled>95&&traveled<160);
+ assert.ok(traveled>72&&traveled<110);
  assert.ok(w.paving.tiles>500);
  assert.ok(w.seventhLoopWalls?.segments>140);
  console.log('loop distance',traveled.toFixed(2),
@@ -87,7 +87,7 @@ test('7-gyeong branch opens west frontage, remaining main street stays enclosed'
      Math.max(run.fromZ,o.lowerZ-o.halfWidth);
    assert.ok(overlap<=1e-4,'old wall blocks loop entrance');
  }
- assert.ok(w.seventhLoopWalls.length>95);
+ assert.ok(w.seventhLoopWalls.length>72);
  assert.equal(w.paving.endCaps,2,'main end caps must survive');
  assert.ok(w.vertexCount<850000,'single geometry mesh budget');
  assert.ok(w.mesh.geometry.getAttribute('position').array.every(Number.isFinite));

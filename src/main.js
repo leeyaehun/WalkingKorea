@@ -85,6 +85,20 @@ function drawMapLanes(){
   marker.appendChild(tooltip);
   root.appendChild(marker);
  }
+ const seventh=paths.find(path=>path.kind==='seventh-loop');
+ if(seventh){
+  const ns='http://www.w3.org/2000/svg';
+  const [x,y]=toMap(-23.4,-28.1);
+  const title=document.createElementNS(ns,'text');
+  title.setAttribute('x',String(x+7));
+  title.setAttribute('y',String(y));
+  title.setAttribute('fill','#734d36');
+  title.setAttribute('font-size','7.2');
+  title.setAttribute('font-weight','700');
+  title.setAttribute('pointer-events','none');
+  title.textContent='북촌 7경';
+  root.appendChild(title);
+ }
 }
 drawMapLanes();
 function mapUpdate(){const spot=$('player-spot');const [px,py]=toMap(state.x,state.z);spot.setAttribute('cx',String(clamp(px,3,167)));spot.setAttribute('cy',String(clamp(py,3,122)));$('discovery-count').textContent=`${discovered.size} / ${locations.length}`;
