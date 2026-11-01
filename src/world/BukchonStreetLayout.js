@@ -15,7 +15,7 @@ export function scenicAmount(z) {
 }
 
 export function mainLaneWidth(z) {
-  // 3.35m at the junctions; a slightly more intimate 2.95m midblock.
+  // A little wider at either end; a slightly more intimate 2.95m midblock.
   return 3.35 - .40*scenicAmount(z);
 }
 
@@ -27,9 +27,9 @@ export function scenicHillLift(z) {
 }
 
 /**
- * Signed side -1 = west, +1 = east (main route runs toward negative Z).
- * Keep an intentional gap on the east near the craft-road junction z~-24,
- * and on the west near the quieter wall-lane junction z~-14.
+ * Signed side -1 = west, +1 = east. Step 01 disables all side routes.
+ * The historic branch openings around z=-24/-14 become two explicitly
+ * tracked unbuilt frontage spans; close them when siting houses in Step 03.
  */
 export const SCENIC_HOUSE_ROWS=[
   {z:-41.2,side:-1,setback:.29,type:100,variant:1},
@@ -37,9 +37,9 @@ export const SCENIC_HOUSE_ROWS=[
   {z:-33.1,side:-1,setback:.22,type:2,variant:2},
   {z:-30.3,side: 1,setback:.52,type:0,variant:3},
   {z:-25.0,side:-1,setback:.38,type:4,variant:3},
-  // East-facing house at -24 intentionally omitted: visible branch entrance.
+  // Empty east frontage around -24: to be closed in Step 03.
   {z:-17.6,side: 1,setback:.39,type:1,variant:4},
-  // West-facing house at -14 intentionally omitted: visible branch entrance.
+  // Empty west frontage around -14: to be closed in Step 03.
   {z:-9.2,side: 1,setback:.34,type:7,variant:1},
   {z:-6.1,side:-1,setback:.33,type:3,variant:1},
 ];
