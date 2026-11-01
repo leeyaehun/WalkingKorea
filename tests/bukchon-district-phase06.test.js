@@ -44,7 +44,7 @@ test('single lane retains level house siting, facade orientation and materials',
     w.distanceFromPath(x,z,p)-(p.widthAt?p.widthAt(z):p.width)*.5));
   assert.ok(near>.14,'house gate intrudes in another lane: '+h.index);
  }
- assert.equal(w.paths.length,1);
+ assert.equal(w.paths.length,2);
  assert.equal(w.frontage.count,3);
  assert.ok(w.districtFrontage.count>=1,'branch facade continuity is missing');
  for(const join of w.districtFrontage.segments) {

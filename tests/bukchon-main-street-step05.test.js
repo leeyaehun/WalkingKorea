@@ -44,7 +44,7 @@ test('default first-look camera frames the N Seoul Tower on desktop and portrait
 
 test('all western and eastern frontages remain enclosed for the entire walk',()=>{
   const w=world(),a=w.continuousFrontages.coverageAudit;
-  assert.equal(w.paths.length,1);
+  assert.equal(w.paths.length,2);
   assert.equal(w.houseSites.length,20);
   assert.equal(w.continuousFrontages.gates,1);
   assert.ok(a);

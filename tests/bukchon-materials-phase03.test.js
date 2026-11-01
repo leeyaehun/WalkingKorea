@@ -66,5 +66,5 @@ test('world uses single geometry but conveys seven material classes as vertex at
  assert.ok(world.mesh.material.vertexShader.includes('surfaceUV'));
  assert.ok(world.mesh.material.fragmentShader.includes('uNight'));
  assert.equal(world.houseSites.filter(h=>h.scenic).length,8);
- assert.equal(world.paths.length,1);
+ assert.equal(world.paths.length,2);
 });

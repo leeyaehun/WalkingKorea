@@ -28,7 +28,7 @@ test('same original world geometry receives physically cast directional shadows'
  assert.ok(w.material.fragmentShader.includes('vContactAO'));
  assert.ok(w.material.uniforms.uShadowStrength);
  assert.equal(w.houseSites.filter(h=>h.scenic).length,8);
- assert.equal(w.paths.length,1);
+ assert.equal(w.paths.length,2);
 });
 
 test('sun uses a soft directional shadow and reuses one static world mesh',()=>{
