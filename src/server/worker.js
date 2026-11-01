@@ -1,4 +1,5 @@
 import {ROOM_CAPACITY,SPAWN,sanitizePose,plausibleStep} from '../multiplayer/protocol.js';
+import {PRIVATE_ROOM_PREFIX,validPrivateRoomToken} from '../multiplayer/PrivateRoomLinks.js';
 
 const PUBLIC_ROOM_LIMIT=256;
 const ROOM_PREFIX='bukchon-public-v1-';
@@ -34,8 +35,10 @@ export class PublicWalkRoom {
       const p=ws.deserializeAttachment();
       return p?{id:p.id,...p.pose}:null;
     }).filter(Boolean);
-    safeSend(server,{type:'welcome',id,room:new URL(request.url).searchParams.get('slot'),
-      capacity:ROOM_CAPACITY,players});
+    const url=new URL(request.url);
+    const privateRoom=url.searchParams.has('room');
+    safeSend(server,{type:'welcome',id,room:privateRoom?null:url.searchParams.get('slot'),
+      mode:privateRoom?'private':'public',capacity:ROOM_CAPACITY,players});
     for(const ws of others)
       safeSend(ws,{type:'enter',player:{id,...SPAWN}});
     this.broadcastCount();
@@ -78,6 +81,17 @@ export class PublicWalkRoom {
 export default {
   async fetch(request,env){
     const url=new URL(request.url);
+    // The server issues unguessable invitation tokens. Creating a link is
+    // cheap: a room Durable Object is instantiated only when someone joins.
+    // Require same-origin POST so other websites cannot mint invites.
+    if(url.pathname==='/api/walk/private/create'){
+      if(request.method!=='POST')return jsonError('method_not_allowed',405);
+      if(request.headers.get('Origin')!==url.origin)
+        return jsonError('invalid_origin',403);
+      return Response.json({room:crypto.randomUUID(),capacity:ROOM_CAPACITY},{
+        headers:{'Cache-Control':'no-store','Referrer-Policy':'no-referrer'}
+      });
+    }
     if(url.pathname!=='/api/walk/join')
       return env.ASSETS.fetch(request);
     if(request.method!=='GET')return jsonError('method_not_allowed',405);
@@ -85,6 +99,16 @@ export default {
       return jsonError('websocket_required',426);
     const origin=request.headers.get('Origin');
     if(origin&&origin!==url.origin)return jsonError('invalid_origin',403);
+    const privateToken=url.searchParams.get('room');
+    if(privateToken!==null){
+      if(!validPrivateRoomToken(privateToken))
+        return jsonError('invalid_invite',400);
+      const id=env.PUBLIC_WALK_ROOMS.idFromName(PRIVATE_ROOM_PREFIX+privateToken);
+      const stub=env.PUBLIC_WALK_ROOMS.get(id);
+      // Capacity is checked inside the private room and NEVER falls back
+      // to a public room. Invite-only participants cannot be auto-mixed.
+      return stub.fetch(new Request(url,request));
+    }
     // First available public room is preferred; DOs are instantiated only
     // when requested. Room admission itself is atomic and rechecked in DO.
     for(let slot=0;slot<PUBLIC_ROOM_LIMIT;slot++){

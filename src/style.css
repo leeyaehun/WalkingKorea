@@ -88,3 +88,22 @@ body.playing .left-label{opacity:0;transform:translateY(-8px);transition:opacity
 @media(max-width:450px){
   .brand-lines span.room-status {display:block;font-size:9px;margin-top:1px;}
 }
+
+
+/* Multiplayer phase 02 — compact invite buttons, no chat surface. */
+[hidden]{display:none!important}
+.start-button:disabled{opacity:.46;cursor:not-allowed}
+.invite-create{display:block;width:100%;margin-top:10px;padding:12px 16px;border:1px solid #cbd1c3;background:#f4f5eb;color:#405c49;border-radius:14px;font-size:12px;font-weight:700}
+.invite-create:hover:not(:disabled){background:#e8efdf}
+.invite-create:disabled,.modal-action:disabled{opacity:.48;cursor:progress}
+.invite-intro-note{margin:10px 0 0!important;font-size:11px!important;color:#5c7966!important;line-height:1.6!important}
+.invite-intro-actions{display:flex;justify-content:center;gap:9px;flex-wrap:wrap;margin-top:8px}
+.invite-mini,.room-secondary{background:#f0efe6;border:1px solid #dad9cd;border-radius:12px;color:#526052;padding:10px 12px;font-size:11px;font-weight:700}
+.invite-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:12px}
+.invite-actions .modal-action{margin-top:0}
+.invite-url{width:100%;padding:12px;border-radius:11px;border:1px solid #d8d8cb;background:#f5f4eb;color:#4c574d;font-size:12px;user-select:all}
+@media(max-width:450px){.intro-card{max-height:91dvh;overflow-y:auto}.invite-create{padding:10px 12px;font-size:11px}.invite-mini{padding:8px 10px}}
+
+/* Keep the start CTA label readable after adding the separate arrow span. */
+.start-button #start-button-label{font-size:14px;line-height:1.2;letter-spacing:-.015em;text-align:left}
+@media(max-width:450px){.start-button #start-button-label{font-size:13px}}

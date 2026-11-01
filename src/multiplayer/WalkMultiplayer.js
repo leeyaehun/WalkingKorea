@@ -1,18 +1,21 @@
 import {createGirlSpriteCompanion} from '../characters/GirlSprite.js';
 import {SEND_INTERVAL_MS} from './protocol.js';
+import {validPrivateRoomToken} from './PrivateRoomLinks.js';
 
 const MAX_RETRY_MS=20000;
 const SMOOTHING=11;
 const SNAP_DISTANCE=8;
 
-export function createWalkMultiplayer({scene,hill,camera,onStatus}) {
+export function createWalkMultiplayer({scene,hill,camera,onStatus,initialRoomToken=null}) {
   let socket=null,connected=false,started=false,localId=null,room=null;
   let reconnectDelay=1200,retry=null,lastSent=-Infinity,lastCount=1;
+  let roomToken=validPrivateRoomToken(initialRoomToken)?initialRoomToken:null;
   const peers=new Map();
   const setStatus=(message)=>onStatus?.(message);
   const websocketUrl=()=>{
     const protocol=location.protocol==='https:'?'wss:':'ws:';
-    return protocol+'//'+location.host+'/api/walk/join';
+    const base=protocol+'//'+location.host+'/api/walk/join';
+    return roomToken?base+'?room='+encodeURIComponent(roomToken):base;
   };
   function removePeer(id){
     const peer=peers.get(id);
@@ -42,7 +45,7 @@ export function createWalkMultiplayer({scene,hill,camera,onStatus}) {
   }
   function connectionLost(){
     connected=false;localId=null;room=null;lastCount=1;clearPeers();
-    setStatus('혼자 산책 중 · 재연결 중');
+    setStatus(roomToken?'비공개 방 연결 끊김 · 재시도 중':'혼자 산책 중 · 재연결 중');
     if(!started||retry)return;
     const delay=reconnectDelay;
     reconnectDelay=Math.min(MAX_RETRY_MS,reconnectDelay*1.7);
@@ -51,7 +54,7 @@ export function createWalkMultiplayer({scene,hill,camera,onStatus}) {
   function connect(){
     if(!started||socket&&(socket.readyState===WebSocket.CONNECTING||
       socket.readyState===WebSocket.OPEN))return;
-    setStatus('산책방 연결 중…');
+    setStatus(roomToken?'비공개 방 연결 중…':'산책방 연결 중…');
     const ws=new WebSocket(websocketUrl());
     socket=ws;
     ws.onopen=()=>{lastSent=-Infinity;};
@@ -63,10 +66,12 @@ export function createWalkMultiplayer({scene,hill,camera,onStatus}) {
         case 'welcome':
           if(typeof data.id!=='string'||!Array.isArray(data.players))return;
           localId=data.id;
-          room=Number(data.room)||1;connected=true;reconnectDelay=1200;
+          if(roomToken && data.mode!=='private')return;
+          if(!roomToken && data.mode==='private')return;
+          room=roomToken?null:Number(data.room)||1;connected=true;reconnectDelay=1200;
           clearPeers();
           for(const p of data.players)onPlayer(p);
-          setStatus('산책방 '+room+' · '+(peers.size+1)+'/8명');
+          setStatus((roomToken?'비공개 방':'산책방 '+room)+' · '+(peers.size+1)+'/8명');
           break;
         case 'enter':onPlayer(data.player);break;
         case 'pose':onPlayer(data);break;
@@ -74,7 +79,7 @@ export function createWalkMultiplayer({scene,hill,camera,onStatus}) {
         case 'count':
           if(Number.isInteger(data.count)&&data.count>=1&&data.count<=8){
             lastCount=data.count;
-            if(connected)setStatus('산책방 '+room+' · '+data.count+'/8명');
+            if(connected)setStatus((roomToken?'비공개 방':'산책방 '+room)+' · '+data.count+'/8명');
           }
           break;
         default:break;
@@ -89,6 +94,21 @@ export function createWalkMultiplayer({scene,hill,camera,onStatus}) {
   function start(){
     if(started)return;
     started=true;connect();
+  }
+  // Switching rooms is explicit: never fall back from a private invite to
+  // a public room after a failed upgrade, timeout or full room.
+  function switchRoom(nextToken=null){
+    if(nextToken!==null&&!validPrivateRoomToken(nextToken))
+      throw new TypeError('Invalid invite token');
+    if(roomToken===nextToken)return;
+    roomToken=nextToken;
+    if(retry){clearTimeout(retry);retry=null;}
+    const old=socket;socket=null;
+    old?.close(1000,'room change');
+    connected=false;localId=null;room=null;lastCount=1;clearPeers();
+    reconnectDelay=1200;lastSent=-Infinity;
+    if(started)connect();
+    else setStatus(roomToken?'비공개 산책방 대기':'공개 산책방 대기');
   }
   function update({x,z,vx,vz,dt,elapsed,walking}){
     const now=performance.now();
@@ -121,7 +141,8 @@ export function createWalkMultiplayer({scene,hill,camera,onStatus}) {
     socket?.close(1000,'leaving');socket=null;
     connected=false;clearPeers();
   }
-  return {start,update,stop,getStatus:()=>({
-    connected,room,count:lastCount,visiblePeers:peers.size
+  return {start,update,stop,switchRoom,getStatus:()=>({
+    connected,room,mode:roomToken?'private':'public',
+    count:lastCount,visiblePeers:peers.size
   })};
 }

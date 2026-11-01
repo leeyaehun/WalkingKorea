@@ -3,6 +3,7 @@ import { createBukchonWorld } from './world/BukchonWorld.js';
 import { MAIN_STREET_DISCOVERIES, DEFAULT_MAIN_STREET_PITCH } from './world/BukchonMainStreet.js';
 import { createGirlSpriteCompanion } from './characters/GirlSprite.js';
 import { createWalkMultiplayer } from './multiplayer/WalkMultiplayer.js';
+import {validPrivateRoomToken,makePrivateInviteUrl} from './multiplayer/PrivateRoomLinks.js';
 import { createThirdPersonCamera } from './controllers/ThirdPersonCamera.js';
 import { cameraRelativeDirection } from './controllers/MovementDirections.js';
 import { createBukchonLighting } from './world/BukchonLighting.js';
@@ -38,8 +39,11 @@ const nightLights=createBukchonNightLights({
 });
 // Single playable character — the illustrated female Seoul walker.
 const girl=createGirlSpriteCompanion(scene,hill,camera);
-// Public stroll rooms only. No messages, voice or private invite rooms in phase 01.
-const multiplayer=createWalkMultiplayer({scene,hill,camera,onStatus:label=>{
+// Private invitations are bearer links; invalid links never auto-join public.
+const inviteParam=new URLSearchParams(location.search).get('room');
+let inviteToken=validPrivateRoomToken(inviteParam)?inviteParam:null;
+let invalidInvite=inviteParam!==null&&!inviteToken;
+const multiplayer=createWalkMultiplayer({scene,hill,camera,initialRoomToken:inviteToken,onStatus:label=>{
   const el=$('room-status');if(el)el.textContent=label;
 }});
 
@@ -92,6 +96,83 @@ function toast(msg,ms=3000){$('toast').textContent=msg;$('toast').classList.add(
 function modal(title,body,kicker='SEOUL STROLL'){state.modal=true;$('modal-content').innerHTML=`<span class="modal-kicker">${kicker}</span><h2 id="modal-title">${title}</h2>${body}`;$('modal').classList.add('visible');$('modal').setAttribute('aria-hidden','false');document.exitPointerLock?.();}
 function closeModal(){state.modal=false;$('modal').classList.remove('visible');$('modal').setAttribute('aria-hidden','true');}
 $('modal-close').onclick=closeModal;$('modal').addEventListener('click',e=>{if(e.target===$('modal'))closeModal();});
+
+// Phase 02: the invite link grants access; never list private rooms or chat.
+function refreshInviteControls(){
+  $('start-button-label').textContent=inviteToken?'비공개 방에서 산책하기':'산책 시작하기';
+  $('start-btn').disabled=invalidInvite;
+  $('invite-intro-note').hidden=!(inviteToken||invalidInvite);
+  $('invite-intro-note').textContent=invalidInvite
+    ?'초대 링크 형식이 올바르지 않아요. 공개 방으로 돌아가거나 새 방을 만들어 주세요.'
+    :inviteToken?'비공개 초대방이에요. 링크를 받은 친구만 같은 골목에 들어올 수 있어요.':'';
+  $('intro-copy-invite').hidden=!inviteToken;
+  $('intro-public-room').hidden=!(inviteToken||invalidInvite);
+  $('room-menu-btn').title=inviteToken?'비공개 방 초대 및 전환':'친구와 산책방 만들기';
+  if(!state.started)$('room-status').textContent=invalidInvite?'잘못된 초대 링크':
+    inviteToken?'비공개 산책방 대기':'공개 산책방 대기';
+}
+function selectRoom(token=null){
+  if(token!==null&&!validPrivateRoomToken(token))throw new TypeError('Invalid private room');
+  const url=new URL(location.href);
+  if(token)url.searchParams.set('room',token);
+  else url.searchParams.delete('room');
+  history.replaceState(null,'',url.pathname+url.search+url.hash);
+  inviteToken=token;invalidInvite=false;
+  multiplayer.switchRoom(token);
+  refreshInviteControls();
+}
+async function copyInviteLink(){
+  if(!inviteToken)return;
+  const link=makePrivateInviteUrl(location.href,inviteToken);
+  try{
+    await navigator.clipboard.writeText(link);
+    toast('초대 링크를 복사했어요. 친구에게 보내 주세요.');
+  }catch{
+    const input=$('modal-invite-link');
+    if(input){input.focus();input.select();}
+    else window.prompt('이 링크를 복사해 친구에게 보내세요',link);
+    toast('초대 링크를 선택해 복사해 주세요.');
+  }
+}
+function openRoomMenu(){
+  modal('함께 산책하는 방',inviteToken
+    ?'<p>친구에게 아래 링크를 공유하면 같은 비공개 산책방에서 만날 수 있어요. 최대 8명까지 입장 가능해요.</p><input id="modal-invite-link" class="invite-url" readonly aria-label="친구 초대 링크"><div class="invite-actions"><button id="modal-copy-invite" class="modal-action" type="button">초대 링크 복사</button><button id="modal-public-room" class="room-secondary" type="button">공개 방으로 돌아가기</button></div><p class="small-note">링크를 아는 사람은 입장할 수 있어요. 모르는 사람에게 링크를 공유하지 마세요.</p>'
+    :'<p>공개 산책방에서는 다른 방문객과 만나요. 친구와 조용히 걷고 싶다면 초대 링크가 있는 비공개 방을 만들어 보세요.</p><div class="invite-actions"><button id="modal-create-private" class="modal-action" type="button">비공개 방 만들기</button></div><p class="small-note">각 방은 최대 8명이며 문자나 음성 메시지 기능은 없어요.</p>',
+    'WALK TOGETHER');
+  if(inviteToken){
+    $('modal-invite-link').value=makePrivateInviteUrl(location.href,inviteToken);
+    $('modal-copy-invite').onclick=copyInviteLink;
+    $('modal-public-room').onclick=()=>{
+      selectRoom(null);closeModal();toast('공개 산책방으로 돌아왔어요.');
+    };
+  }else $('modal-create-private').onclick=createPrivateRoom;
+}
+async function createPrivateRoom(){
+  const buttons=[$('private-create-btn'),$('modal-create-private')].filter(Boolean);
+  buttons.forEach(b=>b.disabled=true);
+  try{
+    const response=await fetch('/api/walk/private/create',{
+      method:'POST',headers:{'Content-Type':'application/json'},cache:'no-store'
+    });
+    if(!response.ok)throw new Error('Create failed: '+response.status);
+    const body=await response.json();
+    if(!validPrivateRoomToken(body.room))throw new Error('Invalid server invite token');
+    selectRoom(body.room);
+    openRoomMenu();
+    toast('비공개 방을 만들었어요. 초대 링크를 복사해 보세요.');
+  }catch(error){
+    console.warn('Private stroll room could not be created:',error);
+    toast('비공개 방을 만들지 못했어요. 다시 시도해 주세요.',4500);
+  }finally{buttons.forEach(b=>{if(b.isConnected)b.disabled=false;});}
+}
+$('private-create-btn').onclick=createPrivateRoom;
+$('intro-copy-invite').onclick=copyInviteLink;
+$('intro-public-room').onclick=()=>{
+  selectRoom(null);toast('공개 산책방을 선택했어요.');
+};
+$('room-menu-btn').onclick=openRoomMenu;
+refreshInviteControls();
+
 function showHelp(){modal('여자 캐릭터로 서울을 걸어요',`<p>2.5D 여성 산책자가 되어 서울 골목을 천천히 걸어봐요. 카메라는 뒤에서 따라오고, 시간 제한은 없어요.</p><ul><li><b>W A S D / 방향키</b> — 산책자 이동 (카메라 방향 기준)</li><li><b>마우스 드래그</b> — 주변 시점 회전</li><li><b>화면 클릭</b> — 포인터 고정 (ESC 해제)</li><li><b>SHIFT</b> — 조금 더 빠르게 걷기</li><li><b>E</b> — 가까운 장소 둘러보기</li><li><b>N</b> — 낮 / 저녁 변경</li><li><b>P</b> — 현재 화면 사진 저장</li><li><b>모바일</b> — 왼쪽 패드로 이동, 오른쪽 화면을 밀어 시점 회전</li></ul><p class="small-note">북촌에서 영감을 얻어 새롭게 구성한 가상 골목이야. 실제 주택과 주소를 정확하게 재현한 지도가 아니야.</p>`,'HOW TO WALK');}
 $('help-btn').onclick=showHelp;
 function showPostcards(){modal('발견한 골목 이야기',`<p>산책하다 발견한 장소는 여기 기록돼요. 가까이에서 <b>E</b>를 누르면 골목에 숨은 이야기를 볼 수 있어요.</p><div class="place-list">${locations.map((p,i)=>`<div class="place-chip ${discovered.has(p.id)?'found':''}">${discovered.has(p.id)?'✳ '+p.name:'○ 아직 발견하지 못한 곳 '+(i+1)}</div>`).join('')}</div><p class="small-note">기록은 현재 브라우저에만 저장돼요. 로그인이나 서버 계정은 없어.</p>`,'YOUR LITTLE MEMORIES');}
