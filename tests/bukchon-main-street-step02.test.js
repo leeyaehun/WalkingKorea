@@ -57,7 +57,7 @@ test('street width has a smooth human-scale narrow section, shared by collision 
     assert.ok(Math.abs(w-mainLaneWidth(z+.02))<.005,'no curb width jump');
   }
   const w=makeWorld();
-  assert.equal(w.paths.length,1);
+  assert.equal(w.paths.length,2);
   for(let z=-43;z<=54;z+=3){
     const sample=sampleMainLaneAtZ(w.paths[0].samples,z);
     assert.ok(sample,'missing road at '+z);

@@ -83,7 +83,7 @@ test('night shadow sampling is skipped, light falloff avoids per-pixel square ro
  assert.match(shader,/col\+=glow\*uNight/);
  assert.ok(world.vertexCount<850000);
  assert.equal(world.houseSites.length,20);
- assert.equal(world.paths.length,1);
+ assert.equal(world.paths.length,2);
  assert.equal(world.skyline.buildings,39);
  assert.equal(world.nightFixtures.fixtures.length,23);
  assert.equal('planters' in world.streetLife.counts,false);

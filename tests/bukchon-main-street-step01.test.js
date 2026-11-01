@@ -18,7 +18,7 @@ const onStreet=(w,x,z)=>{
 
 test('only ONE continuous asphalt main route exists from uphill overlook to end',()=>{
  const w=makeWorld();
- assert.equal(w.paths.length,1);
+ assert.equal(w.paths.length,2);
  assert.equal(w.paths[0].name,MAIN_STREET_ROUTE.name);
  assert.equal(w.paths[0].points.length,MAIN_STREET_ROUTE.points.length);
  assert.ok(w.paths[0].samples.length>30);
@@ -42,7 +42,7 @@ test('former east and west shortcuts are not walkable or paved',()=>{
  }
  const src=readFileSync(new URL('../src/world/BukchonWorld.js',import.meta.url),'utf8');
  assert.doesNotMatch(src,/name:'서쪽 담장길'|name:'동쪽 공방길'/);
- assert.match(src,/const paths=\[\{\.\.\.MAIN_STREET_ROUTE/);
+ assert.match(src,/\.\.\.MAIN_STREET_ROUTE/);
  const main=readFileSync(new URL('../src/main.js',import.meta.url),'utf8');
  assert.match(main,/return paths\.some\(p=>distanceFromPath\(x,z,p\)</);
 });

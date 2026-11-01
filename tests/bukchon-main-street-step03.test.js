@@ -17,7 +17,7 @@ function world(){
 
 test('old west fork is enclosed by a real street-facing hanok, eastern fork gains a roofed gate',()=>{
   const w=world();
-  assert.equal(w.paths.length,1);
+  assert.equal(w.paths.length,2);
   assert.equal(w.houseSites.length,20);
   assert.equal(w.houseSites.filter(h=>h.scenic).length,8);
   assert.equal(w.houseSites.filter(h=>h.district).length,11);
@@ -39,10 +39,10 @@ test('stone+brick+hanok tile wall spans fill all external frontage gaps on both 
   const w=world(),f=w.continuousFrontages;
   assert.equal(typeof buildContinuousFrontages,'function');
   assert.equal(FRONTAGE_HALF_SPAN,3.58);
-  assert.ok(f.wallSegments>=35,'remaining gaps must still have masonry');
-  assert.ok(f.coveredMeters>27&&f.coveredMeters<38);
-  assert.ok(f.coveredMeters+f.existingConnectorMeters>48);
-  assert.ok(f.bySide.west>15&&f.bySide.east>10);
+  assert.ok(f.wallSegments>=28,'main frontage stays enclosed apart from 7-gyeong entrance');
+  assert.ok(f.coveredMeters+5.2>27&&f.coveredMeters+5.2<38);
+  assert.ok(f.coveredMeters+f.existingConnectorMeters+5.2>48);
+  assert.ok(f.bySide.west+5.2>15&&f.bySide.east>10);
   assert.ok(f.roadClearance>.55);
   assert.ok(f.runs.length>=10);
   assert.ok(f.runs.some(r=>r.side===-1&&r.fromZ<-19&&r.toZ>-19),

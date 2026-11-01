@@ -18,13 +18,13 @@ const GAP_PADDING=.12;
 const min=Math.min,max=Math.max;
 
 export function buildContinuousFrontages({
-  path,houses,hill,face,box,distanceFromPath,existingConnectors=[]
+  path,houses,hill,face,box,distanceFromPath,existingConnectors=[],openings=[]
 }){
   const fromZ=path.points.at(-1)[1],toZ=path.points[0][1];
   const summary={wallSegments:0,coveredMeters:0,bySide:{west:0,east:0},
     pillars:0,gates:0,gatePositions:[],runs:[],roadClearance:Infinity,
     existingConnectorMeters:existingConnectors.reduce((n,s)=>n+s.length,0),
-    reservedConnectorSpans:[]};
+    reservedConnectorSpans:[],openings:openings.map(o=>({...o}))};
   const sample=(z,side)=>{
     const lane=sampleMainLaneAtZ(path.samples,z);
     if(!lane)throw new Error('No main street center at '+z);
@@ -124,6 +124,11 @@ export function buildContinuousFrontages({
                 end:min(toZ,(h.laneZ??h.z)+FRONTAGE_HALF_SPAN)}));
     if(side===GAP_GATE.side)spans.push({begin:GAP_GATE.z-GAP_GATE.halfWidth,
       end:GAP_GATE.z+GAP_GATE.halfWidth});
+    // Leave open a real west-side crossing instead of sealing it with the
+    // old continuous stone wall; the loop bends out to this entrance.
+    for(const opening of openings.filter(o=>o.side===side))
+      spans.push({begin:opening.lowerZ-opening.halfWidth,
+        end:opening.lowerZ+opening.halfWidth});
     // Step 04: Original short connecting stone walls are ALREADY present
     // in the shared mesh. In Step 03 we added a second wall over precisely
     // those spans, causing depth-buffer flickering in grey foundations.
@@ -173,7 +178,10 @@ export function buildContinuousFrontages({
         ...(side===GAP_GATE.side?[{
           begin:GAP_GATE.z-GAP_GATE.halfWidth,
           end:GAP_GATE.z+GAP_GATE.halfWidth
-        }]:[])
+        }]:[]),
+        ...openings.filter(o=>o.side===side).map(o=>({
+          begin:o.lowerZ-o.halfWidth,end:o.lowerZ+o.halfWidth
+        }))
       ].filter(s=>s.end>s.begin).sort((a,b)=>a.begin-b.begin);
       let end=fromZ;
       for(const span of occupied){

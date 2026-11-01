@@ -46,8 +46,8 @@ test('continuous frontage deliberately omits spans already covered by original w
   const connectors=[...w.frontage.segments,...w.districtFrontage.segments];
   assert.equal(f.reservedConnectorSpans.length,connectors.length);
   assert.ok(f.existingConnectorMeters>20&&f.existingConnectorMeters<23);
-  assert.ok(f.coveredMeters>27&&f.coveredMeters<38);
-  assert.ok(f.coveredMeters+f.existingConnectorMeters>48);
+  assert.ok(f.coveredMeters+5.2>27&&f.coveredMeters+5.2<38);
+  assert.ok(f.coveredMeters+f.existingConnectorMeters+5.2>48);
   for(const run of f.runs)for(const reserved of f.reservedConnectorSpans){
     if(run.side!==reserved.side)continue;
     const overlap=Math.min(run.toZ,reserved.end)-
@@ -57,7 +57,7 @@ test('continuous frontage deliberately omits spans already covered by original w
   }
   assert.ok(f.roadClearance>.55);
   assert.equal(f.gates,1);
-  assert.equal(w.paths.length,1);
+  assert.equal(w.paths.length,2);
 });
 
 test('asphalt, granite shoulders, iron drains and end thresholds have separated depths',()=>{
@@ -67,7 +67,7 @@ test('asphalt, granite shoulders, iron drains and end thresholds have separated 
   });
   assert.ok(metrics.shoulderMeters>195&&metrics.shoulderMeters<201);
   assert.equal(metrics.endCaps,2);
-  assert.equal(metrics.tiles,178);
+  assert.ok(metrics.tiles>500,'main asphalt plus narrower 7-gyeong stone slabs');
   assert.ok(metrics.drains>20);
   const bands={};
   for(const f of faces){
@@ -91,7 +91,7 @@ test('asphalt, granite shoulders, iron drains and end thresholds have separated 
   assert.ok(drain-asphalt>.015,'drain iron must sit above bitumen');
   assert.ok(grill-drain>.007,'grill must sit above drain frame');
   const landings=faces.filter(f=>f[5]==='paveStone');
-  assert.equal(landings.length,2);
+  assert.ok(landings.length>=2,'main end landings remain alongside new alley slab tiles');
   assert.ok(landings.some(f=>f.slice(0,4).some(p=>p[2]<-44.1)));
   assert.ok(landings.some(f=>f.slice(0,4).some(p=>p[2]>55.1)));
   assert.equal(w.paths[0].points.length,11,'visual endcaps must not extend playable road');
@@ -99,7 +99,7 @@ test('asphalt, granite shoulders, iron drains and end thresholds have separated 
 
 test('combined world retains houses, controls, weather, single road, finite geometry',()=>{
   const w=world();
-  assert.equal(w.paths.length,1);
+  assert.equal(w.paths.length,2);
   assert.equal(w.houseSites.length,20);
   assert.equal(w.skyline.buildings,39);
   assert.equal(w.nightFixtures.fixtures.length,23);

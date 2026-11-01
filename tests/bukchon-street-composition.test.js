@@ -44,7 +44,7 @@ test('eight hand-placed hanoks frame the first 40m without overlapping',()=>{
  const scenic=world.houseSites.filter(s=>s.scenic);
  assert.equal(scenic.length,8);
  assert.ok(world.houseSites.length>scenic.length);
- assert.equal(world.paths.length,1);
+ assert.equal(world.paths.length,2);
  for(const house of scenic) {
   assert.ok(house.roadWidth>=2.95 && house.roadWidth<=3.35);
   assert.ok(Number.isFinite(house.angle));
