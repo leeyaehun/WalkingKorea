@@ -191,12 +191,13 @@ function rod(ax,ay,az,bx,by,bz,r,col){ // diagonal beam with a flat rotated vert
   const up=[-dy/L*r,dx/L*r,0];
   face([ax-up[0],ay-up[1],az-r],[bx-up[0],by-up[1],bz-r],[bx+up[0],by+up[1],bz+r],[ax+up[0],ay+up[1],az+r],[0,0,1],col);
 }
-// BUKCHON 01: small winding lanes and uphill views, not a georeferenced map.
-// Paths are real geometry and also define collision and the minimap.
+// Bukchon ONE-WAYLINE Step 01: one continuous main walkable alley.
+// This is still a stylized route, not yet a surveyed Bukchonro 11-gil trace.
+// No fork paving, branch houses, or hidden alternative navigation paths.
 const paths=[
- {name:'가회동 오르막',width:3.35,points:[[0,55],[0,43],[-1,35],[.5,25],[-1.5,15],[-5.5,6],[-5,-3],[-2.6,-14],[-2.7,-24],[-2.9,-34],[-3,-44]]},
- {name:'서쪽 담장길',width:2.75,points:[[-5.5,6],[-12,5],[-19,2],[-25,-5],[-24,-12],[-18,-18],[-9,-16],[-2.6,-14]]},
- {name:'동쪽 공방길',width:2.8,points:[[.5,25],[9,23],[16,16],[17,7],[12,-2],[17,-10],[19,-17],[10,-24],[-2.7,-24]]}
+ {name:'북촌로11길 메인 골목 (구성 중)',width:3.35,
+  points:[[0,55],[0,43],[-1,35],[.5,25],[-1.5,15],[-5.5,6],
+          [-5,-3],[-2.6,-14],[-2.7,-24],[-2.9,-34],[-3,-44]]}
 ];
 // Smooth the hard turnpoints without opening a wide automotive street.
 function softened(points){let p=points.map(q=>q.slice());for(let pass=0;pass<2;pass++){
@@ -224,7 +225,7 @@ function courtyard(type,detailVariant=0,profile='hero'){return hanokKit.build(ty
 const houseSites=[];
 function housesOnShowcase(){
  // Eight level-sited homes create staggered, close-set roof silhouettes.
- // Junctions at z~-14 (west) and -24 (east) stay clear.
+ // Legacy side junction gaps are deliberately left for Step 03 facade fill.
  for(const site of scenicHouseSites(paths[0].samples)){
   let archetype='gate';
   withFrame(site.x,site.z,site.angle,()=>{
@@ -288,14 +289,8 @@ function housesAlong(path,pIndex){
  }
 }
 function laneDecoration(){
- // Retaining walls at selected bends remain; remove all synthetic trees,
- // foliage spheres and green roadside objects from the entire village.
- for(const [x,z,angle] of [[-10,6,.7],[-19,-6,.5],[8,22,-.7],[14,-20,.9]]){
-  withFrame(x,z,angle,()=>{
-   box(0,.65,0,3.4,1.15,.36,'plaster');
-   box(0,1.25,0,3.5,.2,.5,'tileDark');
-  },{level:true});
- }
+ // Stage 01: remove detached retaining walls formerly marking the two
+ // side roads. The sole route stays paved; facade-gap closure is Step 03.
 }
 
 let namsanStats=null;
@@ -320,7 +315,8 @@ let nightFixtures=null;
 function makeWorld(){
  routeFloor();
  housesOnShowcase();
- paths.forEach((p,i)=>housesAlong(p,i));
+ // Only the main-alley housing line remains; side-route buildings are removed.
+ housesAlong(paths[0],0);
  frontage=buildFrontageConnectors({houses:houseSites,face,hill,distanceFromPath,mainPath:paths[0]});
  districtFrontage=buildFrontageConnectors({
    houses:houseSites,face,hill,distanceFromPath,mainPath:paths[0],
