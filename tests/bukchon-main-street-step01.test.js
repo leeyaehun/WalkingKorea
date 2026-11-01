@@ -67,11 +67,11 @@ test('scenic houses retained; off-route houses and their lanterns removed',()=>{
  const w=makeWorld();
  assert.equal(w.houseSites.filter(h=>h.scenic).length,8);
  assert.equal(w.houseSites.filter(h=>h.district).length,11);
- assert.equal(w.houseSites.length,19);
+ assert.equal(w.houseSites.length,20);
  assert.ok(w.houseSites.every(h=>!h.district||h.routeIndex===0));
- assert.equal(w.nightFixtures.stats.hanokSconces,19);
+ assert.equal(w.nightFixtures.stats.hanokSconces,20);
  assert.equal(w.nightFixtures.stats.streetLamps,3);
- assert.equal(w.nightFixtures.fixtures.length,22);
+ assert.equal(w.nightFixtures.fixtures.length,23);
  assert.equal(w.skyline.buildings,39);
  assert.ok(w.namsan.topY>100);
  assert.equal('planters' in w.streetLife.counts,false);

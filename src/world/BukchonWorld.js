@@ -1,8 +1,9 @@
 import { createHanokKit } from './HanokKit.js';
 import { buildPavedAlleys } from './BukchonPaving.js';
-import {mainLaneWidth,mainLaneTerrainHeight,smoothMainLane,scenicHouseSites} from './BukchonStreetLayout.js';
+import {mainLaneWidth,mainLaneTerrainHeight,smoothMainLane,scenicHouseSites,sampleMainLaneAtZ} from './BukchonStreetLayout.js';
 import {MAIN_STREET_ROUTE} from './BukchonMainStreet.js';
 import {buildFrontageConnectors} from './BukchonFrontage.js';
+import {buildContinuousFrontages} from './BukchonContinuousFrontage.js';
 import {buildBukchonStreetLife} from './BukchonStreetLife.js';
 import {buildNamsanLandmark} from './NamsanLandmark.js';
 import {buildSeoulSkyline} from './SeoulSkyline.js';
@@ -283,6 +284,34 @@ function housesAlong(path,pIndex){
   }
  }
 }
+function buildGapHanok(){
+ // The former west branch at z≈-14 was an exposed lot between rooflines.
+ // A real modest hanok, not a disconnected wall or flat background image,
+ // breaks up the long gap and keeps the visible historic street rhythm.
+ const rowZ=-15.15,side=-1;
+ const lane=sampleMainLaneAtZ(paths[0].samples,rowZ);
+ if(!lane)throw new Error('Missing west gap in the main alley');
+ const setback=4.60+mainLaneWidth(rowZ)*.5+.34;
+ const x=lane.x+lane.nx*side*setback,z=lane.z+lane.nz*side*setback;
+ const angle=Math.atan2(-lane.nx*side,lane.nz*side);
+ const tooClose=houseSites.some(h=>Math.hypot(h.x-x,h.z-z)<8.1);
+ if(tooClose)throw new Error('New west gap house overlaps an existing hanok');
+ const gateX=x+Math.sin(angle)*4.6,gateZ=z-Math.cos(angle)*4.6;
+ if(distanceFromPath(gateX,gateZ,paths[0])<mainLaneWidth(gateZ)*.5+.28)
+   throw new Error('New gap hanok projects into the walking street');
+ let archetype='gate';
+ withFrame(x,z,angle,()=>{
+   box(0,-.155,0,7.35,.32,8.55,'stoneFoundation');
+   box(0,-.016,-4.22,7.35,.10,.23,'stoneLight');
+   archetype=courtyard(1,3,'district');
+ },{level:true});
+ const site={index:houseSites.length,x,z,angle,archetype,
+   type:1,detailVariant:3,decorated:true,scenic:false,
+   district:false,infill:true,side,laneZ:rowZ,
+   roadWidth:mainLaneWidth(rowZ)};
+ houseSites.push(site);
+ return site;
+}
 function laneDecoration(){
  // Stage 01: remove detached retaining walls formerly marking the two
  // side roads. The sole route stays paved; facade-gap closure is Step 03.
@@ -305,6 +334,7 @@ function hillsideBackground(){
 }
 let frontage={count:0,segments:[]};
 let districtFrontage={count:0,segments:[]};
+let continuousFrontages=null;
 let streetLife=null;
 let nightFixtures=null;
 function makeWorld(){
@@ -312,10 +342,17 @@ function makeWorld(){
  housesOnShowcase();
  // Only the main-alley housing line remains; side-route buildings are removed.
  housesAlong(paths[0],0);
+ buildGapHanok();
+ // The old short-gap connectors remain for small existing house joints.
+ // The separate continuous pass fills the actual bare plots and creates
+ // the roofed east gate without ever opening an alternative walking road.
  frontage=buildFrontageConnectors({houses:houseSites,face,hill,distanceFromPath,mainPath:paths[0]});
  districtFrontage=buildFrontageConnectors({
    houses:houseSites,face,hill,distanceFromPath,mainPath:paths[0],
    paths,district:true
+ });
+ continuousFrontages=buildContinuousFrontages({
+   path:paths[0],houses:houseSites,hill,face,box,distanceFromPath
  });
  nightFixtures=buildBukchonNightFixtures({
    houseSites,paths,hill,withFrame,box,cylinder,sphere,distanceFromPath
@@ -484,5 +521,5 @@ makeWorld();
   });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.frustumCulled = false;
-  return {mesh,material,paths,hill,distanceFromPath,houseSites,frontage,districtFrontage,streetLife,nightFixtures,namsan:namsanStats,skyline:skylineStats,paving,vertexCount:positions.length/3};
+  return {mesh,material,paths,hill,distanceFromPath,houseSites,frontage,districtFrontage,continuousFrontages,streetLife,nightFixtures,namsan:namsanStats,skyline:skylineStats,paving,vertexCount:positions.length/3};
 }

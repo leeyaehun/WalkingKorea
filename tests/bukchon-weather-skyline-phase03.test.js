@@ -81,7 +81,7 @@ test('single existing world mesh retains Namsan, 25 houses, roads, no potted pla
   const world=worldForTest();
   assert.equal(world.skyline.buildings,39);
   assert.ok(world.namsan.topY>100);
-  assert.equal(world.houseSites.length,19);
+  assert.equal(world.houseSites.length,20);
   assert.equal(world.paths.length,1);
   assert.equal('planters' in world.streetLife.counts,false);
   assert.ok(world.vertexCount>500000&&world.vertexCount<850000,
