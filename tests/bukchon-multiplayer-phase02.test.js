@@ -5,6 +5,7 @@ import worker,{PublicWalkRoom} from '../src/server/worker.js';
 import {PRIVATE_ROOM_PREFIX,validPrivateRoomToken,makePrivateInviteUrl}
   from '../src/multiplayer/PrivateRoomLinks.js';
 import {ROOM_CAPACITY} from '../src/multiplayer/protocol.js';
+import {createWalkMultiplayer} from '../src/multiplayer/WalkMultiplayer.js';
 
 const ORIGIN='https://walking.example';
 const token='d96002bc-30f4-4e84-bdf9-3c44116ef2f7';
@@ -139,6 +140,51 @@ test('private room supports two friends, caps at eight, and reopens a freed seat
     if(oldPair===undefined)delete globalThis.WebSocketPair;
     else globalThis.WebSocketPair=oldPair;
     globalThis.Response=oldResponse;
+  }
+});
+
+test('switching invitation modes replaces socket without ever falling into a public room',()=>{
+  const oldWebSocket=globalThis.WebSocket,oldLocation=globalThis.location;
+  const created=[];
+  class MockSocket{
+    static CONNECTING=0;
+    static OPEN=1;
+    constructor(url){this.url=url;this.readyState=0;created.push(this);}
+    close(){this.readyState=3;this.onclose?.({code:1000});}
+    send(){}
+  }
+  globalThis.WebSocket=MockSocket;
+  globalThis.location={protocol:'https:',host:'walking.example'};
+  try{
+    const statuses=[];
+    const client=createWalkMultiplayer({
+      scene:{},hill:()=>0,camera:{},onStatus:message=>statuses.push(message),
+      initialRoomToken:token
+    });
+    assert.equal(client.getStatus().mode,'private');
+    client.start();
+    assert.equal(created.length,1);
+    assert.equal(created[0].url,'wss://walking.example/api/walk/join?room='+token);
+    client.switchRoom(otherToken);
+    assert.equal(client.getStatus().mode,'private');
+    assert.equal(created.length,2);
+    assert.equal(created[1].url,'wss://walking.example/api/walk/join?room='+otherToken);
+    assert.equal(created[0].readyState,3);
+    client.switchRoom(null);
+    assert.equal(client.getStatus().mode,'public');
+    assert.equal(created.length,3);
+    assert.equal(created[2].url,'wss://walking.example/api/walk/join');
+    assert.throws(()=>client.switchRoom('short'),/Invalid invite/);
+    assert.equal(created.length,3,'invalid invite must not change mode');
+    client.stop();
+    assert.equal(created[2].readyState,3);
+    assert.ok(statuses.some(x=>x.includes('비공개 방 연결 중')));
+    assert.ok(statuses.some(x=>x.includes('산책방 연결 중')));
+  }finally{
+    if(oldWebSocket===undefined)delete globalThis.WebSocket;
+    else globalThis.WebSocket=oldWebSocket;
+    if(oldLocation===undefined)delete globalThis.location;
+    else globalThis.location=oldLocation;
   }
 });
 
