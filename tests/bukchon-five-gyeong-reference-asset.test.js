@@ -9,6 +9,8 @@ import {
   buildFiveGyeongReferenceHanok
 } from '../src/world/BukchonFiveGyeongHanok.js';
 import {onMainStreet} from '../src/multiplayer/protocol.js';
+import {FIVE_GYEONG_APPROACH_WALL,buildFiveGyeongApproach}
+  from '../src/world/BukchonFiveGyeongApproach.js';
 
 function world(){
   const old=globalThis.document;
@@ -49,9 +51,12 @@ test('photo-referenced 5-gyeong asset has unique real 3D architecture, not a clo
     'stoneLight','stoneGrey','tileInk','tileRidge','tileEnd',
     'hanokPaperWindow','gateWood','brickTerracotta'])
     assert.ok(palette.has(c),'missing visual material '+c);
-  assert.ok(calls.box.length<1100,'one house is over-budget');
+  assert.ok(calls.box.length<1600,'one house is over-budget');
+  assert.equal(detail.rearWing.attached,true,'rear wing is not part of one architectural compound');
+  assert.equal(detail.rearWing.windows,6,'rear wing missing side elevation lattice');
+  assert.ok(detail.roofQuads>650,'the new rear roof is not modeled in 3D');
 });
-test('every physical roof, lattice, stone and timber vertex is finite and stays in a single lot',()=>{
+test('every physical 3D detail is finite and the extended courtyard stays AWAY from the road',()=>{
   const {calls}=captureAsset();
   let ext={xmin:Infinity,xmax:-Infinity,zmin:Infinity,zmax:-Infinity,
     ymin:Infinity,ymax:-Infinity};
@@ -75,7 +80,8 @@ test('every physical roof, lattice, stone and timber vertex is finite and stays 
     register(x-r,y-h*.5,z-r);register(x+r,y+h*.5,z+r);
   }
   assert.ok(ext.xmin>=-4.0&&ext.xmax<=4.0,'asset extends into neighbor lot');
-  assert.ok(ext.zmin>=-4.78&&ext.zmax<=4.10,'entrance canopy intrudes on walking street');
+  assert.ok(ext.zmin>=-4.78,'entrance canopy intrudes on walking street');
+  assert.ok(ext.zmax>11&&ext.zmax<12.2,'attached rear wing did not extend behind the original compound');
   assert.ok(ext.ymin>=-.10&&ext.ymax<=5.0,'roof height inconsistent');
   console.info('5-gyeong hero local 3D bounds',JSON.stringify(ext));
 });
@@ -96,10 +102,36 @@ test('exactly one original west-side house is replaced without creating another 
   assert.deepEqual(w.paths[1].points,SEVENTH_LOOP_ROUTE.points);
   assert.equal(w.seventhBuildings.buildings.length,6);
   assert.ok(w.seventhInfill.buildings.length>0);
+  assert.equal(hero.asset.rearWing.attached,true);
+  assert.ok(w.fiveGyeongApproach,'foreground still uses generic red stripe instead of real granite');
+  assert.equal(w.fiveGyeongApproach.id,FIVE_GYEONG_APPROACH_WALL.id);
   assert.equal(w.nightFixtures.stats.hanokSconces,20);
   assert.equal(w.nightFixtures.fixtures.length,23);
   console.info('5-gyeong hero original lot:',JSON.stringify(hero.site));
 });
+test('the photographed lower 5-gyeong frontage is no longer a generic red-stripe wall',async()=>{
+  const w=world(),f=w.continuousFrontages,a=w.fiveGyeongApproach;
+  const special=FIVE_GYEONG_APPROACH_WALL;
+  assert.equal(f.customFrontages.length,1);
+  assert.equal(f.customFrontages[0].id,special.id);
+  assert.equal(f.customFrontages[0].side,-1);
+  assert.ok(a.segments>=12,'ornate house wall is missing');
+  assert.ok(a.reliefBlocks>25,'granite blocks are not geometric solids');
+  assert.ok(a.meanders>=12,'repeating grey/white relief missing');
+  assert.ok(a.giwa>=6,'tile-capped low wall absent');
+  assert.ok(a.roadClearance>.62,'frontage enters playable path');
+  assert.ok(a.coverage.begin<50&&a.coverage.end===55);
+  assert.ok(!f.runs.some(r=>r.side===-1 &&
+    Math.min(r.toZ,special.end)-Math.max(r.fromZ,special.begin)>.001),
+    'old red-striped generic plaster still drawn directly behind new wall');
+  assert.equal(f.coverageAudit.largeGaps.length,0,
+    'forgot to count the replacement granite wall in the street frontage');
+  const {readFileSync}=await import('node:fs');
+  const source=readFileSync(new URL('../src/world/BukchonFiveGyeongApproach.js',import.meta.url),'utf8');
+  assert.doesNotMatch(source,/brickTerracotta|'brickWarm'/,
+    'this wall should not recreate the old broad red stripe');
+});
+
 test('new masonry and gate do not obstruct the playable road or multiplayer',()=>{
   const w=world(),h=w.fiveGyeongHero.site;
   // local -Z faces the lane; the most protruding gate roof tile stays
