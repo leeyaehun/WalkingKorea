@@ -352,7 +352,8 @@ function makeWorld(){
    paths,district:true
  });
  continuousFrontages=buildContinuousFrontages({
-   path:paths[0],houses:houseSites,hill,face,box,distanceFromPath
+   path:paths[0],houses:houseSites,hill,face,box,distanceFromPath,
+   existingConnectors:[...frontage.segments,...districtFrontage.segments]
  });
  nightFixtures=buildBukchonNightFixtures({
    houseSites,paths,hill,withFrame,box,cylinder,sphere,distanceFromPath
