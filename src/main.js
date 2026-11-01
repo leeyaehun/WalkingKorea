@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import { createBukchonWorld } from './world/BukchonWorld.js';
-import { createDamiCompanion } from './characters/DamiCompanion.js';
 import { createGirlSpriteCompanion } from './characters/GirlSprite.js';
 import { createThirdPersonCamera } from './controllers/ThirdPersonCamera.js';
 import { cameraRelativeDirection } from './controllers/MovementDirections.js';
@@ -35,45 +34,16 @@ const nightLights=createBukchonNightLights({
   fixtures:nightFixtures.fixtures,
   uniform:material.uniforms.uNightLampPositions
 });
-const dami=createDamiCompanion(scene,hill);
+// Single playable character — the illustrated female Seoul walker.
 const girl=createGirlSpriteCompanion(scene,hill,camera);
-const avatars={dami,girl};
 
 // Start on the upper lookout, looking DOWN the old lane toward Namsan.
 // The paths and camera-relative WASD controls remain unchanged.
-const state={x:-3,z:-42,yaw:Math.PI,pitch:(new URLSearchParams(location.search).get('view')==='night-sky'?0.28:(new URLSearchParams(location.search).get('view')==='namsan'?0.01:-0.35)),vy:0,vx:0,vz:0,night:new URLSearchParams(location.search).get('night')==='1',running:false,started:false,modal:false,helpViewed:false,mute:true,elapsed:0,walked:0,quality:1,avatar:'dami'};
+const state={x:-3,z:-42,yaw:Math.PI,pitch:(new URLSearchParams(location.search).get('view')==='night-sky'?0.28:(new URLSearchParams(location.search).get('view')==='namsan'?0.01:-0.35)),vy:0,vx:0,vz:0,night:new URLSearchParams(location.search).get('night')==='1',running:false,started:false,modal:false,helpViewed:false,mute:true,elapsed:0,walked:0,quality:1};
 const keys=new Set();let lastFrame=0,lastMap=0,lastToast=0,nearSpot=null,stepPhase=0;
 const memoryStore={};
 const safeStore={getItem(k){try{return window.localStorage.getItem(k)}catch(e){return memoryStore[k]||null}},setItem(k,v){try{window.localStorage.setItem(k,v)}catch(e){memoryStore[k]=v}}};
 const discovered=new Set(JSON.parse(safeStore.getItem('seoul-stroll-places-bukchon-v02')||'[]'));
-const initialAvatar=safeStore.getItem('walkingkorea-avatar-v1');
-if(initialAvatar==='girl')state.avatar='girl';
-const avatarProfiles={
- dami:{name:'수호냥이 담이',label:'YOU ARE DAMI',image:'/guide-cat.svg',hello:'담이가 되어 골목을 천천히 걸어볼까?'},
- girl:{name:'서울 산책자',label:'SEOUL WALKER',image:'/sprites/girl_portrait.webp',hello:'내 발걸음으로 북촌의 작은 골목을 발견해요.'}
-};
-function selectAvatar(kind,{announce=false}={}){
- if(!avatars[kind])return;
- state.avatar=kind;
- safeStore.setItem('walkingkorea-avatar-v1',kind);
- document.querySelectorAll('[data-avatar]').forEach(b=>{
-   const active=b.dataset.avatar===kind;
-   b.classList.toggle('selected',active);b.setAttribute('aria-pressed',String(active));
- });
- const profile=avatarProfiles[kind];
- const photo=$('avatar-photo'),title=$('avatar-name'),kicker=$('avatar-kicker');
- if(photo)photo.src=profile.image;
- if(title)title.textContent=profile.name;
- if(kicker)kicker.textContent=profile.label+' · THIRD PERSON';
- if($('intro-character-name'))$('intro-character-name').textContent=kind==='dami'?'오늘은 담이가 되어볼까요?':'오늘은 서울 산책자가 되어볼까요?';
- if($('intro-character-description'))$('intro-character-description').textContent=profile.hello;
- if($('intro-avatar-portrait'))$('intro-avatar-portrait').src=profile.image;
- const preview=$('avatar-preview-link');
- if(preview)preview.href=kind==='girl'?'/sprite.html':'/character.html';
- if($('walker-keys'))$('walker-keys').textContent=kind==='dami'?'W A S D 담이 걷기 · 마우스 카메라 · E 둘러보기':'W A S D 걷기 · 마우스 카메라 · E 둘러보기';
- updateDamiGuide();
- if(announce&&state.started)toast(profile.name+'로 변경했어요. ✳');
-}
 
 const locations=[
  {id:'entrance',name:'북촌 산책의 시작',detail:'낮은 담장 사이를 따라 작은 오르막이 이어져요.',x:0,z:40},
@@ -123,7 +93,7 @@ function toast(msg,ms=3000){$('toast').textContent=msg;$('toast').classList.add(
 function modal(title,body,kicker='SEOUL STROLL'){state.modal=true;$('modal-content').innerHTML=`<span class="modal-kicker">${kicker}</span><h2 id="modal-title">${title}</h2>${body}`;$('modal').classList.add('visible');$('modal').setAttribute('aria-hidden','false');document.exitPointerLock?.();}
 function closeModal(){state.modal=false;$('modal').classList.remove('visible');$('modal').setAttribute('aria-hidden','true');}
 $('modal-close').onclick=closeModal;$('modal').addEventListener('click',e=>{if(e.target===$('modal'))closeModal();});
-function showHelp(){modal('내 캐릭터로 서울을 걸어요',`<p>담이나 2.5D 여성 산책자 중 원하는 캐릭터를 선택해 작은 서울의 골목을 산책해요. 카메라는 뒤에서 따라오고, 시간 제한은 없어요.</p><ul><li><b>W A S D / 방향키</b> — 담이 이동 (카메라 방향 기준)</li><li><b>마우스 드래그</b> — 담이 주변 시점 회전</li><li><b>화면 클릭</b> — 포인터 고정 (ESC 해제)</li><li><b>SHIFT</b> — 조금 더 빠르게 걷기</li><li><b>E</b> — 가까운 장소 둘러보기</li><li><b>N</b> — 낮 / 저녁 변경</li><li><b>P</b> — 현재 화면 사진 저장</li><li><b>모바일</b> — 왼쪽 패드로 이동, 오른쪽 화면을 밀어 시점 회전</li></ul><p class="small-note">북촌에서 영감을 얻어 새롭게 구성한 가상 골목이야. 실제 주택과 주소를 정확하게 재현한 지도가 아니야.</p>`,'HOW TO WALK');}
+function showHelp(){modal('여자 캐릭터로 서울을 걸어요',`<p>2.5D 여성 산책자가 되어 서울 골목을 천천히 걸어봐요. 카메라는 뒤에서 따라오고, 시간 제한은 없어요.</p><ul><li><b>W A S D / 방향키</b> — 산책자 이동 (카메라 방향 기준)</li><li><b>마우스 드래그</b> — 주변 시점 회전</li><li><b>화면 클릭</b> — 포인터 고정 (ESC 해제)</li><li><b>SHIFT</b> — 조금 더 빠르게 걷기</li><li><b>E</b> — 가까운 장소 둘러보기</li><li><b>N</b> — 낮 / 저녁 변경</li><li><b>P</b> — 현재 화면 사진 저장</li><li><b>모바일</b> — 왼쪽 패드로 이동, 오른쪽 화면을 밀어 시점 회전</li></ul><p class="small-note">북촌에서 영감을 얻어 새롭게 구성한 가상 골목이야. 실제 주택과 주소를 정확하게 재현한 지도가 아니야.</p>`,'HOW TO WALK');}
 $('help-btn').onclick=showHelp;
 function showPostcards(){modal('발견한 골목 이야기',`<p>산책하다 발견한 장소는 여기 기록돼요. 가까이에서 <b>E</b>를 누르면 골목에 숨은 이야기를 볼 수 있어요.</p><div class="place-list">${locations.map((p,i)=>`<div class="place-chip ${discovered.has(p.id)?'found':''}">${discovered.has(p.id)?'✳ '+p.name:'○ 아직 발견하지 못한 곳 '+(i+1)}</div>`).join('')}</div><p class="small-note">기록은 현재 브라우저에만 저장돼요. 로그인이나 서버 계정은 없어.</p>`,'YOUR LITTLE MEMORIES');}
 $('postcards-btn').onclick=showPostcards;
@@ -135,47 +105,23 @@ $('idea-btn').onclick=()=>{
 };
 const SUPPORT_URL=''; // Set your actual Buy Me a Coffee / Ko-fi link here when ready.
 
-// Dami is the player avatar in third-person. The camera orbits and follows;
-// movement keys translate Dami in world space and steer her body independently.
-const guideLines={
- entrance:'오늘은 내가 북촌 골목을 걸어볼 차례야.',
- crossroad:'갈림길이네. 어느 골목으로 가볼까?',
- east:'공방길엔 작은 가게들이 있겠지?',
- west:'서쪽 골목은 조용하네. 천천히 걸어야지.',
- turn:'골목이 굽어지는 곳이야. 지붕도 예쁘다.',
- view:'저 위에서 오늘 걸어온 길을 내려다볼까?'
-};
-function updateDamiGuide(){
- const p=nearSpot||locations.find(q=>!discovered.has(q.id))||locations[0];
- const line=state.avatar==='girl'
-  ? (discovered.size===locations.length?'오늘의 골목을 다 발견했어요. 잠깐 쉬어갈까요?':'작은 돌길을 따라 천천히 걸어봐요.')
-  : (discovered.size===locations.length?'오늘의 골목을 다 찾았어. 이제 쉬어볼까?':(guideLines[p?.id]||'천천히 걷다 보면 작은 아름다움이 보여요.'));
- const el=$('dami-line');if(el&&el.textContent!==line)el.textContent=line;
+// The female Seoul walker is the only playable avatar. World-space
+// movement and the third-person follow camera remain unchanged.
+function updateWalkerGuide(){
+  const line=discovered.size===locations.length
+    ?'오늘의 골목을 다 발견했어요. 잠깐 쉬어갈까요?'
+    :'작은 돌길을 따라 천천히 걸어봐요.';
+  const el=$('walker-line');if(el&&el.textContent!==line)el.textContent=line;
 }
-function showDami(){
- if(state.avatar==='girl'){
-   modal('나의 서울 산책자',
-   '<div class="dami-about"><img src="/sprites/girl_portrait.webp" alt="서울 여성 산책자"><p>갈색 단발머리에 꽃 장식, 코랄빛 가디건, 플리츠 치마와 작은 노리개 가방을 챙겼어요. 서울 골목을 천천히 걸어요.</p></div><p class="small-note">현재 캐릭터는 승인된 콘셉트를 바탕으로 제작한 Three.js 3D 에셋입니다.</p>',
-   'YOUR WALKING CHARACTER');
-   return;
- }
- modal('내가 바로 담이!',
- '<div class="dami-about"><img src="/guide-cat.svg" alt="북촌 수호냥이 담이"><p>안녕! 나는 북촌 골목의 작은 수호냥이 <b>담이</b>야. 이제 네가 직접 날 움직여서 골목을 탐험하는 거야. 초록 스카프와 부적 가방을 챙겼으니 출발해볼까?</p></div><p class="small-note">새로운 담이는 둥근 머리와 삼색 무늬, 스카프와 한옥 참을 실제 입체 메시로 만든 3D 캐릭터예요. 정면과 뒷면까지 직접 돌려볼 수 있어요.</p><a class="modal-action" style="display:inline-block;text-decoration:none" href="/character.html">담이 3D 모델 360° 보기 ↗</a>',
- 'MEET YOUR LITTLE GUIDE');
+function showWalker(){
+  modal('나의 서울 산책자',
+    '<div class="walker-about"><img src="/sprites/girl_portrait.webp" alt="서울 여성 산책자"><p>갈색 단발머리에 꽃 장식, 코랄빛 가디건, 플리츠 치마와 작은 노리개 가방을 챙겼어요. 서울 골목을 천천히 걸어요.</p></div><p class="small-note">게임 속 캐릭터는 2.5D 일러스트 스프라이트로 표현돼요.</p><a class="modal-action" style="display:inline-block;text-decoration:none" href="/sprite.html">걷기 애니메이션 보기 ↗</a>',
+    'YOUR WALKING CHARACTER');
 }
-$('dami-card')?.addEventListener('click',showDami);
-document.querySelectorAll('[data-avatar]').forEach(b=>b.addEventListener('click',()=>selectAvatar(b.dataset.avatar,{announce:true})));
-$('switch-avatar')?.addEventListener('click',()=>{
- modal('함께 걸을 캐릭터 선택',
-  '<p>원하는 캐릭터로 언제든 산책을 이어갈 수 있어요.</p><div class="modal-character-choices"><button id="modal-dami" class="avatar-option"><img src="/guide-cat.svg" alt=""><strong>수호냥이 담이</strong></button><button id="modal-girl" class="avatar-option"><img src="/sprites/girl_portrait.webp" alt=""><strong>서울 산책자</strong></button></div>',
-  'CHOOSE YOUR CHARACTER');
- $('modal-dami').onclick=()=>{selectAvatar('dami',{announce:true});closeModal();};
- $('modal-girl').onclick=()=>{selectAvatar('girl',{announce:true});closeModal();};
-});
-selectAvatar(state.avatar);
+$('walker-card')?.addEventListener('click',showWalker);
 
 function interact(){if(!nearSpot || state.modal)return;markFound(nearSpot);modal(nearSpot.name,`<p>${nearSpot.detail}</p><p class="small-note">발견한 장소 ${discovered.size} / ${locations.length} · 이 골목은 실제 지도의 정확한 재현이 아닌 서울에서 영감을 받은 공간이야.</p>`,'YOU FOUND A LITTLE PLACE');}
-function nearUpdate(){let m=null,dist=4.5;for(const p of locations){let d=Math.hypot(state.x-p.x,state.z-p.z);if(d<dist){dist=d;m=p;}}nearSpot=m;updateDamiGuide();let hint=$('hint');if(m&&!state.modal&&state.started){hint.innerHTML=`<b>${touchDevice?'터치':'E'}</b>  ${m.name} 둘러보기`;hint.classList.add('visible');$('touch-interact').classList.add('visible');}else{hint.classList.remove('visible');$('touch-interact').classList.remove('visible');}}
+function nearUpdate(){let m=null,dist=4.5;for(const p of locations){let d=Math.hypot(state.x-p.x,state.z-p.z);if(d<dist){dist=d;m=p;}}nearSpot=m;updateWalkerGuide();let hint=$('hint');if(m&&!state.modal&&state.started){hint.innerHTML=`<b>${touchDevice?'터치':'E'}</b>  ${m.name} 둘러보기`;hint.classList.add('visible');$('touch-interact').classList.add('visible');}else{hint.classList.remove('visible');$('touch-interact').classList.remove('visible');}}
 $('touch-interact').onclick=interact;
 function isWalkable(x,z){
  return paths.some(p=>distanceFromPath(x,z,p)<
@@ -237,11 +183,9 @@ function render(time=0) {
   state.elapsed+=dt;
   move(dt);
   const moving=Math.hypot(state.vx,state.vz)>.15;
-  // Only the chosen avatar is visible. Both share the same movement,
-  // path collision, follow camera, and interactive exploration system.
+  // The female walker alone follows the existing path/camera and input.
   const motion={x:state.x,z:state.z,vx:state.vx,vz:state.vz,dt,elapsed:state.elapsed,walking:moving};
-  dami.update({...motion,visible:state.started&&state.avatar==='dami'});
-  girl.update({...motion,visible:state.started&&state.avatar==='girl'});
+  girl.update({...motion,visible:state.started});
   followCamera.update({x:state.x,z:state.z,yaw:state.yaw,pitch:state.pitch,dt,moving});
   const fog=state.night?SKY_FOG_NIGHT:SKY_FOG_DAY;
   sky.update(camera,state.night);
@@ -265,7 +209,7 @@ if(new URLSearchParams(location.search).has('qa')) {
   window.__wkQA=()=>({
     mode:'third-person',player:[state.x,state.z],
     velocity:[state.vx,state.vz],
-    avatar:avatars[state.avatar].snapshot(),selectedAvatar:state.avatar,
+    avatar:girl.snapshot(),selectedAvatar:'girl',
     paving,camera:followCamera.snapshot(),
     decoratedHouses:houseSites.filter(site=>site.decorated).length, houses:houseSites.length,
     streetDetails:streetLife.counts, utilityCrossings:streetLife.lines.length,

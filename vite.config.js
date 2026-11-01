@@ -6,7 +6,6 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: resolve(import.meta.dirname, 'index.html'),
-        character: resolve(import.meta.dirname, 'character.html'),
         girl: resolve(import.meta.dirname, 'girl.html'),
         sprite: resolve(import.meta.dirname, 'sprite.html')
       }
