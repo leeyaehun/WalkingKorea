@@ -1,4 +1,5 @@
 import { createHanokKit } from './HanokKit.js';
+import {isFiveGyeongHeroSite,buildFiveGyeongReferenceHanok} from './BukchonFiveGyeongHanok.js';
 import { buildPavedAlleys } from './BukchonPaving.js';
 import {mainLaneWidth,mainLaneTerrainHeight,smoothMainLane,scenicHouseSites,sampleMainLaneAtZ} from './BukchonStreetLayout.js';
 import {MAIN_STREET_ROUTE} from './BukchonMainStreet.js';
@@ -227,6 +228,7 @@ function routeFloor(){
 const hanokKit=createHanokKit({box,face,sphere,cylinder,textured,signs});
 function courtyard(type,detailVariant=0,profile='hero'){return hanokKit.build(type,detailVariant,profile);}
 const houseSites=[];
+let fiveGyeongHero=null; // Exactly one photo-referenced house on the lower 5-gyeong west frontage.
 function housesOnShowcase(){
  // Eight level-sited homes create staggered, close-set roof silhouettes.
  // Legacy side junction gaps are deliberately left for Step 03 facade fill.
@@ -278,17 +280,25 @@ function housesAlong(path,pIndex){
    // intrude into any other road, not only their originating lane.
    if(paths.some(other=>distanceFromPath(gateX,gateZ,other) <
       (other.widthAt?other.widthAt(gateZ):other.width)*.5+.16))continue;
-   let archetype='gate';
+   const photoHouse=!fiveGyeongHero&&
+     isFiveGyeongHeroSite({routeIndex:pIndex,side,laneZ:b[1]});
+   let archetype='gate',assetDiagnostics=null;
    withFrame(x,z,angle,()=>{
-     // Repeat the same level-based structural siting rule from the
-     // showcase alley instead of deforming houses over uneven terrain.
+     // Same original lot, grade, rotation, foundation and walkable width.
      box(0,-.155,0,7.35,.32,8.55,'stoneFoundation');
      box(0,-.016,-4.22,7.35,.10,.23,'stoneLight');
-     archetype=courtyard(houseType,detailVariant,'district');
+     if(photoHouse){
+       assetDiagnostics=buildFiveGyeongReferenceHanok({box,face,sphere,cylinder});
+       archetype=assetDiagnostics.kind;
+     }else archetype=courtyard(houseType,detailVariant,'district');
    },{level:true});
-   houseSites.push({index:houseSites.length,x,z,angle,archetype,detailVariant,
-     decorated: houseType===100||detailVariant>0,scenic:false,district:true,
-     routeIndex:pIndex,side,laneZ:b[1],roadWidth:path.width});
+   const site={index:houseSites.length,x,z,angle,archetype,detailVariant,
+     decorated:photoHouse||houseType===100||detailVariant>0,
+     scenic:false,district:true,routeIndex:pIndex,side,
+     laneZ:b[1],roadWidth:path.width,
+     ...(photoHouse?{assetId:assetDiagnostics.id,referenceAsset:true}:{})};
+   houseSites.push(site);
+   if(photoHouse)fiveGyeongHero={site,asset:assetDiagnostics};
   }
  }
 }
@@ -354,6 +364,7 @@ function makeWorld(){
  housesOnShowcase();
  // Only the main-alley housing line remains; side-route buildings are removed.
  housesAlong(paths[0],0);
+ if(!fiveGyeongHero)throw new Error('5-gyeong reference house missing its original lower-west lot');
  buildGapHanok();
  // The old short-gap connectors remain for small existing house joints.
  // The separate continuous pass fills the actual bare plots and creates
@@ -561,5 +572,5 @@ makeWorld();
   });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.frustumCulled = false;
-  return {mesh,material,paths,hill,distanceFromPath,houseSites,frontage,districtFrontage,continuousFrontages,seventhLoopWalls,seventhBuildings,seventhInfill,seventhViewpoint,streetLife,nightFixtures,namsan:namsanStats,skyline:skylineStats,paving,vertexCount:positions.length/3};
+  return {mesh,material,paths,hill,distanceFromPath,houseSites,fiveGyeongHero,frontage,districtFrontage,continuousFrontages,seventhLoopWalls,seventhBuildings,seventhInfill,seventhViewpoint,streetLife,nightFixtures,namsan:namsanStats,skyline:skylineStats,paving,vertexCount:positions.length/3};
 }
