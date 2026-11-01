@@ -56,7 +56,10 @@ export function createThirdPersonCamera({camera, hill, isWalkable}) {
     desired.set(anchor.x-Math.sin(cameraYaw)*boom,
       Math.max(lookY+vertical, hill(anchor.x-Math.sin(cameraYaw)*boom,anchor.z+Math.cos(cameraYaw)*boom)+1.28),
       anchor.z+Math.cos(cameraYaw)*boom);
-    aim.set(anchor.x,lookY,anchor.z);
+    // Let the player admire distant skyline landmarks by tilting upward.
+    // The ordinary walk pitch (negative) keeps its existing framing.
+    const skywardLook=Math.max(0,pitch+.16)*12;
+    aim.set(anchor.x,lookY+skywardLook,anchor.z);
 
     if (!initialized) {
       camera.position.copy(desired);
