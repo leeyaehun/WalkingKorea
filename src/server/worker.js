@@ -65,10 +65,11 @@ export class PublicWalkRoom {
   depart(ws){
     const meta=ws.deserializeAttachment();
     if(!meta)return;
-    for(const other of this.members()){
-      if(other!==ws)safeSend(other,{type:'leave',id:meta.id});
+    const remaining=this.members().filter(other=>other!==ws);
+    for(const other of remaining){
+      safeSend(other,{type:'leave',id:meta.id});
+      safeSend(other,{type:'count',count:remaining.length,capacity:ROOM_CAPACITY});
     }
-    this.broadcastCount();
   }
   async webSocketClose(ws){this.depart(ws);}
   async webSocketError(ws){this.depart(ws);}

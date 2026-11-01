@@ -84,6 +84,7 @@ test('Durable Object caps room at 8; every player gets identity and presence',as
     members.splice(0,1);
     await room.webSocketClose(first);
     assert.ok(second.messages.some(m=>m.type==='leave'&&m.id===leavingId));
+    assert.equal(second.messages.findLast(m=>m.type==='count')?.count,7);
     assert.equal(room.fetch(request).status,101,'open slot must be reused');
   }finally{
     if(oldPair===undefined)delete globalThis.WebSocketPair;
