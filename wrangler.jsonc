@@ -19,6 +19,16 @@
       }
     ]
   },
+  "previews": {
+    "durable_objects": {
+      "bindings": [
+        {
+          "name": "PUBLIC_WALK_ROOMS",
+          "class_name": "PublicWalkRoom"
+        }
+      ]
+    }
+  },
   "migrations": [
     {
       "tag": "multiplayer-v1",
