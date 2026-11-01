@@ -154,6 +154,7 @@ test('invite UI and client do not expose chat, voice or public-room fallback',()
   assert.match(html,/name="referrer" content="no-referrer"/);
   assert.match(main,/fetch\('\/api\/walk\/private\/create'/);
   assert.match(main,/history\.replaceState/);
+  assert.match(main,/inviteToken\?'비공개 산책방 대기':'공개 산책방 대기'/);
   assert.match(main,/multiplayer\.switchRoom\(token\)/);
   assert.match(main,/\$\('start-btn'\)\.disabled=invalidInvite/);
   assert.match(client,/roomToken\?base\+'\?room='/);

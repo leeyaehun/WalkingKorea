@@ -108,6 +108,8 @@ function refreshInviteControls(){
   $('intro-copy-invite').hidden=!inviteToken;
   $('intro-public-room').hidden=!(inviteToken||invalidInvite);
   $('room-menu-btn').title=inviteToken?'비공개 방 초대 및 전환':'친구와 산책방 만들기';
+  if(!state.started)$('room-status').textContent=invalidInvite?'잘못된 초대 링크':
+    inviteToken?'비공개 산책방 대기':'공개 산책방 대기';
 }
 function selectRoom(token=null){
   if(token!==null&&!validPrivateRoomToken(token))throw new TypeError('Invalid private room');
