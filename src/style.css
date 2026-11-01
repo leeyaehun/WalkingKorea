@@ -43,7 +43,7 @@
 /* v0.8 third-person: no first-person crosshair over the playable character. */
 #reticle{display:none}
 
-/* Once the player starts, let the alley and Dami be the protagonists. */
+/* Once the player starts, let the alley and the walker be the protagonists. */
 body.playing .left-label{opacity:0;transform:translateY(-8px);transition:opacity .55s ease,transform .55s ease;pointer-events:none}
 
 
