@@ -35,6 +35,6 @@ export function validateMovement(data,previous,now){
   const delta=now-previous.at;
   if(delta<65)return null; // Limit malicious packet floods.
   const maxTravel=.55+3.9*Math.min(Math.max(delta,0),1200)/1000;
-  if(Math.hypot(x-previous.x,z-previous.z)>maxTravel)return null;
+  if(!previous.initial&&Math.hypot(x-previous.x,z-previous.z)>maxTravel)return null;
   return {x,z,vx,vz,at:now};
 }

@@ -66,7 +66,7 @@ export class PublicWalkRoom extends DurableObject {
 
     const pair=new WebSocketPair();
     const [client,server]=Object.values(pair);
-    const state={id:crypto.randomUUID(),...WALK_SPAWN,vx:0,vz:0,at:Date.now()};
+    const state={id:crypto.randomUUID(),...WALK_SPAWN,vx:0,vz:0,at:Date.now(),initial:true};
     this.ctx.acceptWebSocket(server); // Enables hibernation, no always-on event loop.
     server.serializeAttachment(state);
     const players=peers.map(playerFromSocket).filter(Boolean);
@@ -83,7 +83,7 @@ export class PublicWalkRoom extends DurableObject {
     const prior=socket.deserializeAttachment();
     const next=validateMovement(data,prior,Date.now());
     if(!next)return;
-    socket.serializeAttachment({...prior,...next});
+    socket.serializeAttachment({...prior,...next,initial:false});
     this.broadcast({t:'p',id:prior.id,x:next.x,z:next.z,
       vx:next.vx,vz:next.vz},socket);
   }

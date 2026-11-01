@@ -34,6 +34,11 @@ test('movement is server validated against the same one-lane geometry',()=>{
   assert.equal(validateMovement({t:'p',x:NaN,z:-41,vx:0,vz:1},previous,1125),null);
   assert.equal(validateMovement({t:'p',x:-3,z:-41.9,vx:0,vz:1},previous,1001),null);
   assert.equal(validateMovement({t:'p',x:-3,z:-41.9,vx:20,vz:1},previous,1125),null);
+  // A visitor may already be halfway down the street when a reconnect succeeds.
+  assert.ok(validateMovement({t:'p',x:-1.5,z:16,vx:0,vz:1},
+    {...previous,initial:true},1125));
+  assert.equal(validateMovement({t:'p',x:-1.5,z:16,vx:0,vz:1},
+    {...previous,initial:false},1125),null);
 });
 
 test('asset worker provides WebSocket route and keeps existing static app',()=>{
