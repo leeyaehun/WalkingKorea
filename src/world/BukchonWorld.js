@@ -305,11 +305,9 @@ function hillsideBackground(){
  cylinder(tx,57.1,tz,2.6,2.7,'roof',12);
  cylinder(tx,67,tz,.43,20,'dark',8);
  cylinder(tx,78.5,tz,.20,3.5,'brickTerracotta',7);
- // Soft high clouds, well beyond the route.
- for(let i=0;i<10;i++) {
-   const x=rand(-88,88),z=rand(165,200),y=rand(30,42);
-   sphere(x,y,z,rand(4,10),1.2,3.6,'cream',8,4);
- }
+ // Clouds now belong to the moving sky dome shader, not the city mesh.
+ // The old flattened white spheres against Namsan are deliberately removed.
+
 }
 let frontage={count:0,segments:[]};
 let districtFrontage={count:0,segments:[]};
@@ -354,7 +352,7 @@ makeWorld();
       {
         uAtlas: {value:texture},
         uNight: {value:0},
-        uFogColor: {value:new THREE.Color().setRGB(.79,.78,.75)},
+        uFogColor: {value:new THREE.Color().setRGB(.72,.82,.90)},
         uSunDirection: {value:new THREE.Vector3(-.47,.81,.35).normalize()},
         uShadowStrength: {value:.78}
       }
@@ -427,7 +425,11 @@ makeWorld();
         vec3 col = mix(lit,dusk,uNight);
         // Keep Seoul's distant hill and Namsan landmark legible while
         // retaining gentle atmospheric depth down the narrow residential lane.
-        float fog = smoothstep(80.0,240.0,vDistance)*.60;
+        // Cool blue atmospheric distance falloff matches the daytime sky.
+        // The existing evening strength remains unchanged for phase 04.
+        float dayFog=smoothstep(77.0,225.0,vDistance)*.62;
+        float nightFog=smoothstep(80.0,240.0,vDistance)*.60;
+        float fog=mix(dayFog,nightFog,uNight);
         gl_FragColor = vec4(mix(col,uFogColor,fog),1.0);
       }
     `,
