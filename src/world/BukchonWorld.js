@@ -1,5 +1,7 @@
 import { createHanokKit } from './HanokKit.js';
 import {isFiveGyeongHeroSite,buildFiveGyeongReferenceHanok} from './BukchonFiveGyeongHanok.js';
+import {isFiveGyeongUphillSite,buildFiveGyeongUphillHanok}
+  from './BukchonFiveGyeongUphillHanok.js';
 import {FIVE_GYEONG_APPROACH_WALL,buildFiveGyeongApproach} from './BukchonFiveGyeongApproach.js';
 import { buildPavedAlleys } from './BukchonPaving.js';
 import {mainLaneWidth,mainLaneTerrainHeight,smoothMainLane,scenicHouseSites,sampleMainLaneAtZ} from './BukchonStreetLayout.js';
@@ -230,6 +232,7 @@ const hanokKit=createHanokKit({box,face,sphere,cylinder,textured,signs});
 function courtyard(type,detailVariant=0,profile='hero'){return hanokKit.build(type,detailVariant,profile);}
 const houseSites=[];
 let fiveGyeongHero=null; // Exactly one photo-referenced house on the lower 5-gyeong west frontage.
+let fiveGyeongUphill=null; // The next west-side house UPHILL, original slot #10.
 let fiveGyeongApproach=null;
 function housesOnShowcase(){
  // Eight level-sited homes create staggered, close-set roof silhouettes.
@@ -284,6 +287,13 @@ function housesAlong(path,pIndex){
       (other.widthAt?other.widthAt(gateZ):other.width)*.5+.16))continue;
    const photoHouse=!fiveGyeongHero&&
      isFiveGyeongHeroSite({routeIndex:pIndex,side,laneZ:b[1]});
+   // Original index 10 sits immediately uphill from the distinct
+   // photographed house at index 8. A definite site ID prevents
+   // accidentally replacing the opposite side or painting over #8.
+   const uphillHouse=!fiveGyeongUphill&&
+     isFiveGyeongUphillSite({
+       index:houseSites.length,routeIndex:pIndex,side,laneZ:b[1]
+     });
    let archetype='gate',assetDiagnostics=null;
    withFrame(x,z,angle,()=>{
      // Same original lot, grade, rotation, foundation and walkable width.
@@ -292,15 +302,23 @@ function housesAlong(path,pIndex){
      if(photoHouse){
        assetDiagnostics=buildFiveGyeongReferenceHanok({box,face,sphere,cylinder});
        archetype=assetDiagnostics.kind;
+     }else if(uphillHouse){
+       // Build the ACTUAL STREET-FACING granite/meander/lattice facade
+       // as part of this single house, not behind a generic red wall.
+       assetDiagnostics=buildFiveGyeongUphillHanok({box,face,sphere,cylinder});
+       archetype=assetDiagnostics.kind;
      }else archetype=courtyard(houseType,detailVariant,'district');
    },{level:true});
    const site={index:houseSites.length,x,z,angle,archetype,detailVariant,
-     decorated:photoHouse||houseType===100||detailVariant>0,
+     decorated:photoHouse||uphillHouse||houseType===100||detailVariant>0,
      scenic:false,district:true,routeIndex:pIndex,side,
      laneZ:b[1],roadWidth:path.width,
-     ...(photoHouse?{assetId:assetDiagnostics.id,referenceAsset:true}:{})};
+     ...((photoHouse||uphillHouse)?{
+       assetId:assetDiagnostics.id,referenceAsset:true
+     }:{})};
    houseSites.push(site);
    if(photoHouse)fiveGyeongHero={site,asset:assetDiagnostics};
+   if(uphillHouse)fiveGyeongUphill={site,asset:assetDiagnostics};
   }
  }
 }
@@ -367,6 +385,7 @@ function makeWorld(){
  // Only the main-alley housing line remains; side-route buildings are removed.
  housesAlong(paths[0],0);
  if(!fiveGyeongHero)throw new Error('5-gyeong reference house missing its original lower-west lot');
+ if(!fiveGyeongUphill)throw new Error('5-gyeong uphill photo-neighbor did not land at original site #10');
  buildGapHanok();
  // The old short-gap connectors remain for small existing house joints.
  // The separate continuous pass fills the actual bare plots and creates
@@ -580,5 +599,5 @@ makeWorld();
   });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.frustumCulled = false;
-  return {mesh,material,paths,hill,distanceFromPath,houseSites,fiveGyeongHero,fiveGyeongApproach,frontage,districtFrontage,continuousFrontages,seventhLoopWalls,seventhBuildings,seventhInfill,seventhViewpoint,streetLife,nightFixtures,namsan:namsanStats,skyline:skylineStats,paving,vertexCount:positions.length/3};
+  return {mesh,material,paths,hill,distanceFromPath,houseSites,fiveGyeongHero,fiveGyeongUphill,fiveGyeongApproach,frontage,districtFrontage,continuousFrontages,seventhLoopWalls,seventhBuildings,seventhInfill,seventhViewpoint,streetLife,nightFixtures,namsan:namsanStats,skyline:skylineStats,paving,vertexCount:positions.length/3};
 }
