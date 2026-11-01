@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="ko"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#f4eee5">
+<meta name="description" content="WalkingKorea 담이 3D 캐릭터를 360도로 회전하고 앞면·45도·후면을 살펴보세요.">
+<title>담이 — 3D 캐릭터 미리보기 | WalkingKorea</title>
+<style>
+:root{color-scheme:light;font-family:'Apple SD Gothic Neo','Pretendard','Avenir Next',system-ui,sans-serif;color:#393c33;background:#f4eee5}*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(circle at 45% 32%,#fffaf4 0,#efe6d9 65%,#e9e0d2 100%)}
+header{position:absolute;top:24px;left:30px;right:30px;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:15px}
+.brand{text-decoration:none;color:#43483d;font-weight:800;font-size:16px;letter-spacing:.1em}.brand em{color:#cb7b5c;font-style:normal}
+.back{text-decoration:none;color:#5a6358;border-radius:40px;background:#ffffffad;border:1px solid #ffffff;padding:12px 18px;font-size:12px;font-weight:700}
+h1{font-size:clamp(36px,5vw,65px);margin:0;letter-spacing:-.065em;line-height:1.12}
+.lede{position:absolute;z-index:1;top:128px;left:6.5vw;pointer-events:none}.lede .eyebrow{color:#c27f66;font-size:11px;letter-spacing:.24em;font-weight:800}.lede p{line-height:1.8;font-size:13px;max-width:225px;color:#73786b}
+#viewer{height:100vh;width:100%;display:block;touch-action:pan-y}
+.controls{position:absolute;left:50%;bottom:45px;transform:translateX(-50%);z-index:2;display:flex;align-items:center;justify-content:center;gap:8px;padding:10px;background:#fffaf1d9;border:1px solid #ffffffeb;box-shadow:0 20px 45px #72634a24;backdrop-filter:blur(18px);border-radius:999px;max-width:94vw;flex-wrap:wrap}
+.controls button{background:transparent;border:0;border-radius:40px;padding:11px 15px;font:inherit;font-size:12px;font-weight:700;color:#6c7166;cursor:pointer;white-space:nowrap}
+.controls button.active{background:#697d62;color:white}.controls button.export{background:#e6d1ba;color:#5a493b}
+.caption{position:absolute;bottom:130px;left:50%;transform:translateX(-50%);font-size:12px;text-align:center;color:#838473;white-space:nowrap}
+.note{position:absolute;right:28px;top:128px;max-width:195px;font-size:12px;line-height:1.8;color:#7b7b6d}
+.note strong{display:block;color:#4e5f4b;letter-spacing:.06em}
+@media(max-width:790px){header{top:15px;left:16px;right:16px}.lede{top:94px;left:20px}.lede p,.note{display:none}#viewer{height:100dvh}.controls{bottom:20px;width:calc(100% - 24px);border-radius:22px;gap:0;padding:7px}.controls button{flex:1;min-width:52px;padding:11px 8px;font-size:11px}.caption{bottom:110px}.brand{font-size:13px}.back{font-size:11px;padding:9px 13px}}
+</style>  <script type="module" crossorigin src="/assets/character-BTQIyiSA.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/three.module-Bcy1RNmC.js">
+  <link rel="modulepreload" crossorigin href="/assets/GLTFExporter-C0FZMIFi.js">
+  <link rel="modulepreload" crossorigin href="/assets/DamiCompanion-CR15SDTp.js">
+</head><body>
+<header><a class="brand" href="/">SEOUL <em>STROLL</em></a><a class="back" href="/">← 북촌으로 돌아가기</a></header>
+<div class="lede"><div class="eyebrow">WALKINGKOREA · CHARACTER STUDIO</div><h1>수호냥이<br>담이</h1><p>세상을 느긋하게 걷는 작은 친구. 다양한 각도로 살펴보세요.</p></div>
+<p class="note"><strong>SCULPTED 3D ASSET</strong>실제 3D 메시로 구현한 캐릭터입니다. 마우스로 돌리거나 확대할 수 있어요.</p>
+<canvas id="viewer" aria-label="수호냥이 담이 3D 회전 미리보기"></canvas>
+<div class="caption">마우스로 회전 · 스크롤로 확대 · 버튼으로 시점 전환</div>
+<div class="controls" role="group" aria-label="담이 캐릭터 시점">
+<button data-angle="0" class="active">정면</button><button data-angle="45">45°</button>
+<button data-angle="90">옆면</button><button data-angle="135">후면 45°</button>
+<button data-angle="180">뒷면</button><button id="spin-btn">⟳ 자동 회전</button><button id="download-glb" class="export" title="실제 3D 파일을 다운로드합니다">GLB 다운로드</button>
+</div></body></html>

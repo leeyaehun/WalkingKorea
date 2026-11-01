@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WalkingKorea · 여성 캐릭터 2.5D 스프라이트</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f1e8dc;color:#423b32;font-family:system-ui,-apple-system,'Apple SD Gothic Neo',sans-serif}header{position:absolute;z-index:3;top:20px;left:26px;right:26px;display:flex;justify-content:space-between;align-items:center}a{color:inherit;text-decoration:none;background:#fff8ef;border-radius:30px;padding:11px 16px;font-size:12px;font-weight:700}h1{margin:0;font-size:clamp(23px,3vw,40px);letter-spacing:-.06em}p{color:#8e7e70;font-size:12px;line-height:1.7}.eyebrow{color:#b77c65;font-weight:800;letter-spacing:.17em;font-size:10px}#view{position:relative;display:block;height:100dvh;width:100vw;touch-action:pan-y}.info{position:absolute;top:98px;left:28px;max-width:260px;z-index:2}.bottom{position:absolute;z-index:2;left:50%;bottom:26px;transform:translateX(-50%);width:min(92vw,710px);display:grid;gap:9px}.controls{display:flex;gap:6px;justify-content:center;padding:10px 12px;border-radius:20px;background:#fffaf3ea;backdrop-filter:blur(12px);box-shadow:0 10px 32px #6b5a4522}.controls button{flex:1;min-width:0;background:transparent;border:0;border-radius:13px;padding:10px 6px;color:#746457;font-weight:700;font-size:12px;cursor:pointer}.controls button.active{background:#72866a;color:#fff}.controls button:focus-visible{outline:2px solid #bd7965}.status{text-align:center;font-size:11px;color:#746657;font-weight:650}.legend{font-size:11px;color:#86776b}.version{position:absolute;right:25px;top:100px;color:#b48473;font-size:11px;letter-spacing:.05em;font-weight:700}@media(max-width:700px){header{top:15px;left:14px;right:14px}.info{left:17px;top:85px;max-width:230px}.controls{flex-wrap:wrap}.controls button{flex:1 1 30%;font-size:11px}.bottom{bottom:13px}.version{display:none}}
+</style>  <script type="module" crossorigin src="/assets/sprite-C-KnLr_6.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/three.module-Bcy1RNmC.js">
+  <link rel="modulepreload" crossorigin href="/assets/GirlSprite-CQgtCnFQ.js">
+</head><body>
+<header><div class="eyebrow">WALKINGKOREA / SPRITE STUDIO</div><a href="/">← 골목으로 돌아가기</a></header>
+<section class="info"><h1>서울 산책자<br>2.5D 미리보기</h1><p>일러스트 그대로 다섯 방향을 전환하는 방식. 아래에서 걷기/서있기를 바꿔볼 수 있어요.</p></section>
+<div class="version">5 DIRECTIONS · 2 IDLE + 4 WALK · WEBP</div>
+<canvas id="view" aria-label="2.5D 여성 산책자 Three.js 미리보기"></canvas>
+<div class="bottom">
+ <div class="controls" id="angles">
+ <button data-direction="0" class="active">정면</button><button data-direction="1">45°</button><button data-direction="2">측면</button><button data-direction="3">뒤 45°</button><button data-direction="4">후면</button>
+ </div>
+ <div class="controls" id="poses"><button data-pose="idle" class="active">서있기</button><button data-pose="walk">걷기</button><button id="mirror">좌우 반전</button></div>
+ <div class="status" id="status">스프라이트를 불러오는 중...</div>
+</div>
+</body></html>
