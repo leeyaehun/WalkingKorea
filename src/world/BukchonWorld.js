@@ -3,6 +3,7 @@ import { buildPavedAlleys } from './BukchonPaving.js';
 import {mainLaneWidth,mainLaneTerrainHeight,smoothMainLane,scenicHouseSites,sampleMainLaneAtZ} from './BukchonStreetLayout.js';
 import {MAIN_STREET_ROUTE} from './BukchonMainStreet.js';
 import {SEVENTH_LOOP_ROUTE,SEVENTH_LOOP_SAMPLES,SEVENTH_JOIN,buildSeventhLoopWalls} from './BukchonSeventhLoop.js';
+import {planSeventhHanokSites,buildSeventhHanoks} from './BukchonSeventhBuildings.js';
 import {buildFrontageConnectors} from './BukchonFrontage.js';
 import {buildContinuousFrontages} from './BukchonContinuousFrontage.js';
 import {buildBukchonStreetLife} from './BukchonStreetLife.js';
@@ -340,6 +341,7 @@ let frontage={count:0,segments:[]};
 let districtFrontage={count:0,segments:[]};
 let continuousFrontages=null;
 let seventhLoopWalls=null;
+let seventhBuildings=null;
 let streetLife=null;
 let nightFixtures=null;
 function makeWorld(){
@@ -361,8 +363,19 @@ function makeWorld(){
    existingConnectors:[...frontage.segments,...districtFrontage.segments],
    openings:[SEVENTH_JOIN]
  });
- // The new 7-gyeong alley has protective real walls, with both ends open.
- seventhLoopWalls=buildSeventhLoopWalls({samples:paths[1].samples,face,hill});
+ // D-3: place real, six-silhouette 7-gyeong hanoks BEFORE the boundary
+ // wall pass, so a generic wall never slices across a wooden front gate.
+ // The existing 20 main-road houses are intentionally never rebuilt.
+ const sevenPlan=planSeventhHanokSites({
+   path:paths[1],paths,existingHouses:houseSites
+ });
+ seventhBuildings=buildSeventhHanoks({
+   plan:sevenPlan,withFrame,box,face,cylinder,sphere,textured,signs
+ });
+ seventhLoopWalls=buildSeventhLoopWalls({
+   samples:paths[1].samples,face,hill,
+   reservedFrontages:seventhBuildings.frontageSpans
+ });
  nightFixtures=buildBukchonNightFixtures({
    houseSites,paths,hill,withFrame,box,cylinder,sphere,distanceFromPath
  });
@@ -530,5 +543,5 @@ makeWorld();
   });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.frustumCulled = false;
-  return {mesh,material,paths,hill,distanceFromPath,houseSites,frontage,districtFrontage,continuousFrontages,seventhLoopWalls,streetLife,nightFixtures,namsan:namsanStats,skyline:skylineStats,paving,vertexCount:positions.length/3};
+  return {mesh,material,paths,hill,distanceFromPath,houseSites,frontage,districtFrontage,continuousFrontages,seventhLoopWalls,seventhBuildings,streetLife,nightFixtures,namsan:namsanStats,skyline:skylineStats,paving,vertexCount:positions.length/3};
 }

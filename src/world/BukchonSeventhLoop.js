@@ -73,7 +73,7 @@ export const SEVENTH_LOOP_SAMPLES=sampleSeventhLoop();
  * These line the accessible loop, not the main road. Later B architecture
  * work can replace spans with unique hanok gates while keeping the path.
  */
-export function buildSeventhLoopWalls({samples=SEVENTH_LOOP_SAMPLES,face,hill}){
+export function buildSeventhLoopWalls({samples=SEVENTH_LOOP_SAMPLES,face,hill,reservedFrontages=[]}){
   let segments=0,piers=0,length=0;
   const stations=[];
   for(let i=0;i<samples.length;i++){
@@ -93,6 +93,11 @@ export function buildSeventhLoopWalls({samples=SEVENTH_LOOP_SAMPLES,face,hill}){
     // doorway to remain completely open at both shared endpoints.
     if(a.s<8||b.s>length-8)continue;
     for(const side of [-1,1]){
+      // D-3 authentic building facades REPLACE these default stone wall
+      // runs rather than being drawn behind a generic solid boundary.
+      // Filter by side and path station, leaving all opposite-side walls.
+      if(reservedFrontages.some(r=>r.side===side &&
+        (a.s+b.s)*.5>=r.from && (a.s+b.s)*.5<=r.to))continue;
       const p=at(a,side),q=at(b,side);
       const n=[a.nx*side,0,a.nz*side];
       const quad=(bottom,top,c)=>face(
@@ -111,5 +116,5 @@ export function buildSeventhLoopWalls({samples=SEVENTH_LOOP_SAMPLES,face,hill}){
     }
     if(Math.floor(b.s/6.0)>Math.floor(a.s/6.0))piers+=2;
   }
-  return {segments,piers,length,join:SEVENTH_JOIN};
+  return {segments,piers,length,join:SEVENTH_JOIN,reservedFrontages};
 }
