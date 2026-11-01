@@ -5,6 +5,7 @@ import { createGirlSpriteCompanion } from './characters/GirlSprite.js';
 import { createThirdPersonCamera } from './controllers/ThirdPersonCamera.js';
 import { cameraRelativeDirection } from './controllers/MovementDirections.js';
 import { createBukchonLighting } from './world/BukchonLighting.js';
+import { createBukchonSky, SKY_FOG_DAY, SKY_FOG_NIGHT } from './world/BukchonSky.js';
 
 const $ = (id) => document.getElementById(id);
 const canvas = $('world');
@@ -16,23 +17,9 @@ renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
 renderer.toneMapping = THREE.NoToneMapping;
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(57,1,.1,240);
-// A real 3D gradient sky dome: the warm, hazy skyline visible between
-// Bukchon's rooflines. This is not the generated reference illustration.
-const skyGeometry=new THREE.SphereGeometry(215,24,12);
-const skyPositions=skyGeometry.getAttribute('position');
-const skyColors=[];
-const skyHorizon=new THREE.Color(0xe6bda8),skyZenith=new THREE.Color(0x9cb7dd);
-for(let i=0;i<skyPositions.count;i++){
- const elevation=Math.max(0,Math.min(1,(skyPositions.getY(i)/215+.12)/.85));
- const tone=skyHorizon.clone().lerp(skyZenith,elevation);
- skyColors.push(tone.r,tone.g,tone.b);
-}
-skyGeometry.setAttribute('color',new THREE.Float32BufferAttribute(skyColors,3));
-const sky=new THREE.Mesh(skyGeometry,new THREE.MeshBasicMaterial({
- side:THREE.BackSide,vertexColors:true,depthWrite:false,fog:false
-}));
-sky.renderOrder=-1000;
-scene.add(sky);
+// Clear blue day sky and sparse, softly feathered procedural clouds.
+// Preserve the previous night-sky appearance until weather phase 04.
+const sky=createBukchonSky(scene);
 const {mesh,material,paths,hill,distanceFromPath,houseSites,streetLife,paving,vertexCount} = createBukchonWorld();
 scene.add(mesh);
 const lighting=createBukchonLighting({
@@ -245,9 +232,8 @@ function render(time=0) {
   dami.update({...motion,visible:state.started&&state.avatar==='dami'});
   girl.update({...motion,visible:state.started&&state.avatar==='girl'});
   followCamera.update({x:state.x,z:state.z,yaw:state.yaw,pitch:state.pitch,dt,moving});
-  const fog=state.night?[.31,.37,.45]:[.79,.78,.75];
-  sky.position.copy(camera.position);
-  sky.material.color.set(state.night?0x34415c:0xffffff);
+  const fog=state.night?SKY_FOG_NIGHT:SKY_FOG_DAY;
+  sky.update(camera,state.night);
   lighting.update({x:state.x,z:state.z,hill,night:state.night});
   material.uniforms.uNight.value=state.night?1:0;
   material.uniforms.uShadowStrength.value=state.night?.12:.86;
