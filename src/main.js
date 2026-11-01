@@ -29,7 +29,7 @@ const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(57,1,.1,240);
 // Daytime blue sky and separate moonlit navy night atmosphere.
 const sky=createBukchonSky(scene);
-const {mesh,material,paths,hill,distanceFromPath,houseSites,seventhBuildings,seventhViewpoint,streetLife,nightFixtures,paving,vertexCount} = createBukchonWorld();
+const {mesh,material,paths,hill,distanceFromPath,houseSites,fiveGyeongThird,seventhBuildings,seventhViewpoint,streetLife,nightFixtures,paving,vertexCount} = createBukchonWorld();
 scene.add(mesh);
 const lighting=createBukchonLighting({
   renderer,scene,worldMesh:mesh,isTouch:touchDevice
