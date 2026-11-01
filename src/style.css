@@ -110,7 +110,7 @@ body.playing .left-label{opacity:0;transform:translateY(-8px);transition:opacity
 
 /* D-4: a contextual photo action, only visible at the real 7-gyeong spot.
  * Keep the sky and lanes unobstructed outside the viewpoint. */
-.photo-save{position:absolute;right:38px;bottom:111px;pointer-events:auto;
+.photo-save{position:absolute;right:38px;bottom:111px;pointer-events:auto;z-index:7;
  background:rgba(42,62,51,.91);color:#fffaf0;border:1px solid rgba(255,255,255,.60);
  box-shadow:0 8px 22px rgba(43,48,37,.18);backdrop-filter:blur(12px);
  padding:10px 16px;border-radius:30px;font-size:12px;font-weight:700}

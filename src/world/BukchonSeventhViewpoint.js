@@ -15,7 +15,7 @@ import {hanokFootprintsOverlap,distanceToHanokFootprint}
  */
 export const SEVENTH_PHOTO_STATION=38.6;
 export const SEVENTH_PHOTO_RADIUS=3.75;
-export const SEVENTH_PHOTO_PITCH=.12;
+export const SEVENTH_PHOTO_PITCH=.04;
 const hypot=Math.hypot;
 const clamp=(x,lo,hi)=>Math.max(lo,Math.min(hi,x));
 
