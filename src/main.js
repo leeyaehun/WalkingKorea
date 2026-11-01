@@ -5,6 +5,7 @@ import { createGirlSpriteCompanion } from './characters/GirlSprite.js';
 import { createThirdPersonCamera } from './controllers/ThirdPersonCamera.js';
 import { cameraRelativeDirection } from './controllers/MovementDirections.js';
 import { createBukchonLighting } from './world/BukchonLighting.js';
+import { createBukchonNightLights } from './world/BukchonNightLighting.js';
 import { createBukchonSky, SKY_FOG_DAY, SKY_FOG_NIGHT } from './world/BukchonSky.js';
 
 const $ = (id) => document.getElementById(id);
@@ -19,10 +20,14 @@ const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(57,1,.1,240);
 // Daytime blue sky and separate moonlit navy night atmosphere.
 const sky=createBukchonSky(scene);
-const {mesh,material,paths,hill,distanceFromPath,houseSites,streetLife,paving,vertexCount} = createBukchonWorld();
+const {mesh,material,paths,hill,distanceFromPath,houseSites,streetLife,nightFixtures,paving,vertexCount} = createBukchonWorld();
 scene.add(mesh);
 const lighting=createBukchonLighting({
   renderer,scene,worldMesh:mesh,isTouch:touchDevice
+});
+const nightLights=createBukchonNightLights({
+  fixtures:nightFixtures.fixtures,
+  uniform:material.uniforms.uNightLampPositions
 });
 const dami=createDamiCompanion(scene,hill);
 const girl=createGirlSpriteCompanion(scene,hill,camera);
@@ -234,6 +239,7 @@ function render(time=0) {
   const fog=state.night?SKY_FOG_NIGHT:SKY_FOG_DAY;
   sky.update(camera,state.night);
   lighting.update({x:state.x,z:state.z,hill,night:state.night});
+  nightLights.update(state.x,state.z,state.night);
   material.uniforms.uNight.value=state.night?1:0;
   material.uniforms.uShadowStrength.value=state.night?.12:.86;
   material.uniforms.uFogColor.value.setRGB(...fog);
