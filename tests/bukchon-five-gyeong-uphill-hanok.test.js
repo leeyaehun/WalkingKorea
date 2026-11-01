@@ -150,7 +150,7 @@ test('camera QA can preview the REAL upper 5-gyeong plot immediately; original d
  assert.match(main,/multiplayer\.start\(\)/);
  const w=createWorld(),positions=w.houseSites
    .filter(h=>h.referenceAsset).map(h=>({index:h.index,x:h.x,z:h.z}));
- assert.deepEqual(positions.map(h=>h.index),[8,10]);
+ assert.deepEqual(positions.map(h=>h.index),[8,10,12]);
 });
 
 test('complete world renderer, night materials and 8-player road remain within mobile budget',()=>{
