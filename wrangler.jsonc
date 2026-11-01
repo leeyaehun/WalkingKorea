@@ -19,9 +19,6 @@
       }
     ]
   },
-  // Branch previews must declare bindings explicitly. Cloudflare provisions
-  // an isolated Durable Object namespace for each preview, keeping walking
-  // rooms separate from production while retaining the same env binding.
   "previews": {
     "durable_objects": {
       "bindings": [
