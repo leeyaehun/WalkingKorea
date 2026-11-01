@@ -61,16 +61,19 @@ export function buildFrontageConnectors({
       const topF1=[front1[0],q.y+wallHeight,front1[2]];
       const topB0=[back0[0],p.y+wallHeight,back0[2]];
       const topB1=[back1[0],q.y+wallHeight,back1[2]];
-      polygon(front0,front1,topF1,topF0,[nx,0,nz],'plaster');
-      polygon(back1,back0,topB0,topB1,[-nx,0,-nz],'plaster');
-      polygon(topF0,topF1,topB1,topB0,[0,1,0],'tileDark');
-      // Granite plinth makes the gap wall appear founded on the slope.
+      // Step 04 / Z-FIGHT FIX: Before, full-height plaster and the grey
+      // granite base occupied the EXACT SAME plane from base to +0.35m.
+      // With depth testing, each could win arbitrarily as the camera moved.
+      // Split them into non-overlapping vertical bands, not layered decals.
       const plinthF0=[front0[0],p.y+.35,front0[2]];
       const plinthF1=[front1[0],q.y+.35,front1[2]];
-      polygon(front0,front1,plinthF1,plinthF0,[nx,0,nz],'stoneFoundation');
       const plinthB0=[back0[0],p.y+.35,back0[2]];
       const plinthB1=[back1[0],q.y+.35,back1[2]];
+      polygon(plinthF0,plinthF1,topF1,topF0,[nx,0,nz],'plaster');
+      polygon(plinthB1,plinthB0,topB0,topB1,[-nx,0,-nz],'plaster');
+      polygon(front0,front1,plinthF1,plinthF0,[nx,0,nz],'stoneFoundation');
       polygon(back1,back0,plinthB0,plinthB1,[-nx,0,-nz],'stoneFoundation');
+      polygon(topF0,topF1,topB1,topB0,[0,1,0],'tileDark');
       // Coping forms a rooflet with two sloping sides, like the nearby house walls.
       for(const sign of [-1,1]){
         const at0=[p.x+sign*nx*.45,p.y+wallHeight-.15,p.z+sign*nz*.45];
