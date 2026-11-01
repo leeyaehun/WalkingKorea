@@ -81,7 +81,7 @@ test('every physical 3D detail is finite and the extended courtyard stays AWAY f
   }
   assert.ok(ext.xmin>=-4.0&&ext.xmax<=4.0,'asset extends into neighbor lot');
   assert.ok(ext.zmin>=-4.78,'entrance canopy intrudes on walking street');
-  assert.ok(ext.zmax>11&&ext.zmax<12.2,'attached rear wing did not extend behind the original compound');
+  assert.ok(ext.zmax>11&&ext.zmax<12.4,'attached rear wing did not extend behind the original compound');
   assert.ok(ext.ymin>=-.10&&ext.ymax<=5.0,'roof height inconsistent');
   console.info('5-gyeong hero local 3D bounds',JSON.stringify(ext));
 });

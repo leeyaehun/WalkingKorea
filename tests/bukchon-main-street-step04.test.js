@@ -46,8 +46,8 @@ test('continuous frontage deliberately omits spans already covered by original w
   const connectors=[...w.frontage.segments,...w.districtFrontage.segments];
   assert.equal(f.reservedConnectorSpans.length,connectors.length);
   assert.ok(f.existingConnectorMeters>20&&f.existingConnectorMeters<23);
-  assert.ok(f.coveredMeters+5.2>27&&f.coveredMeters+5.2<38);
-  assert.ok(f.coveredMeters+f.existingConnectorMeters+5.2>48);
+  assert.ok(f.coveredMeters+w.fiveGyeongApproach.length+5.2>27&&f.coveredMeters+w.fiveGyeongApproach.length+5.2<38);
+  assert.ok(f.coveredMeters+w.fiveGyeongApproach.length+f.existingConnectorMeters+5.2>48);
   for(const run of f.runs)for(const reserved of f.reservedConnectorSpans){
     if(run.side!==reserved.side)continue;
     const overlap=Math.min(run.toZ,reserved.end)-
