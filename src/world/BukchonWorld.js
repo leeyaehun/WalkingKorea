@@ -1,6 +1,7 @@
 import { createHanokKit } from './HanokKit.js';
 import { buildPavedAlleys } from './BukchonPaving.js';
 import {mainLaneWidth,scenicHillLift,scenicHouseSites} from './BukchonStreetLayout.js';
+import {MAIN_STREET_ROUTE} from './BukchonMainStreet.js';
 import {buildFrontageConnectors} from './BukchonFrontage.js';
 import {buildBukchonStreetLife} from './BukchonStreetLife.js';
 import {buildNamsanLandmark} from './NamsanLandmark.js';
@@ -194,11 +195,7 @@ function rod(ax,ay,az,bx,by,bz,r,col){ // diagonal beam with a flat rotated vert
 // Bukchon ONE-WAYLINE Step 01: one continuous main walkable alley.
 // This is still a stylized route, not yet a surveyed Bukchonro 11-gil trace.
 // No fork paving, branch houses, or hidden alternative navigation paths.
-const paths=[
- {name:'북촌로11길 메인 골목 (구성 중)',width:3.35,
-  points:[[0,55],[0,43],[-1,35],[.5,25],[-1.5,15],[-5.5,6],
-          [-5,-3],[-2.6,-14],[-2.7,-24],[-2.9,-34],[-3,-44]]}
-];
+const paths=[{...MAIN_STREET_ROUTE,points:MAIN_STREET_ROUTE.points.map(p=>p.slice())}];
 // Smooth the hard turnpoints without opening a wide automotive street.
 function softened(points){let p=points.map(q=>q.slice());for(let pass=0;pass<2;pass++){
  let next=[p[0]];for(let i=0;i<p.length-1;i++){let a=p[i],b=p[i+1];next.push([a[0]*.75+b[0]*.25,a[1]*.75+b[1]*.25],[a[0]*.25+b[0]*.75,a[1]*.25+b[1]*.75]);}next.push(p[p.length-1]);p=next;
