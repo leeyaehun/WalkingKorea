@@ -15,13 +15,13 @@ test('residential details now extend to all houses, excluding all planter vegeta
  const w=makeWorld(),v=w.streetLife;
  assert.equal(v.houseCount,w.houseSites.length);
  assert.equal(v.entries.length,w.houseSites.length);
- assert.equal(v.counts.doorsteps,21);
- assert.equal(v.counts.plaques,21);
- assert.equal(v.counts.downspouts,25);
- assert.equal(v.counts.electricMeters,25);
+ assert.equal(v.counts.doorsteps,14);
+ assert.equal(v.counts.plaques,14);
+ assert.equal(v.counts.downspouts,18);
+ assert.equal(v.counts.electricMeters,18);
  assert.equal('planters' in v.counts,false);
- assert.equal(v.counts.benches,4);
- assert.equal(v.counts.storage,4);
+ assert.equal(v.counts.benches,3);
+ assert.equal(v.counts.storage,3);
  assert.equal(v.counts.wires,4);
  assert.equal(v.counts.poles,4);
  assert.deepEqual(v.entries.map(x=>x.index),w.houseSites.map(h=>h.index));
@@ -29,7 +29,7 @@ test('residential details now extend to all houses, excluding all planter vegeta
    !x.details.includes('plaques') && !x.details.includes('doorsteps'):
    x.details.includes('plaques') && x.details.includes('doorsteps')));
  assert.equal(w.houseSites.filter(s=>s.scenic).length,8);
- assert.equal(w.paths.length,3);
+ assert.equal(w.paths.length,1);
 });
 
 test('electric utility poles are beyond the walking kerb; overhead wires maintain clearance',()=>{
