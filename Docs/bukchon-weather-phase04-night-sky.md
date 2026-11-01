@@ -9,16 +9,16 @@ until planned Step 05. A simple dimming of the daytime shader was not sufficient
 
 ## Implemented
 - A true midnight-navy sky with three vertical atmosphere bands:
-  - #263B59 — light-polluted, blue-grey urban horizon
-  - #142A4C — middle nighttime sky
-  - #09172F — deep navy zenith
+  - #456789 — light-polluted, blue-grey urban horizon
+  - #2A456C — middle nighttime sky
+  - #1B2B4E — deep navy zenith
 - A quiet waning-style crescent moon with a localized halo, computed directly
   from a fixed skyward direction in the existing single sky-dome shader.
 - Deterministic, tiny **sparse** stars via hashed angular grid with a
   horizon light-pollution fade; no random re-scattering at each camera update.
 - Weak, warm city horizon scattering without pretending there are already
   street lamps or glowing windows.
-- Cool, blue atmospheric distance fog for distant Namsan/Seoul. The main
+- Browser QA exposure fix: dark-blue sky had looked almost black while the city ground was too bright; lifted night sky blues, slightly reduced ground moonlight contrast.\n- Cool, blue atmospheric distance fog for distant Namsan/Seoul. The main
   world shader receives gentle slate-blue moonlit fill; eaves and paths
   remain legible rather than becoming featureless black.
 - Existing day-sky palette, high clouds, sunlight, hanok shadows, houses,

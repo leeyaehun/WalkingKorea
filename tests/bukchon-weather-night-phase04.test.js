@@ -60,7 +60,7 @@ test('night mode toggles and camera follows without changing player, landmarks o
 
 test('night shading is moonlit, not blanket black and does not invent Step 05 lamps',()=>{
   const worldFile=readFileSync(new URL('../src/world/BukchonWorld.js',import.meta.url),'utf8');
-  assert.match(worldFile,/vec3 dusk = lit \* vec3\(\.52,\.61,\.77\)/);
+  assert.match(worldFile,/vec3 dusk = lit \* vec3\(\.43,\.51,\.67\)/);
   assert.match(worldFile,/float nightFog=smoothstep\(73\.0,220\.0,vDistance\)\*\.52/);
   assert.match(worldFile,/float fog=mix\(dayFog,nightFog,uNight\)/);
   assert.doesNotMatch(worldFile,/new THREE\.PointLight/);

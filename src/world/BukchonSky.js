@@ -12,9 +12,9 @@ export const SKY_DAY_PALETTE=Object.freeze({
   zenith:0x4e9bdc
 });
 export const SKY_NIGHT_PALETTE=Object.freeze({
-  horizon:0x263b59,   // distant city / atmospheric light
-  middle:0x142a4c,    // clear navy-blue upper air
-  zenith:0x09172f,    // deep midnight blue
+  horizon:0x456789,   // distant city / atmospheric light
+  middle:0x2a456c,    // clear navy-blue upper air
+  zenith:0x1b2b4e,    // deep midnight blue
   moon:0xf2eedc
 });
 export const SKY_FOG_DAY=Object.freeze([.72,.82,.90]);
