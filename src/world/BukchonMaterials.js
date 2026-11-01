@@ -25,7 +25,7 @@ export function surfaceMaterialId(key) {
       key.startsWith('pave')||key.startsWith('drain'))return MATERIAL.granite;
   if (key.startsWith('brick'))return MATERIAL.brick;
   if (['asphalt','asphaltPatch','road','street'].includes(key))return MATERIAL.asphalt;
-  if (key==='paper')return MATERIAL.paper;
+  if (key==='paper'||key==='hanokPaperWindow')return MATERIAL.paper;
   return MATERIAL.plain;
 }
 
