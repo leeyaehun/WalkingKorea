@@ -87,7 +87,7 @@ export function buildPavedAlleys({paths,face,hill}) {
           quad(a,b,Math.min(from,to),Math.max(from,to),0,1,.031+lift,
             i%17===0?'stoneWarm':'edgeStoneLight');
           const joint=side*(half+.13);
-          quad(a,b,joint-.029,joint+.029,0,1,.048+lift,'paveJoint');
+          quad(a,b,joint-.029,joint+.029,0,1,.048+lift,'stoneGrey');
         }
         shoulderMeters+=Math.hypot(b.x-a.x,b.z-a.z)*2;
         quad(a,b,-inner+.035,inner-.035,0,1,.077+lift,
