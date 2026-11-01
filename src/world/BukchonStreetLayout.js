@@ -51,7 +51,7 @@ export function smoothMainLane(points,step=1.15) {
   const result=[points[0].slice()];
   for(let i=0;i<points.length-1;i++){
     const [x0,z0]=points[i],[x1,z1]=points[i+1],dz=z1-z0;
-    if(!(dz<0)||!Number.isFinite(x0)||!Number.is(x1))
+    if(!(dz<0)||!Number.isFinite(x0)||!Number.isFinite(x1))
       throw new Error('Street anchor Z must be strictly descending');
     const parts=Math.max(1,Math.ceil(-dz/step));
     for(let j=1;j<=parts;j++){
