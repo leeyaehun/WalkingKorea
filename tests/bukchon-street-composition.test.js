@@ -44,7 +44,7 @@ test('eight hand-placed hanoks frame the first 40m without overlapping',()=>{
  const scenic=world.houseSites.filter(s=>s.scenic);
  assert.equal(scenic.length,8);
  assert.ok(world.houseSites.length>scenic.length);
- assert.equal(world.paths.length,3);
+ assert.equal(world.paths.length,1);
  for(const house of scenic) {
   assert.ok(house.roadWidth>=2.95 && house.roadWidth<=3.35);
   assert.ok(Number.isFinite(house.angle));
@@ -68,16 +68,16 @@ test('eight hand-placed hanoks frame the first 40m without overlapping',()=>{
  }
  // East and west lane branch joints remain physically connected.
  assert.ok(world.distanceFromPath(-2.7,-24,world.paths[0])<.35);
- assert.ok(world.distanceFromPath(-2.7,-24,world.paths[2])<.1);
+ assert.ok(world.distanceFromPath(-24,-8,world.paths[0])>8);
  assert.ok(world.distanceFromPath(-2.6,-14,world.paths[0])<.35);
- assert.ok(world.distanceFromPath(-2.6,-14,world.paths[1])<.1);
+ assert.ok(world.distanceFromPath(17,7,world.paths[0])>8);
  const drop=world.hill(-3,-44)-world.hill(-3,-4);
  assert.ok(drop>3.5 && drop<4.6, `downhill change ${drop}`);
  assert.ok(world.distanceFromPath(-3,-42,world.paths[0])<.4);
  assert.ok(world.mesh.geometry.getAttribute('position').array.every(Number.isFinite));
 });
 
-test('authored row positions avoid the branch entrances at west -14 and east -24',()=>{
+test('authored house gaps are identified for Step 03 frontage infill',()=>{
  const world=buildWorld(), row=scenicHouseSites(world.paths[0].samples);
  // With the 7.5m frontage, keep the nearest wall ends off the branch roads.
  const west=row.filter(s=>s.side<0);
