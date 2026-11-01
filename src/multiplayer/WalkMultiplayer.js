@@ -27,6 +27,7 @@ export function createWalkMultiplayer({scene,hill,camera,onStatus,initialRoomTok
   function removePeer(id){
     const peer=peers.get(id);
     if(!peer)return;
+    peer.girl.dispose?.();
     scene.remove(peer.girl.group);
     peer.girl.group.traverse(node=>{
       node.geometry?.dispose?.();

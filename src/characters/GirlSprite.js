@@ -18,6 +18,26 @@ const spriteFiles = {
   walk: '/sprites/girl_walk_5x4.webp'
 };
 
+
+// Load and decode the two atlases once for the local walker AND remote peers.
+// Multiple simultaneous players no longer create repeated image requests.
+let atlasPromise=null;
+function loadSpriteAtlases(){
+  if(!atlasPromise){
+    atlasPromise=Promise.all(Object.entries(spriteFiles).map(async ([state,path])=>{
+      const image=new Image();
+      image.decoding='async';
+      image.src=path;
+      await image.decode();
+      return [state,image];
+    })).then(entries=>Object.fromEntries(entries)).catch(error=>{
+      atlasPromise=null; // Allow a later reconnect to retry failed assets.
+      throw error;
+    });
+  }
+  return atlasPromise;
+}
+
 function shortestAngle(angle) {
   return Math.atan2(Math.sin(angle), Math.cos(angle));
 }
@@ -74,16 +94,14 @@ export function createGirlSpriteCompanion(scene, hill, camera) {
 
   const sheet = {};
   const loadingState = {ready: false, errors: []};
-  Promise.all(Object.entries(spriteFiles).map(async ([state, path]) => {
-    const image = new Image();
-    image.decoding = 'async';
-    image.src = path;
-    await image.decode();
-    sheet[state] = image;
-  })).then(() => {
+  let disposed=false;
+  loadSpriteAtlases().then(images => {
+    if(disposed)return;
+    Object.assign(sheet,images);
     loadingState.ready = true;
     draw('idle', 0, 0, false);
   }).catch(error => {
+    if(disposed)return;
     loadingState.errors.push(String(error));
     console.error('WalkingKorea girl sprite atlas failed to load:', error);
   });
@@ -190,5 +208,7 @@ export function createGirlSpriteCompanion(scene, hill, camera) {
     draw(currentPose, currentDirection, currentFrame, currentMirrored);
   }
 
-  return {group: root, update, snapshot, previewPose, material: spriteMaterial, sprite, loadingState};
+  return {group: root, update, snapshot, previewPose, material: spriteMaterial, sprite, loadingState,
+    dispose(){disposed=true;}
+  };
 }
