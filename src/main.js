@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { createBukchonWorld } from './world/BukchonWorld.js';
+import {nearSeventhPhotoSpot} from './world/BukchonSeventhViewpoint.js';
 import { MAIN_STREET_DISCOVERIES, DEFAULT_MAIN_STREET_PITCH } from './world/BukchonMainStreet.js';
 import { createGirlSpriteCompanion } from './characters/GirlSprite.js';
 import { createWalkMultiplayer } from './multiplayer/WalkMultiplayer.js';
@@ -28,7 +29,7 @@ const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(57,1,.1,240);
 // Daytime blue sky and separate moonlit navy night atmosphere.
 const sky=createBukchonSky(scene);
-const {mesh,material,paths,hill,distanceFromPath,houseSites,seventhBuildings,streetLife,nightFixtures,paving,vertexCount} = createBukchonWorld();
+const {mesh,material,paths,hill,distanceFromPath,houseSites,seventhBuildings,seventhViewpoint,streetLife,nightFixtures,paving,vertexCount} = createBukchonWorld();
 scene.add(mesh);
 const lighting=createBukchonLighting({
   renderer,scene,worldMesh:mesh,isTouch:touchDevice
@@ -56,6 +57,8 @@ const safeStore={getItem(k){try{return window.localStorage.getItem(k)}catch(e){r
 const discovered=new Set(JSON.parse(safeStore.getItem('seoul-stroll-places-bukchon-mainline-v03')||'[]'));
 
 const locations=MAIN_STREET_DISCOVERIES;
+const photoSpot=seventhViewpoint.spot;
+const isNearPhotoSpot=()=>nearSeventhPhotoSpot(state.x,state.z,photoSpot);
 const toMap=(x,z)=>[clamp(8+(x+36)*2.12,2,168),clamp(5+(48-z)*1.19,2,123)];
 function drawMapLanes(){
  const root=$('map-roads'),ns='http://www.w3.org/2000/svg';
@@ -118,7 +121,21 @@ function drawMapLanes(){
 drawMapLanes();
 function mapUpdate(){const spot=$('player-spot');const [px,py]=toMap(state.x,state.z);spot.setAttribute('cx',String(clamp(px,3,167)));spot.setAttribute('cy',String(clamp(py,3,122)));$('discovery-count').textContent=`${discovered.size} / ${locations.length}`;
  $('compass-label').textContent=['N','NE','E','SE','S','SW','W','NW'][Math.round(((state.yaw%TAU+TAU)%TAU)/(TAU/8))%8];$('compass-needle').style.transform=`rotate(${state.yaw}rad)`;}
-function pointsMap(){const svg=$('map-pois');const ns='http://www.w3.org/2000/svg';locations.forEach(p=>{let e=document.createElementNS(ns,'circle');e.setAttribute('cx',String(toMap(p.x,p.z)[0]));e.setAttribute('cy',String(toMap(p.x,p.z)[1]));e.setAttribute('r','3.2');e.setAttribute('fill',discovered.has(p.id)?'#dc8b69':'#b9b2a4');e.dataset.id=p.id;svg.appendChild(e);});}
+function pointsMap(){const svg=$('map-pois');const ns='http://www.w3.org/2000/svg';locations.forEach(p=>{let e=document.createElementNS(ns,'circle');e.setAttribute('cx',String(toMap(p.x,p.z)[0]));e.setAttribute('cy',String(toMap(p.x,p.z)[1]));e.setAttribute('r','3.2');e.setAttribute('fill',discovered.has(p.id)?'#dc8b69':'#b9b2a4');e.dataset.id=p.id;svg.appendChild(e);});
+ // A distinct camera-shaped pin, independent of the six old discoveries.
+ const [cx,cy]=toMap(photoSpot.x,photoSpot.z);
+ const pin=document.createElementNS(ns,'circle');
+ pin.setAttribute('cx',String(cx));pin.setAttribute('cy',String(cy));
+ pin.setAttribute('r','4');pin.setAttribute('fill','#486457');
+ pin.setAttribute('stroke','#fff8e8');pin.setAttribute('stroke-width','1.15');
+ pin.setAttribute('data-photo-spot',photoSpot.id);
+ const tip=document.createElementNS(ns,'title');tip.textContent=photoSpot.name+' · 포토스팟';
+ pin.appendChild(tip);svg.appendChild(pin);
+ const lens=document.createElementNS(ns,'circle');
+ lens.setAttribute('cx',String(cx));lens.setAttribute('cy',String(cy));
+ lens.setAttribute('r','1.35');lens.setAttribute('fill','#fff8e8');
+ lens.setAttribute('pointer-events','none');svg.appendChild(lens);
+}
 pointsMap();mapUpdate();
 function markFound(p){if(discovered.has(p.id))return;discovered.add(p.id);safeStore.setItem('seoul-stroll-places-bukchon-mainline-v03',JSON.stringify([...discovered]));const marker=$('map-pois').querySelector(`[data-id="${p.id}"]`);if(marker)marker.setAttribute('fill','#dc8b69');mapUpdate();}
 function toast(msg,ms=3000){$('toast').textContent=msg;$('toast').classList.add('visible');lastToast=performance.now()+ms;}
@@ -202,7 +219,7 @@ $('intro-public-room').onclick=()=>{
 $('room-menu-btn').onclick=openRoomMenu;
 refreshInviteControls();
 
-function showHelp(){modal('여자 캐릭터로 서울을 걸어요',`<p>2.5D 여성 산책자가 되어 서울 골목을 천천히 걸어봐요. 카메라는 뒤에서 따라오고, 시간 제한은 없어요.</p><ul><li><b>W A S D / 방향키</b> — 산책자 이동 (카메라 방향 기준)</li><li><b>마우스 드래그</b> — 주변 시점 회전</li><li><b>화면 클릭</b> — 포인터 고정 (ESC 해제)</li><li><b>SHIFT</b> — 조금 더 빠르게 걷기</li><li><b>E</b> — 가까운 장소 둘러보기</li><li><b>N</b> — 낮 / 저녁 변경</li><li><b>P</b> — 현재 화면 사진 저장</li><li><b>모바일</b> — 왼쪽 패드로 이동, 오른쪽 화면을 밀어 시점 회전</li></ul><p class="small-note">북촌에서 영감을 얻어 새롭게 구성한 가상 골목이야. 실제 주택과 주소를 정확하게 재현한 지도가 아니야.</p>`,'HOW TO WALK');}
+function showHelp(){modal('여자 캐릭터로 서울을 걸어요',`<p>2.5D 여성 산책자가 되어 서울 골목을 천천히 걸어봐요. 카메라는 뒤에서 따라오고, 시간 제한은 없어요.</p><ul><li><b>W A S D / 방향키</b> — 산책자 이동 (카메라 방향 기준)</li><li><b>마우스 드래그</b> — 주변 시점 회전</li><li><b>화면 클릭</b> — 포인터 고정 (ESC 해제)</li><li><b>SHIFT</b> — 조금 더 빠르게 걷기</li><li><b>E</b> — 가까운 장소 둘러보기</li><li><b>N</b> — 낮 / 저녁 변경</li><li><b>F</b> — 북촌 7경 포토스팟에서 골목 구도 맞추기</li><li><b>P</b> — 현재 화면 사진 저장</li><li><b>모바일</b> — 왼쪽 패드로 이동, 오른쪽 화면을 밀어 시점 회전</li></ul><p class="small-note">북촌에서 영감을 얻어 새롭게 구성한 가상 골목이야. 실제 주택과 주소를 정확하게 재현한 지도가 아니야.</p>`,'HOW TO WALK');}
 $('help-btn').onclick=showHelp;
 function showPostcards(){modal('발견한 골목 이야기',`<p>산책하다 발견한 장소는 여기 기록돼요. 가까이에서 <b>E</b>를 누르면 골목에 숨은 이야기를 볼 수 있어요.</p><div class="place-list">${locations.map((p,i)=>`<div class="place-chip ${discovered.has(p.id)?'found':''}">${discovered.has(p.id)?'✳ '+p.name:'○ 아직 발견하지 못한 곳 '+(i+1)}</div>`).join('')}</div><p class="small-note">기록은 현재 브라우저에만 저장돼요. 로그인이나 서버 계정은 없어.</p>`,'YOUR LITTLE MEMORIES');}
 $('postcards-btn').onclick=showPostcards;
@@ -229,11 +246,52 @@ function showWalker(){
 }
 $('walker-card')?.addEventListener('click',showWalker);
 
-function interact(){if(!nearSpot || state.modal)return;markFound(nearSpot);modal(nearSpot.name,`<p>${nearSpot.detail}</p><p class="small-note">발견한 장소 ${discovered.size} / ${locations.length} · 이 골목은 실제 지도의 정확한 재현이 아닌 서울에서 영감을 받은 공간이야.</p>`,'YOU FOUND A LITTLE PLACE');}
-function nearUpdate(){let m=null,dist=4.5;for(const p of locations){let d=Math.hypot(state.x-p.x,state.z-p.z);if(d<dist){dist=d;m=p;}}nearSpot=m;updateWalkerGuide();let hint=$('hint');if(m&&!state.modal&&state.started){hint.innerHTML=`<b>${touchDevice?'터치':'E'}</b>  ${m.name} 둘러보기`;hint.classList.add('visible');$('touch-interact').classList.add('visible');}else{hint.classList.remove('visible');$('touch-interact').classList.remove('visible');}}
+function composeSeventhPhoto(){
+ if(!state.started||state.modal||!isNearPhotoSpot())return;
+ // Rotate the CAMERA only; no snap teleport or camera rail. The player
+ // keeps walking after choosing the angle and is still synced to friends.
+ state.yaw=photoSpot.yaw;
+ state.pitch=photoSpot.pitch;
+ toast('7경의 한옥 골목 구도를 맞췄어요. P 또는 사진 저장으로 촬영해요.',3600);
+}
+function interact(){
+ if(state.modal)return;
+ if(nearSpot){
+   markFound(nearSpot);
+   modal(nearSpot.name,`<p>${nearSpot.detail}</p><p class="small-note">발견한 장소 ${discovered.size} / ${locations.length} · 이 골목은 실제 지도의 정확한 재현이 아닌 서울에서 영감을 받은 공간이야.</p>`,'YOU FOUND A LITTLE PLACE');
+ }else if(isNearPhotoSpot())composeSeventhPhoto();
+}
+function nearUpdate(){
+ let m=null,dist=4.5;
+ for(const p of locations){
+  const d=Math.hypot(state.x-p.x,state.z-p.z);
+  if(d<dist){dist=d;m=p;}
+ }
+ nearSpot=m;
+ updateWalkerGuide();
+ const hint=$('hint'),touchButton=$('touch-interact');
+ const nearbyPhoto=state.started&&!state.modal&&isNearPhotoSpot();
+ $('photo-save-btn').hidden=!nearbyPhoto;
+ if(m&&!state.modal&&state.started){
+  hint.innerHTML=`<b>${touchDevice?'터치':'E'}</b> ${m.name} 둘러보기`;
+  hint.classList.add('visible');
+  touchButton.textContent='둘러보기';
+  touchButton.classList.add('visible');
+ }else if(nearbyPhoto){
+  hint.innerHTML=touchDevice
+   ?'<b>북촌 7경</b> 사진 구도를 맞춰보세요.'
+   :'<b>북촌 7경</b> F 구도 맞추기 · P 사진 저장';
+  hint.classList.add('visible');
+  touchButton.textContent='사진 구도';
+  touchButton.classList.add('visible');
+ }else{
+  hint.classList.remove('visible');
+  touchButton.classList.remove('visible');
+ }
+}
 $('touch-interact').onclick=interact;
 function isWalkable(x,z){
- // One road, one collision corridor; no invisible branch path remains.
+ // The original 5/6 street and the 7-gyeong loop share walkable collision.
  return paths.some(p=>distanceFromPath(x,z,p)<
    (p.widthAt?p.widthAt(z):p.width)*.5+.33);
 }
@@ -266,7 +324,7 @@ window.addEventListener('keydown',e=>{
  if(!state.started||state.modal)return;
  keys.add(e.code);
  if(e.repeat)return;
- if(e.code==='KeyE')interact();if(e.code==='KeyN')toggleTime();if(e.code==='KeyP')savePhoto();if(e.code==='KeyH')showHelp();
+ if(e.code==='KeyE')interact();if(e.code==='KeyF')composeSeventhPhoto();if(e.code==='KeyN')toggleTime();if(e.code==='KeyP')savePhoto();if(e.code==='KeyH')showHelp();
 });window.addEventListener('keyup',e=>keys.delete(e.code));window.addEventListener('blur',()=>{keys.clear();touchInput.x=touchInput.y=0;});
 // Release slots promptly on navigation; restore a bfcached mobile session.
 window.addEventListener('pagehide',()=>multiplayer.stop());
@@ -282,7 +340,14 @@ function audioInit(){if(audioCtx)return;const AudioContext=window.AudioContext||
 function audioStep(dt,movement){footstepTimer+=dt;if(footstepTimer<.38/Math.max(.8,movement/4))return;footstepTimer=0;if(!audioCtx||state.mute)return;const now=audioCtx.currentTime;let oscillator=audioCtx.createOscillator(),gain=audioCtx.createGain();oscillator.type='triangle';oscillator.frequency.setValueAtTime(155+Math.random()*35,now);oscillator.frequency.exponentialRampToValueAtTime(74,now+.095);gain.gain.setValueAtTime(.0001,now);gain.gain.exponentialRampToValueAtTime(.018,now+.014);gain.gain.exponentialRampToValueAtTime(.0001,now+.1);oscillator.connect(gain);gain.connect(audioCtx.destination);oscillator.start(now);oscillator.stop(now+.11);}
 $('toggle-sound').onclick=()=>{audioInit();state.mute=!state.mute;if(audioGainAvailable())ambientGain.gain.setTargetAtTime(state.mute?0:.22,audioCtx.currentTime,.1);$('toggle-sound').textContent=state.mute?'♩':'♪';toast(state.mute?'소리를 껐어요.':'조용한 바람 소리를 켰어요.');};
 function audioGainAvailable(){return audioCtx&&ambientGain;}
-function savePhoto(){const a=document.createElement('a');a.download='seoul-stroll-postcard.png';a.href=canvas.toDataURL('image/png');a.click();toast('산책 사진을 저장했어요.');}
+function savePhoto(){
+ const a=document.createElement('a');
+ a.download=isNearPhotoSpot()?'bukchon-7gyeong-postcard.png':'seoul-stroll-postcard.png';
+ a.href=canvas.toDataURL('image/png');
+ a.click();
+ toast('산책 사진을 저장했어요.');
+}
+$('photo-save-btn').onclick=savePhoto;
 function resize() {
   // The render-budget controller owns DPR; do not override it on resize.
   renderer.setSize(window.innerWidth,window.innerHeight,false);
@@ -328,6 +393,7 @@ if(new URLSearchParams(location.search).has('qa')) {
     avatar:girl.snapshot(),selectedAvatar:'girl',
     multiplayer:multiplayer.getStatus(),
     paving,camera:followCamera.snapshot(),
+    seventhPhoto:{...photoSpot,nearby:isNearPhotoSpot(),roofPeeks:seventhViewpoint.roofPeeks.length},
     decoratedHouses:houseSites.filter(site=>site.decorated).length+seventhBuildings.buildings.length,
     houses:houseSites.length+seventhBuildings.buildings.length,
     seventhHouses:seventhBuildings.buildings.map(b=>({id:b.id,style:b.style,x:b.x,z:b.z})),
