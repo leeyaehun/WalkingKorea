@@ -17,9 +17,9 @@ function world(){
 
 test('all house sconces and three roadside lamps stay out of walking lanes',()=>{
  const w=world(),n=w.nightFixtures;
- assert.equal(n.stats.hanokSconces,19);
+ assert.equal(n.stats.hanokSconces,20);
  assert.equal(n.stats.streetLamps,3);
- assert.equal(n.fixtures.length,22);
+ assert.equal(n.fixtures.length,23);
  assert.deepEqual(STREET_LIGHT_STATIONS,[-36.5,-26.8,-6.4]);
  assert.equal(n.fixtures.filter(x=>x.type==='hanok').length,w.houseSites.length);
  for(const l of n.fixtures){
@@ -34,7 +34,7 @@ test('all house sconces and three roadside lamps stay out of walking lanes',()=>
   }
  }
  assert.equal(w.paths.length,1);
- assert.equal(w.houseSites.length,19);
+ assert.equal(w.houseSites.length,20);
  assert.equal('planters' in w.streetLife.counts,false);
 });
 
