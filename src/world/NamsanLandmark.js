@@ -137,7 +137,7 @@ export function buildNamsanLandmark({face,box,rod}) {
   }
   // A shorter additional communications mast on the right skyline.
   const mx=tx+24, mz=tz+3, ground=namsanSurfaceHeight(mx,mz);
-  box(mx,ground+8.0,mz,.30,16,'towerSilver',1.0);
+  box(mx,ground+8.0,mz,.30,16,.30,'towerSilver');
   box(mx,ground+16.75,mz,.75,1.4,.75,'towerRed');
   for(let k=0;k<3;k++)box(mx,ground+5+k*4.0,mz,.92,.12,.92,'towerStone');
 
