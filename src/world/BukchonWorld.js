@@ -5,6 +5,7 @@ import {buildFrontageConnectors} from './BukchonFrontage.js';
 import {buildBukchonStreetLife} from './BukchonStreetLife.js';
 import {buildNamsanLandmark} from './NamsanLandmark.js';
 import {buildSeoulSkyline} from './SeoulSkyline.js';
+import {buildBukchonNightFixtures,nightEmissionClass} from './BukchonNightLighting.js';
 import * as THREE from 'three';
 import {surfaceMaterialId,surfaceCoordinates,MATERIAL_GLSL} from './BukchonMaterials.js';
 
@@ -62,10 +63,12 @@ const C = {
   cityWindowFrame:[.78,.81,.82],cityStairwell:[.65,.69,.72],
   cityBalconySlab:[.81,.82,.80],cityBalconyRail:[.66,.71,.73],
   cityGlassBlue:[.37,.50,.59],cityGlassPale:[.54,.64,.70],
-  cityGlassWarm:[.65,.65,.61]
+  cityGlassWarm:[.65,.65,.61],
+  cityLitWindowWarm:[.65,.65,.61],cityLitWindowCool:[.54,.64,.70],
+  hanokPaperWindow:[.98,.95,.87],lampGlobe:[.93,.77,.54]
 };
 const color=(v)=>Array.isArray(v)?v:C[v]||C.white;
-const positions=[],normals=[],uvs=[],colors=[],materialIds=[],surfaceUVs=[],contactAO=[];
+const positions=[],normals=[],uvs=[],colors=[],materialIds=[],surfaceUVs=[],contactAO=[],nightEmission=[];
 const atlasSize=2048,atlas=document.createElement('canvas');atlas.width=atlas.height=atlasSize;
 const ctx=atlas.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,atlasSize,atlasSize);
 let tileX=4,tileY=4,rowH=0;
@@ -127,6 +130,7 @@ function face(a,b,c,d,n,col,tex=whiteUV){
   // Material projection is performed in the unrotated local frame before
   // the terrain transform. Surface grain stays the same scale on every home.
   const id=surfaceMaterialId(col);
+  const glowId=nightEmissionClass(col,activeFrame);
   const projected=[a,b,c,d].map(p=>surfaceCoordinates(p,n));
   const localUV=[projected[0],projected[1],projected[2],
                  projected[0],projected[2],projected[3]];
@@ -147,7 +151,7 @@ function face(a,b,c,d,n,col,tex=whiteUV){
   const p=[a,b,c,a,c,d],u=[[tex[0],tex[3]],[tex[2],tex[3]],[tex[2],tex[1]],[tex[0],tex[3]],[tex[2],tex[1]],[tex[0],tex[1]]];
   for(let i=0;i<6;i++){
     positions.push(...p[i]);normals.push(...n);uvs.push(...u[i]);
-    colors.push(...color(col));materialIds.push(id);surfaceUVs.push(...localUV[i]);contactAO.push(localAO[i]);
+    colors.push(...color(col));materialIds.push(id);surfaceUVs.push(...localUV[i]);contactAO.push(localAO[i]);nightEmission.push(glowId);
   }
 }
 function box(x,y,z,w,h,d,col){
@@ -312,6 +316,7 @@ function hillsideBackground(){
 let frontage={count:0,segments:[]};
 let districtFrontage={count:0,segments:[]};
 let streetLife=null;
+let nightFixtures=null;
 function makeWorld(){
  routeFloor();
  housesOnShowcase();
@@ -320,6 +325,9 @@ function makeWorld(){
  districtFrontage=buildFrontageConnectors({
    houses:houseSites,face,hill,distanceFromPath,mainPath:paths[0],
    paths,district:true
+ });
+ nightFixtures=buildBukchonNightFixtures({
+   houseSites,paths,hill,withFrame,box,cylinder,sphere,distanceFromPath
  });
  streetLife=buildBukchonStreetLife({
    box,face,sphere,cylinder,textured,signs,withFrame,
@@ -338,6 +346,7 @@ makeWorld();
   geometry.setAttribute('materialId', new THREE.Float32BufferAttribute(materialIds,1));
   geometry.setAttribute('surfaceUV', new THREE.Float32BufferAttribute(surfaceUVs,2));
   geometry.setAttribute('contactAO', new THREE.Float32BufferAttribute(contactAO,1));
+  geometry.setAttribute('nightEmission', new THREE.Float32BufferAttribute(nightEmission,1));
 
   const texture = new THREE.CanvasTexture(atlas);
   texture.colorSpace = THREE.SRGBColorSpace;
@@ -354,7 +363,8 @@ makeWorld();
         uNight: {value:0},
         uFogColor: {value:new THREE.Color().setRGB(.72,.82,.90)},
         uSunDirection: {value:new THREE.Vector3(-.47,.81,.35).normalize()},
-        uShadowStrength: {value:.78}
+        uShadowStrength: {value:.78},
+        uNightLampPositions: {value:new Float32Array(32)}
       }
     ]),
     vertexShader: `
@@ -363,6 +373,7 @@ makeWorld();
       attribute float materialId;
       attribute vec2 surfaceUV;
       attribute float contactAO;
+      attribute float nightEmission;
       uniform vec3 uSunDirection;
       varying vec2 vUV;
       varying vec2 vSurfaceUV;
@@ -370,14 +381,19 @@ makeWorld();
       varying vec3 vColor;
       varying float vLight;
       varying float vContactAO;
+      varying float vNightEmission;
+      varying vec3 vWorldPosition;
+      varying float vWorldNormalY;
       varying float vDistance;
       void main() {
         vSurfaceUV = surfaceUV;
         vSurfaceId = materialId;
         vContactAO = contactAO;
+        vNightEmission=nightEmission;
         vec3 transformed = position;
         vec3 transformedNormal = normalize(normalMatrix * normal);
         vec4 worldPosition = modelMatrix * vec4(transformed,1.0);
+        vWorldPosition=worldPosition.xyz;
         #include <shadowmap_vertex>
         vec4 viewPos = modelViewMatrix * vec4(transformed,1.0);
         gl_Position = projectionMatrix * viewPos;
@@ -385,6 +401,7 @@ makeWorld();
         vUV = uv;
         vColor = color;
         vec3 worldNormal = normalize(mat3(modelMatrix) * normal);
+        vWorldNormalY=worldNormal.y;
         float daylight = max(dot(worldNormal,normalize(uSunDirection)),0.0);
         // Soft hemisphere skylight + directional warmth: clear faces,
         // darker sheltered plaster/wood, readable underside of tiled eaves.
@@ -401,6 +418,7 @@ makeWorld();
       #include <shadowmask_pars_fragment>
       uniform sampler2D uAtlas;
       uniform float uShadowStrength;
+      uniform vec4 uNightLampPositions[8];
       uniform float uNight;
       uniform vec3 uFogColor;
       varying vec2 vUV;
@@ -426,6 +444,30 @@ makeWorld();
         // Keep soft blue skylight on eaves and enough detail in the stone.
         vec3 dusk = lit * vec3(.43,.51,.67) + vec3(.017,.024,.041);
         vec3 col = mix(lit,dusk,uNight);
+        if(uNight>0.01){
+          // Only eight nearest house / alley lamps contribute local warm
+          // irradiance; the rest still glow as emissive fixtures.
+          float pool=0.0;
+          for(int i=0;i<8;i++){
+            vec4 lamp=uNightLampPositions[i];
+            if(lamp.w>0.1){
+              float d=length(vWorldPosition-lamp.xyz);
+              float f=1.0-smoothstep(0.0,lamp.w,d);
+              pool=max(pool,f*f);
+            }
+          }
+          // This is local illumination, not pretend shadow-casting lamps.
+          float faceFill=clamp(.77+.19*vWorldNormalY,.48,1.0);
+          col+=vec3(.67,.39,.17)*pool*.62*faceFill*uNight;
+          // Surface emission is independent of roof/shadow occlusion,
+          // but fog still attenuates distant lit apartment windows.
+          vec3 glow=vec3(0.0);
+          if(vNightEmission>3.5) glow=vec3(.62,.38,.18)*.68;
+          else if(vNightEmission>2.5) glow=vec3(1.0,.67,.30)*1.05;
+          else if(vNightEmission>1.5) glow=vec3(.48,.62,.77)*.65;
+          else if(vNightEmission>.5) glow=vec3(.97,.64,.28)*.90;
+          col+=glow*uNight;
+        }
         // Keep Seoul's distant hill and Namsan landmark legible while
         // retaining gentle atmospheric depth down the narrow residential lane.
         // Cool blue atmospheric distance falloff matches the daytime sky.
@@ -442,5 +484,5 @@ makeWorld();
   });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.frustumCulled = false;
-  return {mesh,material,paths,hill,distanceFromPath,houseSites,frontage,districtFrontage,streetLife,namsan:namsanStats,skyline:skylineStats,paving,vertexCount:positions.length/3};
+  return {mesh,material,paths,hill,distanceFromPath,houseSites,frontage,districtFrontage,streetLife,nightFixtures,namsan:namsanStats,skyline:skylineStats,paving,vertexCount:positions.length/3};
 }
