@@ -424,7 +424,7 @@ makeWorld();
         // Moonlit surfaces are cool and legible without pretending that every
         // window and alley has an artificial lamp (reserved for step 05).
         // Keep soft blue skylight on eaves and enough detail in the stone.
-        vec3 dusk = lit * vec3(.52,.61,.77) + vec3(.025,.034,.052);
+        vec3 dusk = lit * vec3(.43,.51,.67) + vec3(.017,.024,.041);
         vec3 col = mix(lit,dusk,uNight);
         // Keep Seoul's distant hill and Namsan landmark legible while
         // retaining gentle atmospheric depth down the narrow residential lane.
