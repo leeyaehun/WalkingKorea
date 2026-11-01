@@ -95,14 +95,15 @@ function socket(){
     serializeAttachment(v){this.attachment=structuredClone(v);},
     deserializeAttachment(){return this.attachment;},
     send(v){this.messages.push(JSON.parse(v));},
+    accept(){},
     close(){}
   };
 }
 test('private room supports two friends, caps at eight, and reopens a freed seat',async()=>{
   const oldPair=globalThis.WebSocketPair,oldResponse=globalThis.Response;
-  const members=[];
+  const members=[],accepted=[];
   globalThis.WebSocketPair=class{
-    constructor(){this[0]=socket();this[1]=socket();}
+    constructor(){this[0]=socket();this[1]=socket();accepted.push(this[1]);}
   };
   globalThis.Response=class extends oldResponse{
     constructor(body,options={}){
@@ -127,8 +128,9 @@ test('private room supports two friends, caps at eight, and reopens a freed seat
       assert.equal(welcome.players.length,i);
       assert.equal(welcome.capacity,8);
     }
-    assert.equal(room.fetch(upgrade).status,409);
-    assert.equal(members.length,8);
+    assert.equal(room.fetch(upgrade).status,101);
+    assert.equal(accepted.at(-1).messages.findLast(m=>m.type==='room_full')?.capacity,8);
+    assert.equal(members.length,8,'rejected ninth guest is never stored as a room member');
     const departed=members.shift();
     const id=departed.deserializeAttachment().id;
     await room.webSocketClose(departed);

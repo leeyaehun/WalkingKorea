@@ -21,8 +21,19 @@ export class PublicWalkRoom {
   fetch(request) {
     if(request.headers.get('Upgrade')?.toLowerCase()!=='websocket')
       return jsonError('websocket_required',426);
-    if(this.members().length>=ROOM_CAPACITY)
-      return jsonError('room_full',409);
+    if(this.members().length>=ROOM_CAPACITY){
+      // Public matchmaking needs HTTP 409 to try the next available room.
+      // Browsers cannot inspect failed WebSocket upgrade status. For an
+      // invited guest, complete a short-lived WebSocket handshake and send
+      // a specific "room_full" event instead of hiding the reason.
+      if(!new URL(request.url).searchParams.has('room'))
+        return jsonError('room_full',409);
+      const [guest,server]=Object.values(new WebSocketPair());
+      server.accept(); // Not added to ctx: capacity stays exactly eight.
+      safeSend(server,{type:'room_full',capacity:ROOM_CAPACITY});
+      server.close(1008,'room_full');
+      return new Response(null,{status:101,webSocket:guest});
+    }
 
     const [client,server]=Object.values(new WebSocketPair());
     const id=crypto.randomUUID();
@@ -54,11 +65,21 @@ export class PublicWalkRoom {
     if(typeof message!=='string'||message.length>256)return;
     let data;
     try{data=JSON.parse(message);}catch{return;}
+    const meta=ws.deserializeAttachment();
+    if(!meta||meta.departed)return;
+    const now=Date.now();
+    // Application-level heartbeat: browsers cannot send control ping frames.
+    // Do not broadcast heartbeats or record them as player movement.
+    if(data?.type==='ping'){
+      if(now-(meta.lastHeartbeatAt||0)>=5000){
+        ws.serializeAttachment({...meta,lastHeartbeatAt:now});
+        safeSend(ws,{type:'pong'});
+      }
+      return;
+    }
     const pose=sanitizePose(data);
     if(!pose)return;
-    const meta=ws.deserializeAttachment();
-    if(!meta)return;
-    const now=Date.now(),elapsed=now-meta.lastAt;
+    const elapsed=now-meta.lastAt;
     if(meta.receivedPose&&elapsed<70)return;
     if(!plausibleStep(meta.pose,pose,elapsed,!meta.receivedPose))return;
     ws.serializeAttachment({...meta,pose,lastAt:now,receivedPose:true});
@@ -67,7 +88,8 @@ export class PublicWalkRoom {
   }
   depart(ws){
     const meta=ws.deserializeAttachment();
-    if(!meta)return;
+    if(!meta||meta.departed)return;
+    ws.serializeAttachment({...meta,departed:true});
     const remaining=this.members().filter(other=>other!==ws);
     for(const other of remaining){
       safeSend(other,{type:'leave',id:meta.id});
@@ -75,7 +97,10 @@ export class PublicWalkRoom {
     }
   }
   async webSocketClose(ws){this.depart(ws);}
-  async webSocketError(ws){this.depart(ws);}
+  async webSocketError(ws){
+    this.depart(ws);
+    try{ws.close(1011,'connection_error');}catch{}
+  }
 }
 
 export default {
