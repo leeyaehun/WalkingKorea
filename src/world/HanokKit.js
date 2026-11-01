@@ -80,7 +80,7 @@ export function createHanokKit({ box, face, sphere, cylinder, textured, signs })
 
   function lattice(cx,cy,z,width,height,columns=4,rows=6) {
     box(cx,cy,z,width,height,.08,'timber');
-    box(cx,cy,z-.055,width-.15,height-.13,.025,'paper');
+    box(cx,cy,z-.055,width-.15,height-.13,.025,'hanokPaperWindow');
     for (const xx of [cx-width*.5+.06,cx+width*.5-.06])
       box(xx,cy,z-.09,.075,height,.035,'timber');
     for (const yy of [cy-height*.5+.06,cy+height*.5-.06])
