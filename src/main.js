@@ -29,7 +29,7 @@ const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(57,1,.1,240);
 // Daytime blue sky and separate moonlit navy night atmosphere.
 const sky=createBukchonSky(scene);
-const {mesh,material,paths,hill,distanceFromPath,houseSites,seventhBuildings,seventhViewpoint,streetLife,nightFixtures,paving,vertexCount} = createBukchonWorld();
+const {mesh,material,paths,hill,distanceFromPath,houseSites,fiveGyeongThird,seventhBuildings,seventhViewpoint,streetLife,nightFixtures,paving,vertexCount} = createBukchonWorld();
 scene.add(mesh);
 const lighting=createBukchonLighting({
   renderer,scene,worldMesh:mesh,isTouch:touchDevice
@@ -61,6 +61,11 @@ if(new URLSearchParams(location.search).get('view')==='hanok5'){
 // unchanged; there is no teleport or custom new road.
 if(new URLSearchParams(location.search).get('view')==='hanok5upper'){
   state.x=-1.0;state.z=42.4;state.yaw=0;state.pitch=-.12;
+}
+// A second independent preview: starts between houses #10 and #12,
+// looking uphill at the carved-rosette roof and timber gate.
+if(new URLSearchParams(location.search).get('view')==='hanok5third'){
+  state.x=-1.15;state.z=33.1;state.yaw=0;state.pitch=-.12;
 }
 const keys=new Set();let lastFrame=0,lastMap=0,lastToast=0,nearSpot=null,stepPhase=0;
 const memoryStore={};
@@ -405,6 +410,9 @@ if(new URLSearchParams(location.search).has('qa')) {
     multiplayer:multiplayer.getStatus(),
     paving,camera:followCamera.snapshot(),
     seventhPhoto:{...photoSpot,nearby:isNearPhotoSpot(),roofPeeks:seventhViewpoint.roofPeeks.length},
+    third5Gyeong:{index:fiveGyeongThird.site.index,
+      id:fiveGyeongThird.asset.id,x:fiveGyeongThird.site.x,z:fiveGyeongThird.site.z,
+      drip:fiveGyeongThird.asset.eaves.projectedDepth},
     decoratedHouses:houseSites.filter(site=>site.decorated).length+seventhBuildings.buildings.length,
     houses:houseSites.length+seventhBuildings.buildings.length,
     seventhHouses:seventhBuildings.buildings.map(b=>({id:b.id,style:b.style,x:b.x,z:b.z})),
