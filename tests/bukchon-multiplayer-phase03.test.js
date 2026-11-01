@@ -122,6 +122,18 @@ test('client watchdog detects sleeping/mobile stale sockets and remains private 
   }
 });
 
+test('mobile navigation frees sockets and bfcache restore resumes strolling',()=>{
+  const main=readFileSync(new URL('../src/main.js',import.meta.url),'utf8');
+  const css=readFileSync(new URL('../src/style.css',import.meta.url),'utf8');
+  assert.match(main,/addEventListener\('pagehide',\(\)=>multiplayer\.stop\(\)\)/);
+  assert.match(main,/event\.persisted&&state\.started\)multiplayer\.start\(\)/);
+  assert.match(main,/pointercancel',resetPad/);
+  assert.match(main,/keys\.clear\(\);touchInput\.x=touchInput\.y=0/);
+  assert.match(css,/body\.playing \.walker-card \{ bottom:calc\(290px/);
+  assert.match(css,/\.touch-pad \{ bottom:calc\(157px/);
+  assert.match(css,/max-height:590px/);
+});
+
 test('remote walkers share atlas decode instead of fetching a new atlas per player',()=>{
   const sprite=readFileSync(new URL('../src/characters/GirlSprite.js',import.meta.url),'utf8');
   const client=readFileSync(new URL('../src/multiplayer/WalkMultiplayer.js',import.meta.url),'utf8');

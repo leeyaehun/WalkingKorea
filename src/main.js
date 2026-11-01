@@ -239,6 +239,11 @@ window.addEventListener('keydown',e=>{
  if(e.repeat)return;
  if(e.code==='KeyE')interact();if(e.code==='KeyN')toggleTime();if(e.code==='KeyP')savePhoto();if(e.code==='KeyH')showHelp();
 });window.addEventListener('keyup',e=>keys.delete(e.code));window.addEventListener('blur',()=>{keys.clear();touchInput.x=touchInput.y=0;});
+// Release slots promptly on navigation; restore a bfcached mobile session.
+window.addEventListener('pagehide',()=>multiplayer.stop());
+window.addEventListener('pageshow',event=>{
+  if(event.persisted&&state.started)multiplayer.start();
+});
 $('start-btn').onclick=()=>{state.started=true;multiplayer.start();document.body.classList.add('playing');$('intro').classList.remove('visible');if(touchDevice){$('touch-ui').setAttribute('aria-hidden','false');}toast('북촌 전망길에서 내리막 골목을 따라 서울 풍경을 만나보세요. ✿',4500);};
 function toggleTime(){state.night=!state.night;$('toggle-time').textContent=state.night?'☀':'☾';toast(state.night?'조용한 서울의 저녁이에요.':'햇살이 돌아왔어요.');}
 $('toggle-time').onclick=toggleTime;
