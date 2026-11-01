@@ -1,5 +1,6 @@
 import { createHanokKit } from './HanokKit.js';
 import {isFiveGyeongHeroSite,buildFiveGyeongReferenceHanok} from './BukchonFiveGyeongHanok.js';
+import {FIVE_GYEONG_APPROACH_WALL,buildFiveGyeongApproach} from './BukchonFiveGyeongApproach.js';
 import { buildPavedAlleys } from './BukchonPaving.js';
 import {mainLaneWidth,mainLaneTerrainHeight,smoothMainLane,scenicHouseSites,sampleMainLaneAtZ} from './BukchonStreetLayout.js';
 import {MAIN_STREET_ROUTE} from './BukchonMainStreet.js';
@@ -229,6 +230,7 @@ const hanokKit=createHanokKit({box,face,sphere,cylinder,textured,signs});
 function courtyard(type,detailVariant=0,profile='hero'){return hanokKit.build(type,detailVariant,profile);}
 const houseSites=[];
 let fiveGyeongHero=null; // Exactly one photo-referenced house on the lower 5-gyeong west frontage.
+let fiveGyeongApproach=null;
 function housesOnShowcase(){
  // Eight level-sited homes create staggered, close-set roof silhouettes.
  // Legacy side junction gaps are deliberately left for Step 03 facade fill.
@@ -377,7 +379,13 @@ function makeWorld(){
  continuousFrontages=buildContinuousFrontages({
    path:paths[0],houses:houseSites,hill,face,box,distanceFromPath,
    existingConnectors:[...frontage.segments,...districtFrontage.segments],
-   openings:[SEVENTH_JOIN]
+   openings:[SEVENTH_JOIN],
+   customFrontages:[FIVE_GYEONG_APPROACH_WALL]
+ });
+ // The actual street-facing house enclosure was still the old generic
+ // RED band. Replace that section with one photo-specific granite wall.
+ fiveGyeongApproach=buildFiveGyeongApproach({
+   path:paths[0],hill,face,box,sphere,distanceFromPath
  });
  // D-3: place real, six-silhouette 7-gyeong hanoks BEFORE the boundary
  // wall pass, so a generic wall never slices across a wooden front gate.
@@ -572,5 +580,5 @@ makeWorld();
   });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.frustumCulled = false;
-  return {mesh,material,paths,hill,distanceFromPath,houseSites,fiveGyeongHero,frontage,districtFrontage,continuousFrontages,seventhLoopWalls,seventhBuildings,seventhInfill,seventhViewpoint,streetLife,nightFixtures,namsan:namsanStats,skyline:skylineStats,paving,vertexCount:positions.length/3};
+  return {mesh,material,paths,hill,distanceFromPath,houseSites,fiveGyeongHero,fiveGyeongApproach,frontage,districtFrontage,continuousFrontages,seventhLoopWalls,seventhBuildings,seventhInfill,seventhViewpoint,streetLife,nightFixtures,namsan:namsanStats,skyline:skylineStats,paving,vertexCount:positions.length/3};
 }
