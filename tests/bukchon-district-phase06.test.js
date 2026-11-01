@@ -30,8 +30,9 @@ test('single lane retains level house siting, facade orientation and materials',
  const scenic=w.houseSites.filter(h=>h.scenic);
  const district=w.houseSites.filter(h=>h.district);
  assert.equal(scenic.length,8);
- assert.ok(district.length>=8,'all side lanes should have homes');
- assert.equal(w.houseSites.length,scenic.length+district.length);
+ assert.ok(district.length>=8,'the main lane must retain district houses');
+ assert.equal(w.houseSites.length,scenic.length+district.length+
+    w.houseSites.filter(h=>h.infill).length);
  assert.deepEqual([...new Set(district.map(s=>s.routeIndex))].sort(),[0]);
  for(const h of district){
   assert.equal(h.scenic,false);
