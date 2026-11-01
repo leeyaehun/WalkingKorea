@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { createBukchonWorld } from './world/BukchonWorld.js';
+import { MAIN_STREET_DISCOVERIES } from './world/BukchonMainStreet.js';
 import { createGirlSpriteCompanion } from './characters/GirlSprite.js';
 import { createThirdPersonCamera } from './controllers/ThirdPersonCamera.js';
 import { cameraRelativeDirection } from './controllers/MovementDirections.js';
@@ -37,22 +38,15 @@ const nightLights=createBukchonNightLights({
 // Single playable character — the illustrated female Seoul walker.
 const girl=createGirlSpriteCompanion(scene,hill,camera);
 
-// Start on the upper lookout, looking DOWN the old lane toward Namsan.
-// The paths and camera-relative WASD controls remain unchanged.
+// Begin at the upper lookout on the only accessible Bukchon main alley.
+// Keep the original third-person camera and camera-relative WASD controls.
 const state={x:-3,z:-42,yaw:Math.PI,pitch:(new URLSearchParams(location.search).get('view')==='night-sky'?0.28:(new URLSearchParams(location.search).get('view')==='namsan'?0.01:-0.35)),vy:0,vx:0,vz:0,night:new URLSearchParams(location.search).get('night')==='1',running:false,started:false,modal:false,helpViewed:false,mute:true,elapsed:0,walked:0,quality:1};
 const keys=new Set();let lastFrame=0,lastMap=0,lastToast=0,nearSpot=null,stepPhase=0;
 const memoryStore={};
 const safeStore={getItem(k){try{return window.localStorage.getItem(k)}catch(e){return memoryStore[k]||null}},setItem(k,v){try{window.localStorage.setItem(k,v)}catch(e){memoryStore[k]=v}}};
-const discovered=new Set(JSON.parse(safeStore.getItem('seoul-stroll-places-bukchon-v02')||'[]'));
+const discovered=new Set(JSON.parse(safeStore.getItem('seoul-stroll-places-bukchon-mainline-v03')||'[]'));
 
-const locations=[
- {id:'entrance',name:'북촌 산책의 시작',detail:'낮은 담장 사이를 따라 작은 오르막이 이어져요.',x:0,z:40},
- {id:'crossroad',name:'담장길 갈림길',detail:'오래된 한옥들 사이로 좁은 골목이 나뉘어요. 어느 쪽이든 천천히 걸어 보세요.',x:-5,z:6},
- {id:'east',name:'공방길',detail:'골목이 구부러지는 곳. 지붕 너머로 또 다른 길이 열려요.',x:16,z:9},
- {id:'west',name:'조용한 서쪽 골목',detail:'한옥 담장 옆에 숨은 아주 조용한 산책길이에요.',x:-24,z:-8},
- {id:'turn',name:'굽은 골목',detail:'발걸음을 돌릴 때마다 전혀 다른 지붕의 선이 보여요.',x:0,z:-24},
- {id:'view',name:'북촌 전망길',detail:'언덕 위에서 작은 한옥 지붕들이 겹쳐 보이는 전망 포인트예요.',x:-3,z:-42},
-];
+const locations=MAIN_STREET_DISCOVERIES;
 const toMap=(x,z)=>[clamp(8+(x+36)*2.12,2,168),clamp(5+(48-z)*1.19,2,123)];
 function drawMapLanes(){
  const root=$('map-roads'),ns='http://www.w3.org/2000/svg';
@@ -78,7 +72,7 @@ function drawMapLanes(){
   marker.setAttribute('stroke-width','0.75');
   marker.setAttribute('data-hanok-variant',String(site.detailVariant));
   const tooltip=document.createElementNS(ns,'title');
-  tooltip.textContent=site.archetype==='a01'?'한옥 A01':'꽃과 기와가 꾸며진 한옥';
+  tooltip.textContent=site.archetype==='a01'?'한옥 A01':'기와와 목재 디테일이 있는 한옥';
   marker.appendChild(tooltip);
   root.appendChild(marker);
  }
@@ -88,7 +82,7 @@ function mapUpdate(){const spot=$('player-spot');const [px,py]=toMap(state.x,sta
  $('compass-label').textContent=['N','NE','E','SE','S','SW','W','NW'][Math.round(((state.yaw%TAU+TAU)%TAU)/(TAU/8))%8];$('compass-needle').style.transform=`rotate(${state.yaw}rad)`;}
 function pointsMap(){const svg=$('map-pois');const ns='http://www.w3.org/2000/svg';locations.forEach(p=>{let e=document.createElementNS(ns,'circle');e.setAttribute('cx',String(toMap(p.x,p.z)[0]));e.setAttribute('cy',String(toMap(p.x,p.z)[1]));e.setAttribute('r','3.2');e.setAttribute('fill',discovered.has(p.id)?'#dc8b69':'#b9b2a4');e.dataset.id=p.id;svg.appendChild(e);});}
 pointsMap();mapUpdate();
-function markFound(p){if(discovered.has(p.id))return;discovered.add(p.id);safeStore.setItem('seoul-stroll-places-bukchon-v02',JSON.stringify([...discovered]));const marker=$('map-pois').querySelector(`[data-id="${p.id}"]`);if(marker)marker.setAttribute('fill','#dc8b69');mapUpdate();}
+function markFound(p){if(discovered.has(p.id))return;discovered.add(p.id);safeStore.setItem('seoul-stroll-places-bukchon-mainline-v03',JSON.stringify([...discovered]));const marker=$('map-pois').querySelector(`[data-id="${p.id}"]`);if(marker)marker.setAttribute('fill','#dc8b69');mapUpdate();}
 function toast(msg,ms=3000){$('toast').textContent=msg;$('toast').classList.add('visible');lastToast=performance.now()+ms;}
 function modal(title,body,kicker='SEOUL STROLL'){state.modal=true;$('modal-content').innerHTML=`<span class="modal-kicker">${kicker}</span><h2 id="modal-title">${title}</h2>${body}`;$('modal').classList.add('visible');$('modal').setAttribute('aria-hidden','false');document.exitPointerLock?.();}
 function closeModal(){state.modal=false;$('modal').classList.remove('visible');$('modal').setAttribute('aria-hidden','true');}
@@ -124,6 +118,7 @@ function interact(){if(!nearSpot || state.modal)return;markFound(nearSpot);modal
 function nearUpdate(){let m=null,dist=4.5;for(const p of locations){let d=Math.hypot(state.x-p.x,state.z-p.z);if(d<dist){dist=d;m=p;}}nearSpot=m;updateWalkerGuide();let hint=$('hint');if(m&&!state.modal&&state.started){hint.innerHTML=`<b>${touchDevice?'터치':'E'}</b>  ${m.name} 둘러보기`;hint.classList.add('visible');$('touch-interact').classList.add('visible');}else{hint.classList.remove('visible');$('touch-interact').classList.remove('visible');}}
 $('touch-interact').onclick=interact;
 function isWalkable(x,z){
+ // One road, one collision corridor; no invisible branch path remains.
  return paths.some(p=>distanceFromPath(x,z,p)<
    (p.widthAt?p.widthAt(z):p.width)*.5+.33);
 }

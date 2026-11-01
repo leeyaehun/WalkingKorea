@@ -81,10 +81,10 @@ test('single existing world mesh retains Namsan, 25 houses, roads, no potted pla
   const world=worldForTest();
   assert.equal(world.skyline.buildings,39);
   assert.ok(world.namsan.topY>100);
-  assert.equal(world.houseSites.length,25);
-  assert.equal(world.paths.length,3);
+  assert.equal(world.houseSites.length,18);
+  assert.equal(world.paths.length,1);
   assert.equal('planters' in world.streetLife.counts,false);
-  assert.ok(world.vertexCount>700000&&world.vertexCount<850000,
+  assert.ok(world.vertexCount>500000&&world.vertexCount<850000,
     'combined skyline must stay within the old shared-mesh budget');
   const positions=world.mesh.geometry.getAttribute('position');
   assert.ok(positions.array.every(Number.isFinite));

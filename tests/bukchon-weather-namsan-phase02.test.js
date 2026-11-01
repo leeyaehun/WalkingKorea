@@ -66,9 +66,9 @@ test('mountain and tower are built into existing one-draw-call world, preserving
   assert.ok(w.namsan && w.namsan.towerFaces>280);
   assert.equal(w.namsan.tower.x,NAMSAN_TOWER.x);
   assert.equal(w.namsan.tower.z,NAMSAN_TOWER.z);
-  assert.equal(w.paths.length,3);
+  assert.equal(w.paths.length,1);
   assert.equal(w.houseSites.filter(h=>h.scenic).length,8);
-  assert.ok(w.houseSites.length>=25);
+  assert.ok(w.houseSites.length>=18);
   assert.ok(w.vertexCount<850000);
   const p=w.mesh.geometry.getAttribute('position');
   assert.ok(p.array.every(Number.isFinite));
