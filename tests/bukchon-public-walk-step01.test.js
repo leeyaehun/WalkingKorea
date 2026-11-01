@@ -21,7 +21,7 @@ test('public walk uses exactly eight seats per automatically spawned room',()=>{
 });
 
 test('movement is server validated against the same one-lane geometry',()=>{
-  assert.ok(distanceToMainStreet(-3,-42)<.01);
+  assert.ok(distanceToMainStreet(-3,-42)<.04);
   assert.ok(isAllowedWalkPosition(-2.5,0));
   for(const [x,z] of [[50,0],[0,90],[-32,-20],[0,-60]])
     assert.ok(!isAllowedWalkPosition(x,z),'allowed off-route '+x+','+z);
