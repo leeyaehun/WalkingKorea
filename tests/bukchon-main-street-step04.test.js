@@ -91,7 +91,7 @@ test('asphalt, granite shoulders, iron drains and end thresholds have separated 
   assert.ok(drain-asphalt>.015,'drain iron must sit above bitumen');
   assert.ok(grill-drain>.007,'grill must sit above drain frame');
   const landings=faces.filter(f=>f[5]==='paveStone');
-  assert.equal(landings.length,2);
+  assert.ok(landings.length>=2,'main end landings remain alongside new alley slab tiles');
   assert.ok(landings.some(f=>f.slice(0,4).some(p=>p[2]<-44.1)));
   assert.ok(landings.some(f=>f.slice(0,4).some(p=>p[2]>55.1)));
   assert.equal(w.paths[0].points.length,11,'visual endcaps must not extend playable road');
