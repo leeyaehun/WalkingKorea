@@ -15,13 +15,13 @@ function buildWorld(){
  finally{globalThis.document=previous;}
 }
 
-test('40m street narrows and then returns to existing junction width',()=>{
+test('long village road has continuous restrained width, with a narrow scenic midpoint',()=>{
  assert.equal(SCENIC_BOTTOM_Z-SCENIC_TOP_Z,40);
- assert.ok(Math.abs(mainLaneWidth(-24)-2.95)<.001);
- assert.ok(Math.abs(mainLaneWidth(-44)-3.35)<.001);
- assert.ok(Math.abs(mainLaneWidth(-4)-3.35)<.001);
+ assert.ok(mainLaneWidth(-24)>3.02 && mainLaneWidth(-24)<3.06);
+ assert.ok(Math.abs(mainLaneWidth(-44)-3.24)<.001);
+ assert.ok(mainLaneWidth(-4)>3.26 && mainLaneWidth(-4)<3.28);
  for(let z=-50;z<=5;z+=.5) {
-  assert.ok(mainLaneWidth(z)>=2.94 && mainLaneWidth(z)<=3.36);
+  assert.ok(mainLaneWidth(z)>=3.02 && mainLaneWidth(z)<=3.34);
  }
 });
 
@@ -66,7 +66,7 @@ test('eight hand-placed hanoks frame the first 40m without overlapping',()=>{
    }
   }
  }
- // East and west lane branch joints remain physically connected.
+ // Historical branch junction coordinates now lie on the sole gentle road.
  assert.ok(world.distanceFromPath(-2.7,-24,world.paths[0])<.35);
  assert.ok(world.distanceFromPath(-24,-8,world.paths[0])>8);
  assert.ok(world.distanceFromPath(-2.6,-14,world.paths[0])<.35);
@@ -79,7 +79,7 @@ test('eight hand-placed hanoks frame the first 40m without overlapping',()=>{
 
 test('authored house gaps are identified for Step 03 frontage infill',()=>{
  const world=buildWorld(), row=scenicHouseSites(world.paths[0].samples);
- // With the 7.5m frontage, keep the nearest wall ends off the branch roads.
+ // Stage 03 can fill the two gaps after the street silhouette is final.
  const west=row.filter(s=>s.side<0);
  const east=row.filter(s=>s.side>0);
  for(const site of west)assert.ok(Math.abs(site.z+14)>5.0,`west branch blocked ${site.z}`);
