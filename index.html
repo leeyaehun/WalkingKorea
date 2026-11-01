@@ -23,7 +23,6 @@
         <span class="pill location"><span class="live-dot"></span> 북촌 한옥마을에서 영감을 받은 골목</span>
         <button id="toggle-time" class="icon-button" title="낮과 저녁 전환" aria-label="낮과 저녁 전환">☾</button>
         <button id="toggle-sound" class="icon-button" title="소리 켜기 또는 끄기" aria-label="소리 켜기 또는 끄기">♩</button>
-        <button id="switch-avatar" class="icon-button avatar-swap" title="캐릭터 변경" aria-label="캐릭터 변경"><span aria-hidden="true">♙</span></button>
         <button id="help-btn" class="icon-button" title="조작 방법" aria-label="조작 방법">?</button>
       </div>
     </header>
@@ -38,12 +37,12 @@
     <div id="reticle" class="reticle">+</div>
     <div id="hint" class="nearby-hint" aria-live="polite"></div>
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
-    <button id="dami-card" type="button" class="dami-card" aria-label="북촌 수호냥이 담이 소개 보기">
-      <img id="avatar-photo" src="/guide-cat.svg" alt="" width="70" height="70">
-      <span class="dami-message">
-        <span class="dami-kicker" id="avatar-kicker">YOU ARE DAMI · THIRD PERSON</span>
-        <strong id="avatar-name">수호냥이 담이</strong>
-        <span id="dami-line">오늘은 내가 직접 골목을 탐험하는 날!</span>
+    <button id="walker-card" type="button" class="walker-card" aria-label="서울 여성 산책자 소개 보기">
+      <img src="/sprites/girl_portrait.webp" alt="" width="70" height="70">
+      <span class="walker-message">
+        <span class="walker-kicker">SEOUL WALKER · THIRD PERSON</span>
+        <strong>서울 산책자</strong>
+        <span id="walker-line">작은 돌길을 따라 천천히 걸어봐요.</span>
       </span>
     </button>
 
@@ -58,7 +57,7 @@
           <circle id="player-spot" cx="84" cy="14" r="5.5" fill="#eb6f52" stroke="white" stroke-width="2.5" />
         </svg>
       </div>
-      <div class="bottom-center"><span id="discovery-count">0 / 6</span> 발견한 장소 <span class="dot-separator">·</span> <span class="desktop-keys" id="walker-keys">W A S D 담이 걷기 · 마우스 카메라 · E 둘러보기</span><span class="mobile-keys">왼쪽 담이 이동 · 오른쪽 카메라</span></div>
+      <div class="bottom-center"><span id="discovery-count">0 / 6</span> 발견한 장소 <span class="dot-separator">·</span> <span class="desktop-keys" id="walker-keys">W A S D 걷기 · 마우스 카메라 · E 둘러보기</span><span class="mobile-keys">왼쪽 이동 · 오른쪽 카메라</span></div>
       <div class="right-actions">
         <button class="secondary-button" id="postcards-btn">▧ <span>산책 기록</span></button>
         <button class="primary-button" id="idea-btn">♡ <span>다음 동네</span></button>
@@ -70,17 +69,12 @@
 
   <div id="intro" class="screen-overlay visible">
     <div class="intro-card">
-      <div class="intro-character"><img id="intro-avatar-portrait" src="/guide-cat.svg" alt="선택된 캐릭터" width="104" height="104"><div><strong id="intro-character-name">오늘은 담이가 되어볼까요?</strong><span id="intro-character-description">골목의 작은 풍경을 천천히 발견해봐요.</span></div></div>
-      <div class="character-pick-title">함께 걸을 캐릭터를 골라요</div>
-      <div class="character-picker" role="group" aria-label="플레이할 캐릭터 선택">
-        <button type="button" class="avatar-option selected" data-avatar="dami" aria-pressed="true"><img src="/guide-cat.svg" alt=""><span><strong>담이</strong><small>수호냥이</small></span></button>
-        <button type="button" class="avatar-option" data-avatar="girl" aria-pressed="false"><img src="/sprites/girl_portrait.webp" alt=""><span><strong>서울 산책자</strong><small>여성 캐릭터</small></span></button>
-      </div>
+      <div class="intro-character"><img src="/sprites/girl_portrait.webp" alt="서울 여성 산책자" width="104" height="104"><div><strong>오늘은 서울 산책자가 되어볼까요?</strong><span>내 발걸음으로 북촌의 작은 골목을 발견해요.</span></div></div>
       <div class="intro-kicker"><span class="tiny-flower">✳</span> NO HURRY, JUST SEOUL <span class="tiny-flower">✳</span></div>
       <h2>조금만<br><em>걸어볼까요?</em></h2>
       <p>한옥 담장과 굽은 오르막길.<br>서울의 어느 조용한 오후를 담았어요.</p>
       <button id="start-btn" class="start-button">산책 시작하기 <span>↗</span></button>
-      <div class="intro-guide">PC: WASD = 이동 · 마우스 = 카메라 <span>·</span> 모바일: 화면 터치<br><a href="/character.html" id="avatar-preview-link" class="intro-character-link">선택한 캐릭터 보기 ↗</a></div>
+      <div class="intro-guide">PC: WASD = 이동 · 마우스 = 카메라 <span>·</span> 모바일: 화면 터치<br><a href="/sprite.html" class="intro-character-link">여성 캐릭터 걷기 미리보기 ↗</a></div>
     </div>
     <div class="intro-edge">SEOUL STROLL <span>—</span> VOL. 11 <span>©</span> A PERSONAL WEB EXPERIMENT</div>
   </div>
