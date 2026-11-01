@@ -6,6 +6,7 @@ import { createThirdPersonCamera } from './controllers/ThirdPersonCamera.js';
 import { cameraRelativeDirection } from './controllers/MovementDirections.js';
 import { createBukchonLighting } from './world/BukchonLighting.js';
 import { createBukchonNightLights } from './world/BukchonNightLighting.js';
+import { createBukchonRenderBudget } from './world/BukchonRenderBudget.js';
 import { createBukchonSky, SKY_FOG_DAY, SKY_FOG_NIGHT } from './world/BukchonSky.js';
 
 const $ = (id) => document.getElementById(id);
@@ -13,7 +14,12 @@ const canvas = $('world');
 const touchDevice = matchMedia('(pointer:coarse)').matches || navigator.maxTouchPoints > 0;
 const TAU = Math.PI*2;
 const clamp = (n,lo,hi) => Math.max(lo,Math.min(hi,n));
+// Preserve drawing buffer so the existing P-key postcard export still works.
 const renderer = new THREE.WebGLRenderer({canvas,antialias:true,alpha:false,preserveDrawingBuffer:true,powerPreference:'high-performance'});
+const renderBudget=createBukchonRenderBudget({
+  renderer,devicePixelRatio:window.devicePixelRatio||1,isTouch:touchDevice
+});
+const clearColor=new THREE.Color();
 renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
 renderer.toneMapping = THREE.NoToneMapping;
 const scene = new THREE.Scene();
@@ -217,7 +223,7 @@ $('toggle-sound').onclick=()=>{audioInit();state.mute=!state.mute;if(audioGainAv
 function audioGainAvailable(){return audioCtx&&ambientGain;}
 function savePhoto(){const a=document.createElement('a');a.download='seoul-stroll-postcard.png';a.href=canvas.toDataURL('image/png');a.click();toast('산책 사진을 저장했어요.');}
 function resize() {
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, touchDevice?1.25:1.6));
+  // The render-budget controller owns DPR; do not override it on resize.
   renderer.setSize(window.innerWidth,window.innerHeight,false);
   camera.aspect = window.innerWidth/Math.max(1,window.innerHeight);
   camera.updateProjectionMatrix();
@@ -225,7 +231,8 @@ function resize() {
 window.addEventListener('resize',resize);
 resize();
 function render(time=0) {
-  const dt=Math.min(.12,Math.max(.001,(time-lastFrame)/1000||.016));
+  const frameMs=lastFrame?time-lastFrame:16.7;
+  const dt=Math.min(.12,Math.max(.001,frameMs/1000||.016));
   lastFrame=time;
   state.elapsed+=dt;
   move(dt);
@@ -243,8 +250,9 @@ function render(time=0) {
   material.uniforms.uNight.value=state.night?1:0;
   material.uniforms.uShadowStrength.value=state.night?.12:.86;
   material.uniforms.uFogColor.value.setRGB(...fog);
-  renderer.setClearColor(new THREE.Color().setRGB(...fog),1);
+  renderer.setClearColor(clearColor.setRGB(...fog),1);
   renderer.render(scene,camera);
+  renderBudget.observe(frameMs,time,{playing:state.started,visible:!document.hidden});
   if(time-lastMap>180){lastMap=time;mapUpdate();nearUpdate();}
   if(lastToast&&time>lastToast){$('toast').classList.remove('visible');lastToast=0;}
   requestAnimationFrame(render);
@@ -261,7 +269,12 @@ if(new URLSearchParams(location.search).has('qa')) {
     paving,camera:followCamera.snapshot(),
     decoratedHouses:houseSites.filter(site=>site.decorated).length, houses:houseSites.length,
     streetDetails:streetLife.counts, utilityCrossings:streetLife.lines.length,
-    viewYaw:state.yaw,started:state.started
+    viewYaw:state.yaw,started:state.started,
+    night:state.night,
+    rendererStats:{calls:renderer.info.render.calls,triangles:renderer.info.render.triangles,
+      pixelRatio:renderer.getPixelRatio()},
+    performance:renderBudget.getStatus(),
+    nightLighting:nightLights.getStatus(),sunLighting:lighting.getStatus()
   });
 }
 
