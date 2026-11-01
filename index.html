@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#e8dbcf" />
+  <meta name="referrer" content="no-referrer" />
   <meta name="description" content="브라우저에서 바로 산책하는 작은 서울 골목. 설치도 로그인도 필요 없어요." />
   <title>Seoul Stroll — 작은 서울 산책</title>
   <link rel="stylesheet" href="/src/style.css">
@@ -24,6 +25,7 @@
         <button id="toggle-time" class="icon-button" title="낮과 저녁 전환" aria-label="낮과 저녁 전환">☾</button>
         <button id="toggle-sound" class="icon-button" title="소리 켜기 또는 끄기" aria-label="소리 켜기 또는 끄기">♩</button>
         <button id="help-btn" class="icon-button" title="조작 방법" aria-label="조작 방법">?</button>
+        <button id="room-menu-btn" class="icon-button" type="button" title="친구와 산책방 만들기" aria-label="함께 산책하는 방">♧</button>
       </div>
     </header>
 
@@ -73,7 +75,13 @@
       <div class="intro-kicker"><span class="tiny-flower">✳</span> NO HURRY, JUST SEOUL <span class="tiny-flower">✳</span></div>
       <h2>조금만<br><em>걸어볼까요?</em></h2>
       <p>한옥 담장과 굽은 오르막길.<br>서울의 어느 조용한 오후를 담았어요.</p>
-      <button id="start-btn" class="start-button">산책 시작하기 <span>↗</span></button>
+      <button id="start-btn" class="start-button" type="button"><span id="start-button-label">산책 시작하기</span> <span>↗</span></button>
+      <button id="private-create-btn" class="invite-create" type="button">♧ 친구와 비공개 방 만들기</button>
+      <p id="invite-intro-note" class="invite-intro-note" hidden></p>
+      <div class="invite-intro-actions">
+        <button id="intro-copy-invite" class="invite-mini" type="button" hidden>초대 링크 복사</button>
+        <button id="intro-public-room" class="invite-mini" type="button" hidden>공개 방으로 돌아가기</button>
+      </div>
       <div class="intro-guide">PC: WASD = 이동 · 마우스 = 카메라 <span>·</span> 모바일: 화면 터치<br><a href="/sprite.html" class="intro-character-link">여성 캐릭터 걷기 미리보기 ↗</a></div>
     </div>
     <div class="intro-edge">SEOUL STROLL <span>—</span> VOL. 11 <span>©</span> A PERSONAL WEB EXPERIMENT</div>
