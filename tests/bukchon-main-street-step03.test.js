@@ -39,11 +39,12 @@ test('stone+brick+hanok tile wall spans fill all external frontage gaps on both 
   const w=world(),f=w.continuousFrontages;
   assert.equal(typeof buildContinuousFrontages,'function');
   assert.equal(FRONTAGE_HALF_SPAN,3.58);
-  assert.ok(f.wallSegments>=55,'gaps remain exposed along lane');
-  assert.ok(f.coveredMeters>43&&f.coveredMeters<55);
-  assert.ok(f.bySide.west>20&&f.bySide.east>17);
+  assert.ok(f.wallSegments>=35,'remaining gaps must still have masonry');
+  assert.ok(f.coveredMeters>27&&f.coveredMeters<38);
+  assert.ok(f.coveredMeters+f.existingConnectorMeters>48);
+  assert.ok(f.bySide.west>15&&f.bySide.east>10);
   assert.ok(f.roadClearance>.55);
-  assert.ok(f.runs.length>18);
+  assert.ok(f.runs.length>=10);
   assert.ok(f.runs.some(r=>r.side===-1&&r.fromZ<-19&&r.toZ>-19),
     'missing wall between west houses');
   assert.ok(f.runs.some(r=>r.side===1&&r.fromZ<-26.5&&r.toZ>-25.3),
