@@ -7,7 +7,7 @@
  * builder), not a repeated texture pasted over a rectangular road.
  */
 export function buildPavedAlleys({paths,face,hill}) {
-  let tiles=0,drains=0;
+  let tiles=0,drains=0,shoulderMeters=0,endCaps=0;
   const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
   const shades=['paveWarm','paveCream','paveSand','paveLight','paveStone','paveHoney'];
   const mix=(a,b,t)=>a+(b-a)*t;
@@ -47,28 +47,30 @@ export function buildPavedAlleys({paths,face,hill}) {
       const half=(path.widthAt?path.widthAt((a.z+b.z)*.5):path.width)*.5;
       const inner=half-gutter;
       const foot=pi*10007+i*53;
-      const lift=pi*.004; // no flicker at route intersections
+      const lift=pi*.004;
+      // Explicit layer separation: grout / asphalt / repair / iron are no
+      // longer nearly coplanar at 1-3mm depth differences.
       // Grout shadow surface is visible in the fine gaps between real slabs.
-      quad(a,b,-half,half,0,1,.027+lift,'paveGrout');
+      quad(a,b,-half,half,0,1,.023+lift,'paveGrout');
       // Thin narrow drainage strips form a crisp edge along each house row.
       for(const side of [-1,1]){
         const l0=side*(half-gutter),l1=side*half;
-        quad(a,b,Math.min(l0,l1),Math.max(l0,l1),0,1,.039+lift,
+        quad(a,b,Math.min(l0,l1),Math.max(l0,l1),0,1,.064+lift,
           i%7===0?'edgeStoneLight':'edgeStone');
         const kerb=side*(half-gutter-.021);
-        quad(a,b,kerb-.022,kerb+.022,0,1,.047+lift,'paveJoint');
+        quad(a,b,kerb-.022,kerb+.022,0,1,.090+lift,'paveJoint');
         if(i%17===5 || i%23===9){
           const drainL=side*(half-gutter*.48);
           const drainA=drainL-.102,drainB=drainL+.102;
           const da={...a,x:mix(a.x,b.x,.21),z:mix(a.z,b.z,.21)};
           const db={...a,x:mix(a.x,b.x,.79),z:mix(a.z,b.z,.79)};
           da.nx=a.nx;da.nz=a.nz;db.nx=b.nx;db.nz=b.nz;
-          quad(da,db,drainA,drainB,0,1,.049+lift,'drainIron');
+          quad(da,db,drainA,drainB,0,1,.103+lift,'drainIron');
           for(let k=0;k<4;k++){
             const tt=.08+k*.21;
             const d0={...a,x:mix(da.x,db.x,tt),z:mix(da.z,db.z,tt),nx:a.nx,nz:a.nz};
             const d1={...a,x:mix(da.x,db.x,tt+.09),z:mix(da.z,db.z,tt+.09),nx:b.nx,nz:b.nz};
-            quad(d0,d1,drainA+.034,drainB-.034,0,1,.052+lift,'drainGrill');
+            quad(d0,d1,drainA+.034,drainB-.034,0,1,.111+lift,'drainGrill');
           }
           drains++;
         }
@@ -77,14 +79,25 @@ export function buildPavedAlleys({paths,face,hill}) {
       // between pale stone kerbs, not a bright checkerboard of paving.
       // Branch alleys retain their smaller warm stone slabs.
       if(pi===0){
-        quad(a,b,-inner+.035,inner-.035,0,1,.052+lift,
+        // One narrow continuous stone shoulder on BOTH sides. Keep below
+        // the kerb tops and stop short of the new property wall at +.79m.
+        // This replaces the beige/raw terrain strip visible from the camera.
+        for(const side of [-1,1]){
+          const from=side*(half+.025),to=side*(half+.71);
+          quad(a,b,Math.min(from,to),Math.max(from,to),0,1,.031+lift,
+            i%17===0?'stoneWarm':'edgeStoneLight');
+          const joint=side*(half+.13);
+          quad(a,b,joint-.029,joint+.029,0,1,.048+lift,'paveJoint');
+        }
+        shoulderMeters+=Math.hypot(b.x-a.x,b.z-a.z)*2;
+        quad(a,b,-inner+.035,inner-.035,0,1,.077+lift,
              i%23===0?'asphaltPatch':'asphalt');
         if(i%31===11){
           const repair={...a,x:mix(a.x,b.x,.25),z:mix(a.z,b.z,.25)};
           const repairEnd={...a,x:mix(a.x,b.x,.79),z:mix(a.z,b.z,.79)};
           repair.nx=a.nx;repair.nz=a.nz;
           repairEnd.nx=b.nx;repairEnd.nz=b.nz;
-          quad(repair,repairEnd,-.65,.66,0,1,.054+lift,'asphaltPatch');
+          quad(repair,repairEnd,-.65,.66,0,1,.090+lift,'asphaltPatch');
         }
         tiles++;
         continue;
@@ -121,5 +134,26 @@ export function buildPavedAlleys({paths,face,hill}) {
       }
     }
   }
-  return {tiles,drains,description:'staggered warm stone slabs, fine grout, kerbs and iron drains'};
+  // The route's walkable collision ends at its last centerline station.
+  // A separate short stone threshold OUTSIDE each endpoint makes the
+  // asphalt terminate in a proper visual landing rather than a hard edge
+  // against the large untextured beige terrain plate. No new walkable
+  // segments are added to the actual path/collision graph.
+  const main=paths[0];
+  if(main){
+    const st=stations(main);
+    for(const [q,sign] of [[st[0],1],[st.at(-1),-1]]){
+      const half=(main.widthAt?main.widthAt(q.z):main.width)*.5;
+      const push=t=>({x:q.x-q.nz*t*sign,z:q.z+q.nx*t*sign,
+        nx:q.nx,nz:q.nz});
+      const near=push(.04),outer=push(2.3),cross=push(.24);
+      quad(near,outer,-half-.48,half+.48,0,1,.041,'paveStone');
+      quad(near,cross,-half-.54,half+.54,0,1,.081,'edgeStone');
+      const far=push(2.33);
+      quad(outer,far,-half-.48,half+.48,0,1,.060,'paveJoint');
+      endCaps++;
+    }
+  }
+  return {tiles,drains,shoulderMeters,endCaps,
+    description:'continuous asphalt, granite shoulders, capped lane ends and distinct depth layers'};
 }

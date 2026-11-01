@@ -208,10 +208,11 @@ function groundTile(x,z,r,shade='sage'){face([x-r,hill(x-r,z-r)-.24,z-r],[x+r,hi
 // Real slab faces follow the original sloped, winding lane samples.
 const paving=buildPavedAlleys({paths,face,hill});
 function routeFloor(){
- // green-grey terrain plate: city blocks are hidden behind walls and house rows.
- // Muted stone-colored ground. No grass/green tile fields in the village.
- for(let x=-52;x<55;x+=8)for(let z=-67;z<68;z+=8)
-   groundTile(x+4,z+4,4,(x+z)%3===0?'stoneWarm':'muted');
+ // Step 04: remove 8m beige/grey checkerboard and align the ground to
+ // the hillside with finer 5m tiles. Asphalt, kerb and stone shoulders
+ // sit distinctly above this uninterrupted neutral stone terrain.
+ for(let x=-55;x<60;x+=5)for(let z=-70;z<70;z+=5)
+   groundTile(x+2.5,z+2.5,2.5,'stoneWarm');
  // Paving is added after the terrain plate in one shared BufferGeometry.
 }
 // Approved Bukchon Hanok Set v1 (A: wall/gate, B: exposed front, C: café/atelier).
@@ -352,7 +353,8 @@ function makeWorld(){
    paths,district:true
  });
  continuousFrontages=buildContinuousFrontages({
-   path:paths[0],houses:houseSites,hill,face,box,distanceFromPath
+   path:paths[0],houses:houseSites,hill,face,box,distanceFromPath,
+   existingConnectors:[...frontage.segments,...districtFrontage.segments]
  });
  nightFixtures=buildBukchonNightFixtures({
    houseSites,paths,hill,withFrame,box,cylinder,sphere,distanceFromPath
