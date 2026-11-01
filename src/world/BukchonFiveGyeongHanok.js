@@ -325,7 +325,7 @@ export function buildFiveGyeongReferenceHanok({box,face,sphere,cylinder}){
     }
   }
   for(const x of [gateX-1.04,gateX-.50,gateX,gateX+.50,gateX+1.04]){
-    box(x,2.46,gateZ-canD+.14,.12,.14,.78,'timber');
+    box(x,2.46,gateZ-canD+.18,.12,.14,.56,'timber');
     detail.woodRafters++;
   }
   box(gateX,3.02,gateZ,2.56,.14,.17,'tileRidge');
