@@ -30,7 +30,7 @@ const avatars={dami,girl};
 
 // Start on the upper lookout, looking DOWN the old lane toward Namsan.
 // The paths and camera-relative WASD controls remain unchanged.
-const state={x:-3,z:-42,yaw:Math.PI,pitch:(new URLSearchParams(location.search).get('view')==='namsan'?0.01:-0.35),vy:0,vx:0,vz:0,night:new URLSearchParams(location.search).get('night')==='1',running:false,started:false,modal:false,helpViewed:false,mute:true,elapsed:0,walked:0,quality:1,avatar:'dami'};
+const state={x:-3,z:-42,yaw:Math.PI,pitch:(new URLSearchParams(location.search).get('view')==='night-sky'?0.28:(new URLSearchParams(location.search).get('view')==='namsan'?0.01:-0.35)),vy:0,vx:0,vz:0,night:new URLSearchParams(location.search).get('night')==='1',running:false,started:false,modal:false,helpViewed:false,mute:true,elapsed:0,walked:0,quality:1,avatar:'dami'};
 const keys=new Set();let lastFrame=0,lastMap=0,lastToast=0,nearSpot=null,stepPhase=0;
 const memoryStore={};
 const safeStore={getItem(k){try{return window.localStorage.getItem(k)}catch(e){return memoryStore[k]||null}},setItem(k,v){try{window.localStorage.setItem(k,v)}catch(e){memoryStore[k]=v}}};
