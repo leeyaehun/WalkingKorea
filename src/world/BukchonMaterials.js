@@ -17,6 +17,9 @@ export function surfaceMaterialId(key) {
   if (key.startsWith('tile') || key==='roof')return MATERIAL.giwa;
   if (['timber','timberLight','woodShade','gateWood','brown','shopDark'].includes(key))
     return MATERIAL.wood;
+  if (key.startsWith('cityConcrete') ||
+      ['cityRoofHouse','cityPodium','cityParapet','cityBalconySlab','cityUtility'].includes(key))
+    return MATERIAL.plaster;
   if (['plaster','offwhite','cream','beige','mortar'].includes(key))return MATERIAL.plaster;
   if (key.startsWith('stone')||key.startsWith('edgeStone')||
       key.startsWith('pave')||key.startsWith('drain'))return MATERIAL.granite;
