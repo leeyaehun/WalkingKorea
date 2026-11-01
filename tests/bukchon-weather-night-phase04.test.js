@@ -70,7 +70,7 @@ test('night shading is moonlit, not blanket black and does not invent Step 05 la
     getContext:()=>({fillRect(){},strokeRect(){},fillText(){}})})};
   try{
     const world=createBukchonWorld();
-    assert.equal(world.houseSites.length,19);
+    assert.equal(world.houseSites.length,20);
     assert.equal(world.paths.length,1);
     assert.equal(world.skyline.buildings,39);
     assert.ok(world.namsan.topY>100);
