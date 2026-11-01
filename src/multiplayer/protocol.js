@@ -1,4 +1,5 @@
 import {MAIN_STREET_ROUTE} from '../world/BukchonMainStreet.js';
+import {SEVENTH_LOOP_SAMPLES,onSeventhLoop} from '../world/BukchonSeventhLoop.js';
 import {mainLaneWidth,smoothMainLane} from '../world/BukchonStreetLayout.js';
 
 export const ROOM_CAPACITY=8;
@@ -7,8 +8,9 @@ export const SPAWN=Object.freeze({x:-3,z:-42,vx:0,vz:0});
 const samples=smoothMainLane(MAIN_STREET_ROUTE.points);
 
 export function onMainStreet(x,z) {
-  if(!Number.isFinite(x)||!Number.isFinite(z)||z<-44.35||z>55.35)
+  if(!Number.isFinite(x)||!Number.isFinite(z)||z<-51||z>55.35)
     return false;
+  if(onSeventhLoop(x,z,SEVENTH_LOOP_SAMPLES))return true;
   let best=Infinity;
   for(let i=1;i<samples.length;i++) {
     const a=samples[i-1],b=samples[i],dx=b[0]-a[0],dz=b[1]-a[1];
