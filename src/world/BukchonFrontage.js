@@ -48,9 +48,8 @@ export function buildFrontageConnectors({
           return distanceFromPath(px,pz,other) <
             (other.widthAt?other.widthAt(pz):other.width)*.5+.50;
         })))continue;
-      // Retain the literal openings to the two side streets.
-      if(side===-1 && mz>-19 && mz<-10)continue;
-      if(side===1 && mz>-28 && mz<-20)continue;
+      // No side streets remain. Other checks still keep walls off the
+      // sole walkable road; open facade spans will be rebuilt in Step 03.
       const dx=(q.x-p.x)/d,dz=(q.z-p.z)/d;
       const nx=dz*.5,nz=-dx*.5; // 0.5m-thick enclosing stone wall
       const base0=p.y-.25,base1=q.y-.25,wallHeight=1.74;
