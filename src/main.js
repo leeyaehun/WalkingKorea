@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { createBukchonWorld } from './world/BukchonWorld.js';
+import { MAIN_STREET_DISCOVERIES } from './world/BukchonMainStreet.js';
 import { createGirlSpriteCompanion } from './characters/GirlSprite.js';
 import { createThirdPersonCamera } from './controllers/ThirdPersonCamera.js';
 import { cameraRelativeDirection } from './controllers/MovementDirections.js';
@@ -45,16 +46,7 @@ const memoryStore={};
 const safeStore={getItem(k){try{return window.localStorage.getItem(k)}catch(e){return memoryStore[k]||null}},setItem(k,v){try{window.localStorage.setItem(k,v)}catch(e){memoryStore[k]=v}}};
 const discovered=new Set(JSON.parse(safeStore.getItem('seoul-stroll-places-bukchon-mainline-v03')||'[]'));
 
-// Six walkable discoveries, all ON the one playable main street.
-const locations=[
- {id:'entrance',name:'북촌 골목 입구',detail:'하나의 골목을 따라 천천히 올라가거나 내려가요.',x:0,z:43},
- {id:'north',name:'첫 번째 지붕 전망',detail:'기와지붕과 담장을 바라볼 수 있는 골목의 윗부분이에요.',x:.5,z:25},
- {id:'middle',name:'골목 중간',detail:'한옥들 사이로 하나의 길이 이어져요.',x:-5.5,z:6},
- {id:'stone',name:'돌담 구간',detail:'도로 옆 돌담과 한옥의 재질을 가까이서 감상해요.',x:-2.6,z:-12},
- {id:'sloping',name:'가파른 골목',detail:'담장 사이로 이어진 완만한 굴곡과 경사를 느껴봐요.',x:-2.8,z:-29},
- {id:'view',name:'북촌 전망길',detail:'언덕 위에서 작은 한옥 지붕들이 겹쳐 보이는 전망 포인트예요.',x:-3,z:-42}
-
-];
+const locations=MAIN_STREET_DISCOVERIES;
 const toMap=(x,z)=>[clamp(8+(x+36)*2.12,2,168),clamp(5+(48-z)*1.19,2,123)];
 function drawMapLanes(){
  const root=$('map-roads'),ns='http://www.w3.org/2000/svg';
