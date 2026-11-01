@@ -370,7 +370,7 @@ function makeWorld(){
    path:paths[1],paths,existingHouses:houseSites
  });
  seventhBuildings=buildSeventhHanoks({
-   plan:sevenPlan,withFrame,box,face,cylinder,sphere,textured,signs
+   plan:sevenPlan,withFrame,box,face,cylinder,sphere,textured,signs,hill
  });
  seventhLoopWalls=buildSeventhLoopWalls({
    samples:paths[1].samples,face,hill,

@@ -28,13 +28,13 @@ const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(57,1,.1,240);
 // Daytime blue sky and separate moonlit navy night atmosphere.
 const sky=createBukchonSky(scene);
-const {mesh,material,paths,hill,distanceFromPath,houseSites,streetLife,nightFixtures,paving,vertexCount} = createBukchonWorld();
+const {mesh,material,paths,hill,distanceFromPath,houseSites,seventhBuildings,streetLife,nightFixtures,paving,vertexCount} = createBukchonWorld();
 scene.add(mesh);
 const lighting=createBukchonLighting({
   renderer,scene,worldMesh:mesh,isTouch:touchDevice
 });
 const nightLights=createBukchonNightLights({
-  fixtures:nightFixtures.fixtures,
+  fixtures:[...nightFixtures.fixtures,...seventhBuildings.lights],
   uniform:material.uniforms.uNightLampPositions
 });
 // Single playable character — the illustrated female Seoul walker.
@@ -84,6 +84,21 @@ function drawMapLanes(){
   tooltip.textContent=site.archetype==='a01'?'한옥 A01':'기와와 목재 디테일이 있는 한옥';
   marker.appendChild(tooltip);
   root.appendChild(marker);
+ }
+ // Six individual hanoks on the playable 7-gyeong route.
+ for(const site of seventhBuildings.buildings){
+   const [cx,cy]=toMap(site.x,site.z);
+   const marker=document.createElementNS(ns,'circle');
+   marker.setAttribute('cx',String(cx));
+   marker.setAttribute('cy',String(cy));
+   marker.setAttribute('r','2.6');
+   marker.setAttribute('fill','#756855');
+   marker.setAttribute('stroke','#fff6e8');
+   marker.setAttribute('stroke-width','.7');
+   const tip=document.createElementNS(ns,'title');
+   tip.textContent=site.name;
+   marker.appendChild(tip);
+   root.appendChild(marker);
  }
  const seventh=paths.find(path=>path.kind==='seventh-loop');
  if(seventh){
@@ -313,7 +328,9 @@ if(new URLSearchParams(location.search).has('qa')) {
     avatar:girl.snapshot(),selectedAvatar:'girl',
     multiplayer:multiplayer.getStatus(),
     paving,camera:followCamera.snapshot(),
-    decoratedHouses:houseSites.filter(site=>site.decorated).length, houses:houseSites.length,
+    decoratedHouses:houseSites.filter(site=>site.decorated).length+seventhBuildings.buildings.length,
+    houses:houseSites.length+seventhBuildings.buildings.length,
+    seventhHouses:seventhBuildings.buildings.map(b=>({id:b.id,style:b.style,x:b.x,z:b.z})),
     streetDetails:streetLife.counts, utilityCrossings:streetLife.lines.length,
     viewYaw:state.yaw,started:state.started,
     night:state.night,
@@ -324,4 +341,4 @@ if(new URLSearchParams(location.search).has('qa')) {
   });
 }
 
-console.info(`[Seoul Stroll Bukchon v0.12 scenic alley] Three.js ready: ${vertexCount.toLocaleString()} vertices, ${houseSites.length} hanok houses, ${paths.length} walkable lanes, ${locations.length} discoveries.`);
+console.info(`[Seoul Stroll Bukchon v0.12 scenic alley] Three.js ready: ${vertexCount.toLocaleString()} vertices, ${houseSites.length+seventhBuildings.buildings.length} hanok houses (including 7-gyeong), ${paths.length} walkable lanes, ${locations.length} discoveries.`);

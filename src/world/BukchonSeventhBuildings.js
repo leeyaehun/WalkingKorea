@@ -134,9 +134,9 @@ export function planSeventhHanokSites({path,paths,existingHouses=[]}){
  * THREE.BufferGeometry. All colors resolve through BukchonWorld's existing
  * material/shadow/night shader, with zero network/download cost.
  */
-export function buildSeventhHanoks({plan,withFrame,box,face,cylinder,sphere,textured,signs}){
+export function buildSeventhHanoks({plan,withFrame,box,face,cylinder,sphere,textured,signs,hill}){
   const summary={buildings:plan.buildings,frontageSpans:plan.frontageSpans,
-    styles:[],gates:0,roofs:0,windows:0,stoneCourses:0,lanterns:0};
+    styles:[],lights:[],gates:0,roofs:0,windows:0,stoneCourses:0,lanterns:0};
   const core=(w=5.75,d=4.65,cz=.40,front=-2.58)=>{
     box(0,-.05,cz,w+.30,.36,d+.27,'stoneFoundation');
     box(0,.17,cz,w+.22,.16,d+.20,'stoneLight');
@@ -344,6 +344,7 @@ export function buildSeventhHanoks({plan,withFrame,box,face,cylinder,sphere,text
     roof(2.37,.80,2.82,4.94,2.89,.74,'tileIndigo');
     flankWalls();
     woodenGate();
+    lantern(-1.47,-3.40);
     addressPlate();
   }
   function buildAtelier(){
@@ -397,6 +398,14 @@ export function buildSeventhHanoks({plan,withFrame,box,face,cylinder,sphere,text
       else throw new Error('Unknown 7-gyeong silhouette '+site.style);
     },{level:true});
     summary.styles.push(site.style);
+    // New neighborhood lamps use the same 8-nearest shader, not new lights.
+    const lx=site.style==='courtyard'?1.30:-1.48,lz=-3.40;
+    const c=Math.cos(site.angle),s=Math.sin(site.angle);
+    summary.lights.push({
+      x:site.x+lx*c-lz*s,y:hill(site.x,site.z)+2.12,
+      z:site.z+lx*s+lz*c,radius:6.5,
+      type:'seven-hanok',index:summary.lights.length
+    });
   }
   return summary;
 }

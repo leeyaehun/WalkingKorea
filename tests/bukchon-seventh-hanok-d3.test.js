@@ -32,7 +32,9 @@ test('D-3 has all six unique physical hanok archetypes along one 7-gyeong loop',
  assert.ok(b.windows>=10,'traditional wooden lattice facades not rendered');
  assert.ok(b.gates>=6,'not enough recognizable entry portals');
  assert.ok(b.stoneCourses>=10,'street walls need readable stone/brick patterns');
- assert.ok(b.lanterns>=5,'no lived-in detail near the doorways');
+ assert.ok(b.lanterns>=7,'each 7-gyeong hanok should have a real lantern');
+ assert.equal(b.lights.length,6,'one night fixture per 7-gyeong house');
+ assert.ok(b.lights.every(l=>Number.isFinite(l.x)&&l.radius===6.5));
  console.log('D-3 buildings',
    b.buildings.map(h=>[h.id,h.style,h.s.toFixed(2),h.side,h.x.toFixed(2),h.z.toFixed(2),h.clearance.toFixed(2)]));
 });
