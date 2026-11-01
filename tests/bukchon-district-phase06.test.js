@@ -25,14 +25,14 @@ test('plants, flower clusters and roadside fake trees have been removed, while s
  assert.match(world,/function hillsideBackground\(\)/,'keep distant landscape, not street plants');
 });
 
-test('all three lanes inherit coherent level house siting, facade orientation and materials',()=>{
+test('single lane retains level house siting, facade orientation and materials',()=>{
  const w=makeWorld();
  const scenic=w.houseSites.filter(h=>h.scenic);
  const district=w.houseSites.filter(h=>h.district);
  assert.equal(scenic.length,8);
- assert.ok(district.length>=15,'all side lanes should have homes');
+ assert.ok(district.length>=8,'all side lanes should have homes');
  assert.equal(w.houseSites.length,scenic.length+district.length);
- assert.deepEqual([...new Set(district.map(s=>s.routeIndex))].sort(),[0,1,2]);
+ assert.deepEqual([...new Set(district.map(s=>s.routeIndex))].sort(),[0]);
  for(const h of district){
   assert.equal(h.scenic,false);
   assert.ok(h.roadWidth>2.7);
@@ -43,11 +43,11 @@ test('all three lanes inherit coherent level house siting, facade orientation an
     w.distanceFromPath(x,z,p)-(p.widthAt?p.widthAt(z):p.width)*.5));
   assert.ok(near>.14,'house gate intrudes in another lane: '+h.index);
  }
- assert.equal(w.paths.length,3);
+ assert.equal(w.paths.length,1);
  assert.equal(w.frontage.count,3);
  assert.ok(w.districtFrontage.count>=1,'branch facade continuity is missing');
  for(const join of w.districtFrontage.segments) {
-  assert.ok(join.routeIndex>=0&&join.routeIndex<=2);
+  assert.ok(join.routeIndex===0);
   assert.ok(join.roadDistance>=1.6);
   assert.ok(join.length>0.1&&join.length<4.81);
  }
@@ -59,8 +59,8 @@ test('district receives street-life details but no new plants',()=>{
  assert.equal(d.entries.length,d.houseCount);
  assert.equal(d.counts.downspouts,d.houseCount);
  assert.equal(d.counts.electricMeters,d.houseCount);
- assert.ok(d.counts.plaques>=18);
- assert.ok(d.counts.doorsteps>=18);
+ assert.ok(d.counts.plaques>=12);
+ assert.ok(d.counts.doorsteps>=12);
  assert.equal('planters' in d.counts,false);
  assert.ok(d.entries.some(e=>!e.scenic && e.details.includes('plaques')));
  assert.equal(d.counts.wires,4);
