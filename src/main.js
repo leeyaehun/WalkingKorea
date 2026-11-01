@@ -2,6 +2,8 @@ import * as THREE from 'three';
 import { createBukchonWorld } from './world/BukchonWorld.js';
 import { MAIN_STREET_DISCOVERIES, DEFAULT_MAIN_STREET_PITCH } from './world/BukchonMainStreet.js';
 import { createGirlSpriteCompanion } from './characters/GirlSprite.js';
+import { createPublicWalkClient } from './multiplayer/PublicWalkClient.js';
+import { createRemoteWalkers } from './multiplayer/RemoteWalkers.js';
 import { createThirdPersonCamera } from './controllers/ThirdPersonCamera.js';
 import { cameraRelativeDirection } from './controllers/MovementDirections.js';
 import { createBukchonLighting } from './world/BukchonLighting.js';
@@ -37,6 +39,19 @@ const nightLights=createBukchonNightLights({
 });
 // Single playable character — the illustrated female Seoul walker.
 const girl=createGirlSpriteCompanion(scene,hill,camera);
+const remoteWalkers=createRemoteWalkers(scene,hill,camera);
+const publicWalk=createPublicWalkClient({
+  onWelcome:players=>remoteWalkers.reset(players),
+  onJoin:player=>remoteWalkers.add(player),
+  onMove:player=>remoteWalkers.move(player),
+  onLeave:id=>remoteWalkers.remove(id),
+  onStatus:info=>{
+    const label=$('room-status');
+    if(label)label.textContent=info.connected
+      ? '공개 산책방 '+String(info.room).padStart(2,'0')+' · '+info.count+' / '+info.max+'명'
+      : '혼자 산책 중 · 연결 대기';
+  }
+});
 
 // Begin at the upper lookout on the only accessible Bukchon main alley.
 // Keep the original third-person camera and camera-relative WASD controls.
@@ -153,7 +168,7 @@ window.addEventListener('keydown',e=>{
  if(e.repeat)return;
  if(e.code==='KeyE')interact();if(e.code==='KeyN')toggleTime();if(e.code==='KeyP')savePhoto();if(e.code==='KeyH')showHelp();
 });window.addEventListener('keyup',e=>keys.delete(e.code));window.addEventListener('blur',()=>{keys.clear();touchInput.x=touchInput.y=0;});
-$('start-btn').onclick=()=>{state.started=true;document.body.classList.add('playing');$('intro').classList.remove('visible');if(touchDevice){$('touch-ui').setAttribute('aria-hidden','false');}toast('북촌 전망길에서 내리막 골목을 따라 서울 풍경을 만나보세요. ✿',4500);};
+$('start-btn').onclick=()=>{state.started=true;document.body.classList.add('playing');$('intro').classList.remove('visible');if(touchDevice){$('touch-ui').setAttribute('aria-hidden','false');}publicWalk.start();toast('북촌 전망길에서 내리막 골목을 따라 서울 풍경을 만나보세요. ✿',4500);};
 function toggleTime(){state.night=!state.night;$('toggle-time').textContent=state.night?'☀':'☾';toast(state.night?'조용한 서울의 저녁이에요.':'햇살이 돌아왔어요.');}
 $('toggle-time').onclick=toggleTime;
 // Synthesized ambience avoids third-party sound/licensing dependencies. WebAudio begins after click.
@@ -181,6 +196,8 @@ function render(time=0) {
   // The female walker alone follows the existing path/camera and input.
   const motion={x:state.x,z:state.z,vx:state.vx,vz:state.vz,dt,elapsed:state.elapsed,walking:moving};
   girl.update({...motion,visible:state.started});
+  publicWalk.tick(time,{...motion,started:state.started});
+  remoteWalkers.update(dt,state.elapsed);
   followCamera.update({x:state.x,z:state.z,yaw:state.yaw,pitch:state.pitch,dt,moving});
   const fog=state.night?SKY_FOG_NIGHT:SKY_FOG_DAY;
   sky.update(camera,state.night);
