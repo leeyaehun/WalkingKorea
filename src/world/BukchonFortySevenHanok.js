@@ -91,7 +91,7 @@ export function buildFortySevenVolume({box,face,sphere,cylinder,part}){
       for(let i=0;i<cols;i++){
         const blockW=w/cols;
         const x=x0+(i+.5)*blockW+(row%2?.018:0);
-        if(x+blockW*.5>x1-.009)continue;
+        if(x+(blockW-.034)*.5>x1-.008)continue;
         box(x,.27+row*stepY,front-.185,blockW-.034,.197,.056,
           (row+i+variant)%7===0?'stoneGrey':
           (row+i)%3===0?'stoneLight':'stoneMasonry');
