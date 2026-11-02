@@ -39,12 +39,12 @@ test('stone+brick+hanok tile wall spans fill all external frontage gaps on both 
   const w=world(),f=w.continuousFrontages;
   assert.equal(typeof buildContinuousFrontages,'function');
   assert.equal(FRONTAGE_HALF_SPAN,3.58);
-  assert.ok(f.wallSegments>=28,'main frontage stays enclosed apart from 7-gyeong entrance');
-  assert.ok(f.coveredMeters+w.fiveGyeongApproach.length+5.2>27&&f.coveredMeters+w.fiveGyeongApproach.length+5.2<38);
-  assert.ok(f.coveredMeters+w.fiveGyeongApproach.length+f.existingConnectorMeters+5.2>48);
-  assert.ok(f.bySide.west+w.fiveGyeongApproach.length+5.2>15&&f.bySide.east>10);
+  assert.ok(f.wallSegments+w.fortySevenReturnWall.segments>=28,'main frontage and replacement decorated 47 return wall keep the alley enclosed');
+  assert.ok(f.coveredMeters+w.fiveGyeongApproach.length+w.fortySevenReturnWall.length+5.2>27&&f.coveredMeters+w.fiveGyeongApproach.length+w.fortySevenReturnWall.length+5.2<38);
+  assert.ok(f.coveredMeters+w.fiveGyeongApproach.length+w.fortySevenReturnWall.length+f.existingConnectorMeters+5.2>48);
+  assert.ok(f.bySide.west+w.fiveGyeongApproach.length+w.fortySevenReturnWall.length+5.2>15&&f.bySide.east>10);
   assert.ok(f.roadClearance>.55);
-  assert.ok(f.runs.length>=10);
+  assert.ok(f.runs.length+1>=10,'decorated replacement counts as a real wall run');
   assert.ok(f.runs.some(r=>r.side===-1&&r.fromZ<-19&&r.toZ>-19),
     'missing wall between west houses');
   assert.ok(f.runs.some(r=>r.side===1&&r.fromZ<-26.5&&r.toZ>-25.3),

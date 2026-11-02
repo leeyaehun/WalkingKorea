@@ -113,7 +113,7 @@ test('exactly one original west-side house is replaced without creating another 
 test('the photographed lower 5-gyeong frontage is no longer a generic red-stripe wall',async()=>{
   const w=world(),f=w.continuousFrontages,a=w.fiveGyeongApproach;
   const special=FIVE_GYEONG_APPROACH_WALL;
-  assert.equal(f.customFrontages.length,1);
+  assert.equal(f.customFrontages.length,2);
   assert.equal(f.customFrontages[0].id,special.id);
   assert.equal(f.customFrontages[0].side,-1);
   assert.ok(a.segments>=12,'ornate house wall is missing');
