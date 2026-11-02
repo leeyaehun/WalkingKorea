@@ -44,7 +44,7 @@ const girl=createSeoulGirl3DModel();
 scene.add(girl.group);
 const clips=createSeoulGirlAnimationClips();
 const q=(id)=>document.getElementById(id);
-let mode='walk',angle=.30,tilt=.04,distance=3.84,
+let mode='walk',angle=.30,tilt=.04,distance=5.15,
   clock=0,last=0,dragging=false,downX=0,downY=0,
   draggingPointer=null,exportBusy=false;
 function setMode(next){
@@ -61,7 +61,8 @@ function orbit(){
  camera.position.set(Math.sin(angle)*distance*Math.cos(tilt),
    1.06+distance*.12+Math.sin(tilt)*distance,
    Math.cos(angle)*distance*Math.cos(tilt));
- camera.lookAt(0,.93,0);
+ // Keep BOTH boots above the bottom controls on desktop and mobile.
+ camera.lookAt(0,.66,0);
 }
 function setAngle(yaw){
  angle=yaw;orbit();
@@ -92,7 +93,7 @@ const endDrag=()=>{dragging=false;draggingPointer=null};
 canvas.addEventListener('pointerup',endDrag);
 canvas.addEventListener('pointercancel',endDrag);
 canvas.addEventListener('wheel',e=>{
- e.preventDefault();distance=THREE.MathUtils.clamp(distance+e.deltaY*.003,2.8,5.7);
+ e.preventDefault();distance=THREE.MathUtils.clamp(distance+e.deltaY*.003,3.1,6.2);
  orbit();
 },{passive:false});
 for(const b of document.querySelectorAll('[data-angle]')){
@@ -102,7 +103,7 @@ for(const b of document.querySelectorAll('[data-mode]')){
  b.addEventListener('click',()=>setMode(b.dataset.mode));
 }
 q('model-reset').addEventListener('click',()=>{
- tilt=.04;distance=3.84;setAngle(.3);
+ tilt=.04;distance=5.15;setAngle(.3);
 });
 function tick(t){
  requestAnimationFrame(tick);
