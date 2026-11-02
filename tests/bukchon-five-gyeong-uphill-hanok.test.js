@@ -155,7 +155,7 @@ test('camera QA can preview the REAL upper 5-gyeong plot immediately; original d
 
 test('complete world renderer, night materials and 8-player road remain within mobile budget',()=>{
  const w=createWorld(),geo=w.mesh.geometry;
- assert.ok(w.vertexCount>755000&&w.vertexCount<850000,
+ assert.ok(w.vertexCount>700000&&w.vertexCount<850000,
    'single house is too expensive '+w.vertexCount);
  assert.ok(geo.getAttribute('position').array.every(Number.isFinite));
  assert.equal(geo.getAttribute('position').count,

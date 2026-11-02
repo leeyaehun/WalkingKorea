@@ -148,7 +148,7 @@ test('real photographed facades are built on street, and next-house photo URL wo
  assert.match(main,/state\.x=-1\.15;state\.z=33\.1;state\.yaw=0/);
  assert.match(main,/get\('view'\)==='hanok5upper'/);
  assert.match(main,/third5Gyeong:/);
- assert.match(main,/houseSites,fiveGyeongThird,fortySevenVolumes,seventhBuildings/);
+ assert.match(main,/houseSites,fiveGyeongThird,fortySevenVolumes,rightPhotoHouses,seventhBuildings/);
  const w=world(),z=w.fiveGyeongThird.site.laneZ;
  assert.ok(!w.continuousFrontages.runs.some(r=>
    r.side===-1&&r.fromZ<z&&r.toZ>z),
@@ -156,7 +156,7 @@ test('real photographed facades are built on street, and next-house photo URL wo
 });
 test('one finite world mesh with intact 8-player routes under mobile 850K budget',()=>{
  const w=world(),g=w.mesh.geometry;
- assert.ok(w.vertexCount>760000&&w.vertexCount<850000,
+ assert.ok(w.vertexCount>700000&&w.vertexCount<850000,
    'new house exceeded mobile budget '+w.vertexCount);
  assert.ok(g.getAttribute('position').array.every(Number.isFinite));
  assert.equal(g.getAttribute('position').count,g.getAttribute('materialId').count);

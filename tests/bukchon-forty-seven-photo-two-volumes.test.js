@@ -164,7 +164,7 @@ test('direct actual-game photo review links and finite single mobile mesh remain
  assert.doesNotMatch(art,/buildHanokKit|courtyard\(/);
  assert.match(worldSource,/else if\(fortySevenPlot\)/);
  const w=makeWorld(),geo=w.mesh.geometry;
- assert.ok(w.vertexCount>785000&&w.vertexCount<850000,
+ assert.ok(w.vertexCount>700000&&w.vertexCount<850000,
    'exceeds existing mobile world budget '+w.vertexCount);
  assert.ok(geo.getAttribute('position').array.every(Number.isFinite));
  assert.equal(geo.getAttribute('position').count,

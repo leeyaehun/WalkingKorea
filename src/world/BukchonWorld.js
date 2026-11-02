@@ -262,6 +262,10 @@ function housesOnShowcase(){
    }else archetype=courtyard(site.type,site.variant);
   },{level:true});
   const record={...site,archetype,detailVariant:site.variant,decorated:true,scenic:true,
+    // A formerly café-type frontage was skipped by the original short
+    // connector graph. Preserve that hand-planned opening even after
+    // replacing the café silhouette with the #58-1 photographed house.
+    frontageSkip:!!rightPhoto&&site.type===0,
     ...(rightPhoto?{photoRight:true,rightAssetId:assetDiagnostics.id,
       rightPhotoLabel:rightPhoto.label}:{})};
   houseSites.push(record);
