@@ -447,7 +447,7 @@ function makeWorld(){
    throw new Error('The two 47-style hanoks must use the exact original western #14/#16 sites');
  if(rightPhotoHouses.length!==RIGHT_HANOK_PROFILES.length ||
     rightPhotoHouses.some(v=>v.site.side!==1))
-   throw new Error('Photo-guided right side must cover nine ORIGINAL east lots');
+   throw new Error('Photo-guided right side must cover nine ORIGINAL east lots: matched='+rightPhotoHouses.map(v=>v.profile.label+'@'+v.site.index+':'+v.site.laneZ).join(',')+'; eligible='+houseSites.filter(h=>h.side===1).map(h=>h.index+':'+h.laneZ).join(','));
  buildGapHanok();
  // The old short-gap connectors remain for small existing house joints.
  // The separate continuous pass fills the actual bare plots and creates
