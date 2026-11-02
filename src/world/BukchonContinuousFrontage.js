@@ -25,7 +25,8 @@ export function buildContinuousFrontages({
     pillars:0,gates:0,gatePositions:[],runs:[],roadClearance:Infinity,
     existingConnectorMeters:existingConnectors.reduce((n,s)=>n+s.length,0),
     reservedConnectorSpans:[],openings:openings.map(o=>({...o})),
-    customFrontages:customFrontages.map(o=>({...o}))};
+    customFrontages:customFrontages.map(o=>({...o})),
+    eastPhotoWall:{segments:0,stoneCourses:0,fretCells:0,raisedFaces:0,endSegments:0}};
   const sample=(z,side)=>{
     const lane=sampleMainLaneAtZ(path.samples,z);
     if(!lane)throw new Error('No main street center at '+z);
@@ -44,20 +45,68 @@ export function buildContinuousFrontages({
          [b.x,b.y+yb+dy1,b.z],[a.x,a.y+yb+dy0,a.z],
          [nx,0,nz],color);
   }
+  function raisedEastRelief(a,b,lo,hi,color,offset=.069){
+    // Physically separated face: NO z-fighting over the lower stone.
+    const nx=(a.nx+b.nx)*.5,nz=(a.nz+b.nz)*.5;
+    face([a.x+a.nx*offset,a.y+lo,a.z+a.nz*offset],
+      [b.x+b.nx*offset,b.y+lo,b.z+b.nz*offset],
+      [b.x+b.nx*offset,b.y+hi,b.z+b.nz*offset],
+      [a.x+a.nx*offset,a.y+hi,a.z+a.nz*offset],
+      [nx,0,nz],color);
+    summary.eastPhotoWall.raisedFaces++;
+  }
+  function mixPoint(a,b,t){
+    return {x:a.x+(b.x-a.x)*t,z:a.z+(b.z-a.z)*t,
+      y:a.y+(b.y-a.y)*t,nx:a.nx+(b.nx-a.nx)*t,
+      nz:a.nz+(b.nz-a.nz)*t};
+  }
   function runWall(z0,z1,side){
     const parts=Math.ceil((z1-z0)/.93);
     for(let i=0;i<parts;i++){
       const a=sample(z0+(z1-z0)*i/parts,side);
       const b=sample(z0+(z1-z0)*(i+1)/parts,side);
       const seam=(i%7===0);
-      quad(a,b,-.06,.57,seam?'stoneGrey':'stoneMasonry');
-      quad(a,b,.57,.64,'stoneLight');
-      quad(a,b,.64,1.53,'plaster');
-      // A Korean hanok neighborhood wall rhythm: red ornamental bricks
-      // through the pale rendering, not one flat featureless white plane.
-      quad(a,b,1.53,1.94,seam?'brickTerracotta':'brick');
-      quad(a,b,1.94,2.12,'mortar');
-      quad(a,b,2.12,2.21,'tileRidge');
+      if(side===1){
+        // On the RIGHT street, flat cream/red patches between all nine
+        // photo hanoks look like missing assets. Replace them at source,
+        // including the long lower start wall, not as overlay decals.
+        quad(a,b,-.06,.55,seam?'stoneGrey':'stoneMasonry');
+        quad(a,b,.55,1.38,'stoneMasonry');
+        quad(a,b,1.38,1.48,'stoneLight');
+        quad(a,b,1.48,1.99,'brickTerracotta');
+        quad(a,b,1.99,2.12,'mortar');
+        quad(a,b,2.12,2.21,'tileRidge');
+        const half=mixPoint(a,b,.5);
+        for(let row=0;row<5;row++){
+          const low=.12+row*.24,high=low+.185;
+          for(const [p,q,k] of [[a,half,0],[half,b,1]]){
+            raisedEastRelief(p,q,low,high,
+              (i+row+k)%5===0?'stoneLight':
+              (row+k)%3===0?'stoneGrey':'stoneMasonry',.044);
+            summary.eastPhotoWall.stoneCourses++;
+          }
+        }
+        for(const [p,q] of [[a,half],[half,b]]){
+          // Raised WHITE square-meander bars on RED terracotta.
+          raisedEastRelief(p,q,1.555,1.605,'plaster',.083);
+          raisedEastRelief(p,q,1.887,1.937,'plaster',.083);
+          const l=mixPoint(p,q,.12),m=mixPoint(p,q,.30),r=mixPoint(p,q,.84);
+          raisedEastRelief(p,l,1.58,1.914,'plaster',.091);
+          raisedEastRelief(r,q,1.72,1.914,'plaster',.091);
+          raisedEastRelief(m,r,1.751,1.799,'plaster',.095);
+          summary.eastPhotoWall.fretCells++;
+        }
+        summary.eastPhotoWall.segments++;
+        if(z0+(z1-z0)*i/parts>=49.8)
+          summary.eastPhotoWall.endSegments++;
+      }else{
+        quad(a,b,-.06,.57,seam?'stoneGrey':'stoneMasonry');
+        quad(a,b,.57,.64,'stoneLight');
+        quad(a,b,.64,1.53,'plaster');
+        quad(a,b,1.53,1.94,seam?'brickTerracotta':'brick');
+        quad(a,b,1.94,2.12,'mortar');
+        quad(a,b,2.12,2.21,'tileRidge');
+      }
       // Tile ridge rises in the center of a shallow pitched coping.
       const roofA=[a.x+a.nx*.14,a.y+2.17,a.z+a.nz*.14];
       const roofB=[b.x+b.nx*.14,b.y+2.17,b.z+b.nz*.14];
