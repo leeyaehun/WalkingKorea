@@ -425,7 +425,7 @@ if(new URLSearchParams(location.search).has('qa')) {
     fortySeven:{parts:fortySevenVolumes.map(v=>({
       index:v.site.index,role:v.site.compoundPart,id:v.asset.id,
       x:v.site.x,z:v.site.z,frontEave:v.asset.eave.projectedDepth
-    })),sideAlleyZ:SEVENTH_JOIN.lowerZ},
+    })),sideAlleyZ:paths[1].points[0][1]},
     decoratedHouses:houseSites.filter(site=>site.decorated).length+seventhBuildings.buildings.length,
     houses:houseSites.length+seventhBuildings.buildings.length,
     seventhHouses:seventhBuildings.buildings.map(b=>({id:b.id,style:b.style,x:b.x,z:b.z})),
