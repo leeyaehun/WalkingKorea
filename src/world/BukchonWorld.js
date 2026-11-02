@@ -6,6 +6,8 @@ import {isFiveGyeongThirdSite,buildFiveGyeongThirdHanok}
   from './BukchonFiveGyeongThirdHanok.js';
 import {FORTY_SEVEN_PLOTS,fortySevenPartAt,buildFortySevenVolume}
   from './BukchonFortySevenHanok.js';
+import {FORTY_SEVEN_RETURN_WALL,buildFortySevenReturnWall}
+  from './BukchonFortySevenReturnWall.js';
 import {FIVE_GYEONG_APPROACH_WALL,buildFiveGyeongApproach} from './BukchonFiveGyeongApproach.js';
 import { buildPavedAlleys } from './BukchonPaving.js';
 import {mainLaneWidth,mainLaneTerrainHeight,smoothMainLane,scenicHouseSites,sampleMainLaneAtZ} from './BukchonStreetLayout.js';
@@ -239,6 +241,7 @@ let fiveGyeongHero=null; // Exactly one photo-referenced house on the lower 5-gy
 let fiveGyeongUphill=null; // The next west-side house UPHILL, original slot #10.
 let fiveGyeongThird=null; // A different third house with red meander, original #12.
 const fortySevenVolumes=[]; // Adjacent original west slots #14 and #16, before the side loop.
+let fortySevenReturnWall=null; // Short patterned wall up to 7g open entrance.
 let fiveGyeongApproach=null;
 function housesOnShowcase(){
  // Eight level-sited homes create staggered, close-set roof silhouettes.
@@ -431,11 +434,17 @@ function makeWorld(){
    path:paths[0],houses:houseSites,hill,face,box,distanceFromPath,
    existingConnectors:[...frontage.segments,...districtFrontage.segments],
    openings:[SEVENTH_JOIN],
-   customFrontages:[FIVE_GYEONG_APPROACH_WALL]
+   customFrontages:[FIVE_GYEONG_APPROACH_WALL,FORTY_SEVEN_RETURN_WALL]
  });
  // The actual street-facing house enclosure was still the old generic
  // RED band. Replace that section with one photo-specific granite wall.
  fiveGyeongApproach=buildFiveGyeongApproach({
+   path:paths[0],hill,face,box,sphere,distanceFromPath
+ });
+ // Actual live screenshot showed a flat red-stripe generic wall between
+ // the second 47 volume and the side entrance. This wall COMPLETELY
+ // replaces those ~2.76m, not a coplanar texture placed over old plaster.
+ fortySevenReturnWall=buildFortySevenReturnWall({
    path:paths[0],hill,face,box,sphere,distanceFromPath
  });
  // D-3: place real, six-silhouette 7-gyeong hanoks BEFORE the boundary
@@ -631,5 +640,5 @@ makeWorld();
   });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.frustumCulled = false;
-  return {mesh,material,paths,hill,distanceFromPath,houseSites,fiveGyeongHero,fiveGyeongUphill,fiveGyeongThird,fortySevenVolumes,fiveGyeongApproach,frontage,districtFrontage,continuousFrontages,seventhLoopWalls,seventhBuildings,seventhInfill,seventhViewpoint,streetLife,nightFixtures,namsan:namsanStats,skyline:skylineStats,paving,vertexCount:positions.length/3};
+  return {mesh,material,paths,hill,distanceFromPath,houseSites,fiveGyeongHero,fiveGyeongUphill,fiveGyeongThird,fortySevenVolumes,fortySevenReturnWall,fiveGyeongApproach,frontage,districtFrontage,continuousFrontages,seventhLoopWalls,seventhBuildings,seventhInfill,seventhViewpoint,streetLife,nightFixtures,namsan:namsanStats,skyline:skylineStats,paving,vertexCount:positions.length/3};
 }
