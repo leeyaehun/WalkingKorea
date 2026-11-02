@@ -39,7 +39,7 @@ export const RIGHT_HANOK_PROFILES=Object.freeze([
   Object.freeze({id:'52',label:'52호',index:17,
     side:1,z:10.50,kind:'brick',wood:'woodShade',gateX:-1.92,gateW:1.40,
     roofTop:4.71,roofDrip:3.27,windows:'steel',feature:'brickCorner'}),
-  Object.freeze({id:'54',label:'54호',index:19,
+  Object.freeze({id:'54',label:'54호',index:18,
     side:1,z:1.50,kind:'brick',wood:'timberLight',gateX:1.88,gateW:1.54,
     roofTop:4.45,roofDrip:3.08,windows:'steel',feature:'number'}),
   Object.freeze({id:'56',label:'56호',index:6,
