@@ -9,7 +9,8 @@ export function buildFrontageConnectors({
   houses,face,hill,distanceFromPath,mainPath,paths=[mainPath],district=false
 }) {
   const selected=houses.filter(h=>
-    (district ? h.district : h.scenic) && h.archetype!=='cafe');
+    (district ? h.district : h.scenic) &&
+    h.archetype!=='cafe' && !h.frontageSkip);
   let count=0,segments=[];
   const frontPoint=(h,lx)=>{
     const lz=h.archetype==='facing'?-3.89:-4.21;

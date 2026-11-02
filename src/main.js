@@ -29,7 +29,7 @@ const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(57,1,.1,240);
 // Daytime blue sky and separate moonlit navy night atmosphere.
 const sky=createBukchonSky(scene);
-const {mesh,material,paths,hill,distanceFromPath,houseSites,fiveGyeongThird,fortySevenVolumes,seventhBuildings,seventhViewpoint,streetLife,nightFixtures,paving,vertexCount} = createBukchonWorld();
+const {mesh,material,paths,hill,distanceFromPath,houseSites,fiveGyeongThird,fortySevenVolumes,rightPhotoHouses,seventhBuildings,seventhViewpoint,streetLife,nightFixtures,paving,vertexCount} = createBukchonWorld();
 scene.add(mesh);
 const lighting=createBukchonLighting({
   renderer,scene,worldMesh:mesh,isTouch:touchDevice
@@ -75,6 +75,18 @@ if(new URLSearchParams(location.search).get('view')==='hanok47'){
 // the return wall near the 7-gyeong junction without opening a new lane.
 if(new URLSearchParams(location.search).get('view')==='hanok47alley'){
   state.x=-1.82;state.z=6.4;state.yaw=Math.PI;state.pitch=-.10;
+}
+// East facade series: nine distinct photo-guided right-side hanoks,
+// from the Nostalgia-inspired low street to the chimney higher uphill.
+// These are direct actual-game QA views; no change to default spawn.
+if(new URLSearchParams(location.search).get('view')==='hanokright'){
+  state.x=-1.0;state.z=52;state.yaw=0;state.pitch=-.12;
+}
+if(new URLSearchParams(location.search).get('view')==='hanokrightmiddle'){
+  state.x=-1.88;state.z=6.8;state.yaw=0;state.pitch=-.11;
+}
+if(new URLSearchParams(location.search).get('view')==='hanokrightupper'){
+  state.x=-2.65;state.z=-25;state.yaw=0;state.pitch=-.11;
 }
 const keys=new Set();let lastFrame=0,lastMap=0,lastToast=0,nearSpot=null,stepPhase=0;
 const memoryStore={};
@@ -426,6 +438,11 @@ if(new URLSearchParams(location.search).has('qa')) {
       index:v.site.index,role:v.site.compoundPart,id:v.asset.id,
       x:v.site.x,z:v.site.z,frontEave:v.asset.eave.projectedDepth
     })),sideAlleyZ:paths[1].points[0][1]},
+    rightPhotoHouses:rightPhotoHouses.map(v=>({
+      id:v.asset.id,label:v.profile.label,index:v.site.index,
+      x:v.site.x,z:v.site.z,side:v.site.side,
+      roofDrip:v.asset.roofDrip,detail:v.asset.feature
+    })),
     decoratedHouses:houseSites.filter(site=>site.decorated).length+seventhBuildings.buildings.length,
     houses:houseSites.length+seventhBuildings.buildings.length,
     seventhHouses:seventhBuildings.buildings.map(b=>({id:b.id,style:b.style,x:b.x,z:b.z})),

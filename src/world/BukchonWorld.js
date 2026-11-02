@@ -8,6 +8,8 @@ import {FORTY_SEVEN_PLOTS,fortySevenPartAt,buildFortySevenVolume}
   from './BukchonFortySevenHanok.js';
 import {FORTY_SEVEN_RETURN_WALL,buildFortySevenReturnWall}
   from './BukchonFortySevenReturnWall.js';
+import {RIGHT_HANOK_PROFILES,rightHanokForSite,buildRightHanokPhoto}
+  from './BukchonRightNineHanoks.js';
 import {FIVE_GYEONG_APPROACH_WALL,buildFiveGyeongApproach} from './BukchonFiveGyeongApproach.js';
 import { buildPavedAlleys } from './BukchonPaving.js';
 import {mainLaneWidth,mainLaneTerrainHeight,smoothMainLane,scenicHouseSites,sampleMainLaneAtZ} from './BukchonStreetLayout.js';
@@ -241,20 +243,33 @@ let fiveGyeongHero=null; // Exactly one photo-referenced house on the lower 5-gy
 let fiveGyeongUphill=null; // The next west-side house UPHILL, original slot #10.
 let fiveGyeongThird=null; // A different third house with red meander, original #12.
 const fortySevenVolumes=[]; // Adjacent original west slots #14 and #16, before the side loop.
+const rightPhotoHouses=[]; // Nine east-side original photo-inspired, NO new lots.
 let fortySevenReturnWall=null; // Short patterned wall up to 7g open entrance.
 let fiveGyeongApproach=null;
 function housesOnShowcase(){
  // Eight level-sited homes create staggered, close-set roof silhouettes.
  // Legacy side junction gaps are deliberately left for Step 03 facade fill.
  for(const site of scenicHouseSites(paths[0].samples)){
-  let archetype='gate';
+  let archetype='gate',assetDiagnostics=null;
+  const rightPhoto=rightHanokForSite(site);
   withFrame(site.x,site.z,site.angle,()=>{
    // Narrow low stone plinth: does not read as a giant concrete rectangle.
    box(0,-.155,0,7.35,.32,8.55,'stoneFoundation');
    box(0,-.016,-4.22,7.35,.10,.23,'stoneLight');
-   archetype=courtyard(site.type,site.variant);
+   if(rightPhoto){
+     assetDiagnostics=buildRightHanokPhoto({box,face,sphere,cylinder,profile:rightPhoto});
+     archetype=assetDiagnostics.kind;
+   }else archetype=courtyard(site.type,site.variant);
   },{level:true});
-  houseSites.push({...site,archetype,detailVariant:site.variant,decorated:true,scenic:true});
+  const record={...site,archetype,detailVariant:site.variant,decorated:true,scenic:true,
+    // A formerly café-type frontage was skipped by the original short
+    // connector graph. Preserve that hand-planned opening even after
+    // replacing the café silhouette with the #58-1 photographed house.
+    frontageSkip:!!rightPhoto&&site.type===0,
+    ...(rightPhoto?{photoRight:true,rightAssetId:assetDiagnostics.id,
+      rightPhotoLabel:rightPhoto.label}:{})};
+  houseSites.push(record);
+  if(rightPhoto)rightPhotoHouses.push({site:record,asset:assetDiagnostics,profile:rightPhoto});
  }
 }
 function housesAlong(path,pIndex){
@@ -310,6 +325,9 @@ function housesAlong(path,pIndex){
    const fortySevenPlot=fortySevenPartAt({
      index:houseSites.length,routeIndex:pIndex,side,laneZ:b[1]
    });
+   const rightPhoto=rightHanokForSite({
+     index:houseSites.length,routeIndex:pIndex,side,laneZ:b[1]
+   });
    let archetype='gate',assetDiagnostics=null;
    withFrame(x,z,angle,()=>{
      // Same original lot, grade, rotation, foundation and walkable width.
@@ -333,12 +351,21 @@ function housesAlong(path,pIndex){
          box,face,sphere,cylinder,part:fortySevenPlot.part
        });
        archetype=assetDiagnostics.kind;
+     }else if(rightPhoto){
+       // The opposite side is a distinct photographic family, not another
+       // copy of the already finished west 39–47 hanoks.
+       assetDiagnostics=buildRightHanokPhoto({
+         box,face,sphere,cylinder,profile:rightPhoto
+       });
+       archetype=assetDiagnostics.kind;
      }else archetype=courtyard(houseType,detailVariant,'district');
    },{level:true});
    const site={index:houseSites.length,x,z,angle,archetype,detailVariant,
-     decorated:photoHouse||uphillHouse||thirdHouse||!!fortySevenPlot||houseType===100||detailVariant>0,
+     decorated:photoHouse||uphillHouse||thirdHouse||!!fortySevenPlot||!!rightPhoto||houseType===100||detailVariant>0,
      scenic:false,district:true,routeIndex:pIndex,side,
      laneZ:b[1],roadWidth:path.width,
+     ...(rightPhoto?{photoRight:true,rightAssetId:assetDiagnostics.id,
+       rightPhotoLabel:rightPhoto.label}:{}),
      ...((photoHouse||uphillHouse||thirdHouse||fortySevenPlot)?{
        assetId:assetDiagnostics.id,referenceAsset:true,
        ...(fortySevenPlot?{
@@ -350,6 +377,7 @@ function housesAlong(path,pIndex){
    if(uphillHouse)fiveGyeongUphill={site,asset:assetDiagnostics};
    if(thirdHouse)fiveGyeongThird={site,asset:assetDiagnostics};
    if(fortySevenPlot)fortySevenVolumes.push({site,asset:assetDiagnostics});
+   if(rightPhoto)rightPhotoHouses.push({site,asset:assetDiagnostics,profile:rightPhoto});
   }
  }
 }
@@ -421,6 +449,9 @@ function makeWorld(){
  if(fortySevenVolumes.length!==FORTY_SEVEN_PLOTS.length||
     fortySevenVolumes.some((v,i)=>v.site.index!==FORTY_SEVEN_PLOTS[i].index))
    throw new Error('The two 47-style hanoks must use the exact original western #14/#16 sites');
+ if(rightPhotoHouses.length!==RIGHT_HANOK_PROFILES.length ||
+    rightPhotoHouses.some(v=>v.site.side!==1))
+   throw new Error('Photo-guided right side must cover nine ORIGINAL east lots: '+rightPhotoHouses.length+'/9');
  buildGapHanok();
  // The old short-gap connectors remain for small existing house joints.
  // The separate continuous pass fills the actual bare plots and creates
@@ -640,5 +671,5 @@ makeWorld();
   });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.frustumCulled = false;
-  return {mesh,material,paths,hill,distanceFromPath,houseSites,fiveGyeongHero,fiveGyeongUphill,fiveGyeongThird,fortySevenVolumes,fortySevenReturnWall,fiveGyeongApproach,frontage,districtFrontage,continuousFrontages,seventhLoopWalls,seventhBuildings,seventhInfill,seventhViewpoint,streetLife,nightFixtures,namsan:namsanStats,skyline:skylineStats,paving,vertexCount:positions.length/3};
+  return {mesh,material,paths,hill,distanceFromPath,houseSites,fiveGyeongHero,fiveGyeongUphill,fiveGyeongThird,fortySevenVolumes,rightPhotoHouses,fortySevenReturnWall,fiveGyeongApproach,frontage,districtFrontage,continuousFrontages,seventhLoopWalls,seventhBuildings,seventhInfill,seventhViewpoint,streetLife,nightFixtures,namsan:namsanStats,skyline:skylineStats,paving,vertexCount:positions.length/3};
 }
