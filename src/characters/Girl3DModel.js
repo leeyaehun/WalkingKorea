@@ -184,6 +184,8 @@ function makeHead(body){
 export function createSeoulGirl3DModel(){
  const root=node(new THREE.Group(),'SeoulGirl3D'); // root is returned, not auto-added to a scene
  root.position.set(0,0,0);
+ // Match the export-ready GLB's exact ~1.83m natural scale.
+ root.scale.setScalar(.95);
  root.userData.isPlayableCharacter=true;
  root.userData.assetId=SEOUL_GIRL_3D_META.id;
  const body=node(root,'Body');

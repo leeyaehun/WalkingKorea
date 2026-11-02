@@ -20,9 +20,9 @@ body:before{content:"";position:absolute;inset:0;pointer-events:none;background:
 .pills{display:flex;gap:7px;flex-wrap:wrap;margin-top:21px}
 .pills span{background:#fffcf1bf;color:#976356;border:1px solid #ffffffbf;border-radius:50px;padding:6px 11px;font-size:11px;font-weight:800}
 .stage-label{position:absolute;right:4%;top:29%;color:#bb8e82;font-size:12px;letter-spacing:.08em;font-weight:700;z-index:1}
-.controls{position:absolute;z-index:3;bottom:clamp(18px,3vw,38px);left:50%;transform:translateX(-50%);width:min(850px,calc(100vw - 30px));background:#fffcf3df;backdrop-filter:blur(19px);border:1px solid #ffffffcf;border-radius:24px;padding:14px 18px;box-shadow:0 15px 50px #715b5036;display:grid;gap:11px}
+.controls{position:absolute;z-index:3;bottom:clamp(18px,3vw,38px);left:50%;transform:translateX(-50%);width:min(850px,calc(100vw - 30px));background:#fffcf3df;backdrop-filter:blur(19px);border:1px solid #ffffffcf;border-radius:24px;padding:10px 14px;box-shadow:0 15px 50px #715b5036;display:grid;gap:7px}
 .row{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap}
-.row button{cursor:pointer;border:1px solid #e3d6c7;background:#fffaf1;color:#715d53;border-radius:13px;padding:10px 15px;font-size:12px;font-weight:850;min-width:69px}
+.row button{cursor:pointer;border:1px solid #e3d6c7;background:#fffaf1;color:#715d53;border-radius:13px;padding:8px 12px;font-size:12px;font-weight:850;min-width:69px}
 .row button.active{background:#b66859;color:#fff;border-color:#b66859}
 .row button:hover:not(:disabled){filter:brightness(.96)}
 .row button:focus-visible,.header a:focus-visible{outline:3px solid #a95849;outline-offset:2px}
@@ -33,8 +33,8 @@ body:before{content:"";position:absolute;inset:0;pointer-events:none;background:
 @media(max-width:720px){
  .header{top:15px}.copy{top:76px;left:20px;max-width:205px}
  .copy h1{font-size:30px}.copy p{font-size:12px}.pills{display:none}
- .stage-label{display:none}.controls{padding:12px 10px;border-radius:17px;gap:7px;bottom:12px}
- .row{gap:5px}.row button{font-size:11px;padding:8px 10px;min-width:57px}
+ .stage-label{display:none}.controls{padding:12px 10px;border-radius:17px;gap:7px;bottom:10px}
+ .row{gap:5px}.row button{font-size:11px;padding:7px 9px;min-width:55px}
  .row button.export{min-width:155px}.hint{font-size:10px}
 }
 </style>
