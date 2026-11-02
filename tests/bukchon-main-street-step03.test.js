@@ -40,9 +40,9 @@ test('stone+brick+hanok tile wall spans fill all external frontage gaps on both 
   assert.equal(typeof buildContinuousFrontages,'function');
   assert.equal(FRONTAGE_HALF_SPAN,3.58);
   assert.ok(f.wallSegments>=28,'main frontage stays enclosed apart from 7-gyeong entrance');
-  assert.ok(f.coveredMeters+w.fiveGyeongApproach.length+5.2>27&&f.coveredMeters+w.fiveGyeongApproach.length+5.2<38);
-  assert.ok(f.coveredMeters+w.fiveGyeongApproach.length+f.existingConnectorMeters+5.2>48);
-  assert.ok(f.bySide.west+w.fiveGyeongApproach.length+5.2>15&&f.bySide.east>10);
+  assert.ok(f.coveredMeters+w.fiveGyeongApproach.length+w.fortySevenReturnWall.length+5.2>27&&f.coveredMeters+w.fiveGyeongApproach.length+w.fortySevenReturnWall.length+5.2<38);
+  assert.ok(f.coveredMeters+w.fiveGyeongApproach.length+w.fortySevenReturnWall.length+f.existingConnectorMeters+5.2>48);
+  assert.ok(f.bySide.west+w.fiveGyeongApproach.length+w.fortySevenReturnWall.length+5.2>15&&f.bySide.east>10);
   assert.ok(f.roadClearance>.55);
   assert.ok(f.runs.length>=10);
   assert.ok(f.runs.some(r=>r.side===-1&&r.fromZ<-19&&r.toZ>-19),
