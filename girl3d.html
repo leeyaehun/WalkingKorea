@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#f2e5d9">
+<meta name="description" content="서울 산책자의 실제 3D 모델을 360° 회전하고, 걷기 동작을 확인한 뒤 GLB로 저장하세요.">
+<title>Seoul Girl 3D · 캐릭터 에셋 스튜디오</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;font-family:system-ui,-apple-system,'Apple SD Gothic Neo',sans-serif;color:#49382f}
+body{background:radial-gradient(ellipse at 65% 35%,#fff6e9 0%,#f0d8c5 54%,#c9a6a2 100%)}
+body:before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(120deg,#ffffff55,transparent 35%,#a8829c33);z-index:0}
+#girl3d-canvas{display:block;width:100%;height:100%;touch-action:none;outline:none;position:absolute;inset:0}
+.header{position:absolute;z-index:2;top:23px;left:clamp(16px,3vw,44px);right:clamp(16px,3vw,44px);display:flex;align-items:center;justify-content:space-between;gap:15px;pointer-events:none}
+.header>a{pointer-events:auto;border-radius:999px;background:#fffaf1c9;padding:13px 17px;font-size:13px;text-decoration:none;color:#503e36;box-shadow:0 5px 25px #654c4230;font-weight:800}
+.brand{font-size:11px;font-weight:900;letter-spacing:.20em;color:#9b5f58}
+.copy{position:absolute;z-index:1;top:clamp(86px,13vh,145px);left:clamp(18px,5vw,78px);max-width:310px;pointer-events:none}
+.copy h1{font-size:clamp(30px,4vw,57px);letter-spacing:-.075em;line-height:1.10;margin:10px 0 15px}
+.copy h1 em{color:#c96b5a;font-style:normal}
+.copy p{color:#876a5b;line-height:1.75;font-size:14px;max-width:280px}
+.pills{display:flex;gap:7px;flex-wrap:wrap;margin-top:21px}
+.pills span{background:#fffcf1bf;color:#976356;border:1px solid #ffffffbf;border-radius:50px;padding:6px 11px;font-size:11px;font-weight:800}
+.stage-label{position:absolute;right:4%;top:29%;color:#bb8e82;font-size:12px;letter-spacing:.08em;font-weight:700;z-index:1}
+.controls{position:absolute;z-index:3;bottom:clamp(18px,3vw,38px);left:50%;transform:translateX(-50%);width:min(850px,calc(100vw - 30px));background:#fffcf3df;backdrop-filter:blur(19px);border:1px solid #ffffffcf;border-radius:24px;padding:14px 18px;box-shadow:0 15px 50px #715b5036;display:grid;gap:11px}
+.row{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap}
+.row button{cursor:pointer;border:1px solid #e3d6c7;background:#fffaf1;color:#715d53;border-radius:13px;padding:10px 15px;font-size:12px;font-weight:850;min-width:69px}
+.row button.active{background:#b66859;color:#fff;border-color:#b66859}
+.row button:hover:not(:disabled){filter:brightness(.96)}
+.row button:focus-visible,.header a:focus-visible{outline:3px solid #a95849;outline-offset:2px}
+.row button.export{background:#3d5148;color:white;border-color:#3d5148;font-size:13px;min-width:180px}
+.row button:disabled{opacity:.48;cursor:wait}
+.readout{font-size:11px;color:#856e5e;text-align:center;line-height:1.5}
+.hint{font-size:11px;color:#9e8472;text-align:center}
+@media(max-width:720px){
+ .header{top:15px}.copy{top:76px;left:20px;max-width:205px}
+ .copy h1{font-size:30px}.copy p{font-size:12px}.pills{display:none}
+ .stage-label{display:none}.controls{padding:12px 10px;border-radius:17px;gap:7px;bottom:12px}
+ .row{gap:5px}.row button{font-size:11px;padding:8px 10px;min-width:57px}
+ .row button.export{min-width:155px}.hint{font-size:10px}
+}
+</style>
+</head>
+<body>
+<canvas id="girl3d-canvas" aria-label="실제 3D 여성 캐릭터. 마우스나 손가락으로 360도 회전해 보세요."></canvas>
+<header class="header"><div class="brand">WALKING KOREA / 3D CHARACTER STUDIO</div><a href="/">← 북촌 골목</a></header>
+<section class="copy"><div class="brand">SEOUL WALKER · ORIGINAL MODEL V1</div>
+<h1>서울 산책자<br><em>이제 진짜 3D로.</em></h1>
+<p>갈색 단발, 작은 꽃핀, 코랄색 재킷, 크로스백까지. 입체 모델로 다시 만들었어요.</p>
+<div class="pills"><span>실제 3D 모델</span><span>관절 애니메이션</span><span>360° 회전</span></div>
+</section>
+<div class="stage-label">DRAG TO ROTATE ↔ · SCROLL TO ZOOM</div>
+<section class="controls" aria-label="3D 캐릭터 조작">
+ <div class="row" aria-label="동작">
+  <button data-mode="idle" type="button" aria-pressed="false">서 있기</button>
+  <button data-mode="walk" type="button" aria-pressed="true" class="active">걷기</button>
+  <span id="motion-status" class="readout" aria-live="polite">걷기</span>
+ </div>
+ <div class="row" aria-label="모델 시점">
+  <button type="button" data-angle="0">정면</button>
+  <button type="button" data-angle="1.5707963267948966">오른쪽</button>
+  <button type="button" data-angle="3.141592653589793">뒷모습</button>
+  <button type="button" data-angle="-1.5707963267948966">왼쪽</button>
+  <button type="button" id="model-reset">시점 초기화</button>
+ </div>
+ <div class="row">
+  <button class="export" type="button" id="export-glb">3D 에셋 GLB 받기</button>
+ </div>
+ <div class="readout" id="export-status" role="status" aria-live="polite">GLB 내보내기에는 Idle · Walk 애니메이션 두 개가 포함됩니다.</div>
+ <div class="hint">마우스로 드래그하거나 화면을 밀어서 회전 · 스크롤로 확대 / 축소 · 기존 2D 캐릭터는 유지</div>
+</section>
+<script type="module" src="/src/characters/Girl3DViewer.js"></script>
+</body></html>

@@ -7,7 +7,8 @@ export default defineConfig({
       input: {
         main: resolve(import.meta.dirname, 'index.html'),
         girl: resolve(import.meta.dirname, 'girl.html'),
-        sprite: resolve(import.meta.dirname, 'sprite.html')
+        sprite: resolve(import.meta.dirname, 'sprite.html'),
+        girl3d: resolve(import.meta.dirname, 'girl3d.html')
       }
     }
   }
