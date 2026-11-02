@@ -89,7 +89,7 @@ test('exactly one original west-side house is replaced without creating another 
   const w=world(),hero=w.fiveGyeongHero;
   assert.ok(hero,'world must mount the photo-referenced 5-gyeong house');
   assert.equal(w.houseSites.length,20,'house count changes the 5/6 street');
-  assert.equal(w.houseSites.filter(s=>s.referenceAsset).length,3,
+  assert.equal(w.houseSites.filter(s=>s.referenceAsset).length,5,
     'three houses on the original west side now have unique photo assets');
   assert.equal(w.houseSites.filter(s=>s.scenic).length,8);
   assert.equal(w.houseSites.filter(s=>s.district).length,11);

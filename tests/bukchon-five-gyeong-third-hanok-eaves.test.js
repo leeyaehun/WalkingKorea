@@ -74,7 +74,7 @@ test('preserve initial 5-gyeong #8 and #10, replace only third uphill #12',()=>{
    FIVE_GYEONG_UPHILL_HANOK.id,
    FIVE_GYEONG_THIRD_HANOK.id
  ]);
- assert.equal(w.houseSites.filter(h=>h.referenceAsset).length,3);
+ assert.equal(w.houseSites.filter(h=>h.referenceAsset).length,5);
  assert.equal(w.houseSites.filter(h=>h.scenic).length,8);
  assert.equal(w.houseSites.filter(h=>h.district).length,11);
  assert.ok(isFiveGyeongThirdSite(houses[2].site));
@@ -148,7 +148,7 @@ test('real photographed facades are built on street, and next-house photo URL wo
  assert.match(main,/state\.x=-1\.15;state\.z=33\.1;state\.yaw=0/);
  assert.match(main,/get\('view'\)==='hanok5upper'/);
  assert.match(main,/third5Gyeong:/);
- assert.match(main,/houseSites,fiveGyeongThird,seventhBuildings/);
+ assert.match(main,/houseSites,fiveGyeongThird,fortySevenVolumes,seventhBuildings/);
  const w=world(),z=w.fiveGyeongThird.site.laneZ;
  assert.ok(!w.continuousFrontages.runs.some(r=>
    r.side===-1&&r.fromZ<z&&r.toZ>z),

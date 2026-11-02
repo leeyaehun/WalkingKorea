@@ -4,6 +4,8 @@ import {isFiveGyeongUphillSite,buildFiveGyeongUphillHanok}
   from './BukchonFiveGyeongUphillHanok.js';
 import {isFiveGyeongThirdSite,buildFiveGyeongThirdHanok}
   from './BukchonFiveGyeongThirdHanok.js';
+import {FORTY_SEVEN_PLOTS,fortySevenPartAt,buildFortySevenVolume}
+  from './BukchonFortySevenHanok.js';
 import {FIVE_GYEONG_APPROACH_WALL,buildFiveGyeongApproach} from './BukchonFiveGyeongApproach.js';
 import { buildPavedAlleys } from './BukchonPaving.js';
 import {mainLaneWidth,mainLaneTerrainHeight,smoothMainLane,scenicHouseSites,sampleMainLaneAtZ} from './BukchonStreetLayout.js';
@@ -236,6 +238,7 @@ const houseSites=[];
 let fiveGyeongHero=null; // Exactly one photo-referenced house on the lower 5-gyeong west frontage.
 let fiveGyeongUphill=null; // The next west-side house UPHILL, original slot #10.
 let fiveGyeongThird=null; // A different third house with red meander, original #12.
+const fortySevenVolumes=[]; // Adjacent original west slots #14 and #16, before the side loop.
 let fiveGyeongApproach=null;
 function housesOnShowcase(){
  // Eight level-sited homes create staggered, close-set roof silhouettes.
@@ -301,6 +304,9 @@ function housesAlong(path,pIndex){
      isFiveGyeongThirdSite({
        index:houseSites.length,routeIndex:pIndex,side,laneZ:b[1]
      });
+   const fortySevenPlot=fortySevenPartAt({
+     index:houseSites.length,routeIndex:pIndex,side,laneZ:b[1]
+   });
    let archetype='gate',assetDiagnostics=null;
    withFrame(x,z,angle,()=>{
      // Same original lot, grade, rotation, foundation and walkable width.
@@ -314,23 +320,33 @@ function housesAlong(path,pIndex){
        assetDiagnostics=buildFiveGyeongUphillHanok({box,face,sphere,cylinder});
        archetype=assetDiagnostics.kind;
      }else if(thirdHouse){
-       // Distinct #12 building with large red Korean meander panels,
-       // central timber gate and sculpted round carved giwa ends.
        assetDiagnostics=buildFiveGyeongThirdHanok({box,face,sphere,cylinder});
+       archetype=assetDiagnostics.kind;
+     }else if(fortySevenPlot){
+       // 47-inspired street frontage: TWO coherent low/upper hanok
+       // volumes on already existing sites, not two extra houses.
+       // Both have their physical photo facade facing the real road.
+       assetDiagnostics=buildFortySevenVolume({
+         box,face,sphere,cylinder,part:fortySevenPlot.part
+       });
        archetype=assetDiagnostics.kind;
      }else archetype=courtyard(houseType,detailVariant,'district');
    },{level:true});
    const site={index:houseSites.length,x,z,angle,archetype,detailVariant,
-     decorated:photoHouse||uphillHouse||thirdHouse||houseType===100||detailVariant>0,
+     decorated:photoHouse||uphillHouse||thirdHouse||!!fortySevenPlot||houseType===100||detailVariant>0,
      scenic:false,district:true,routeIndex:pIndex,side,
      laneZ:b[1],roadWidth:path.width,
-     ...((photoHouse||uphillHouse||thirdHouse)?{
-       assetId:assetDiagnostics.id,referenceAsset:true
+     ...((photoHouse||uphillHouse||thirdHouse||fortySevenPlot)?{
+       assetId:assetDiagnostics.id,referenceAsset:true,
+       ...(fortySevenPlot?{
+         compound:'bukchon-47-two-visible-volumes',compoundPart:fortySevenPlot.part
+       }:{})
      }:{})};
    houseSites.push(site);
    if(photoHouse)fiveGyeongHero={site,asset:assetDiagnostics};
    if(uphillHouse)fiveGyeongUphill={site,asset:assetDiagnostics};
    if(thirdHouse)fiveGyeongThird={site,asset:assetDiagnostics};
+   if(fortySevenPlot)fortySevenVolumes.push({site,asset:assetDiagnostics});
   }
  }
 }
@@ -399,6 +415,9 @@ function makeWorld(){
  if(!fiveGyeongHero)throw new Error('5-gyeong reference house missing its original lower-west lot');
  if(!fiveGyeongUphill)throw new Error('5-gyeong uphill photo-neighbor did not land at original site #10');
  if(!fiveGyeongThird)throw new Error('5-gyeong third red-rosette house not at site #12');
+ if(fortySevenVolumes.length!==FORTY_SEVEN_PLOTS.length||
+    fortySevenVolumes.some((v,i)=>v.site.index!==FORTY_SEVEN_PLOTS[i].index))
+   throw new Error('The two 47-style hanoks must use the exact original western #14/#16 sites');
  buildGapHanok();
  // The old short-gap connectors remain for small existing house joints.
  // The separate continuous pass fills the actual bare plots and creates
@@ -612,5 +631,5 @@ makeWorld();
   });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.frustumCulled = false;
-  return {mesh,material,paths,hill,distanceFromPath,houseSites,fiveGyeongHero,fiveGyeongUphill,fiveGyeongThird,fiveGyeongApproach,frontage,districtFrontage,continuousFrontages,seventhLoopWalls,seventhBuildings,seventhInfill,seventhViewpoint,streetLife,nightFixtures,namsan:namsanStats,skyline:skylineStats,paving,vertexCount:positions.length/3};
+  return {mesh,material,paths,hill,distanceFromPath,houseSites,fiveGyeongHero,fiveGyeongUphill,fiveGyeongThird,fortySevenVolumes,fiveGyeongApproach,frontage,districtFrontage,continuousFrontages,seventhLoopWalls,seventhBuildings,seventhInfill,seventhViewpoint,streetLife,nightFixtures,namsan:namsanStats,skyline:skylineStats,paving,vertexCount:positions.length/3};
 }
