@@ -71,9 +71,12 @@ export function buildRightHanokPhoto({box,face,sphere,cylinder,profile}){
    tileEndCaps:0,rafterEnds:0,woodPosts:0,
    barredWindows:0,serviceDetails:0,roofDrip:profile.roofDrip,
    roofTop:profile.roofTop,hasDeepEave:true,hasDoor:true,
-   roofLipZ:-4.68,wallZ:-4.12
+   roofLipZ:-4.37,wallZ:-3.81
  };
- const FRONT=-4.12,DRIP=-4.68,REAR=4.08;
+ // Earlier east eaves crossed the 39-cm multiplayer walking margin.
+ // Move the ENTIRE street facade 31cm behind the original apron while
+ // keeping the photographed 56cm overhang and original house site.
+ const FRONT=-3.81,DRIP=-4.37,REAR=4.08;
  const WOOD=profile.wood,woodDark='woodShade';
  const gateX=profile.gateX,gW=profile.gateW;
  const left=gateX-gW/2-.15,right=gateX+gW/2+.15;
@@ -258,24 +261,24 @@ export function buildRightHanokPhoto({box,face,sphere,cylinder,profile}){
  // Deep 56-cm sheltered rain-eave: every street-side house in the series
  // has a visible exposed timber undercarriage and white rounded ends.
  for(let x=-3.40;x<=3.41;x+=.47){
-   box(x,3.39,-4.15,.16,.15,.82,'woodShade');
-   box(x,3.27,-4.43,.13,.12,.38,WOOD);
-   sphere(x,3.22,-4.66,.056,.067,.063,'stoneLight',6,3);
+   box(x,3.39,-3.88,.16,.15,.82,'woodShade');
+   box(x,3.27,-4.15,.13,.12,.38,WOOD);
+   sphere(x,3.22,-4.37,.056,.067,.063,'stoneLight',6,3);
    stats.rafterEnds++;
  }
- box(0,3.29,-4.38,7.54,.13,.59,'woodShade');
- box(0,3.18,-4.56,7.53,.095,.22,'timber');
+ box(0,3.29,-4.10,7.54,.13,.59,'woodShade');
+ box(0,3.18,-4.28,7.53,.095,.22,'timber');
  // 2-sided gabled roof, dark overlapping giwa with restrained shade
  // variation, individually visible rows, ridge and end-cap segments.
  const roofY=(x,z)=>{
-   const span=z<0?4.68:4.08,t=clamp(Math.abs(z)/span,0,1);
+   const span=z<0?4.37:4.08,t=clamp(Math.abs(z)/span,0,1);
    return profile.roofTop-(z<0?
      profile.roofTop-profile.roofDrip:1.33)*t**1.24
      -.07*(Math.abs(x)/3.78)**2+.12*(Math.abs(x)/3.78)**4*t**4;
  };
  const roofPoint=(x,z,lift=0)=>[x,roofY(x,z)+lift,z];
  for(const s of [-1,1]){
-   const L=s<0?4.68:4.08;
+   const L=s<0?4.37:4.08;
    for(let row=0;row<8;row++){
      const z0=s*L*row/8,z1=s*L*(row+1)/8;
      for(let col=0;col<12;col++){

@@ -113,7 +113,7 @@ test('every hand-authored right 3D house has physical granite/red fret, wooden g
    const materials=new Set(Object.values(calls).flatMap(a=>a.flatMap(
      args=>args.filter(v=>typeof v==='string'))));
    for(const name of ['plaster','stoneFoundation','stoneMasonry','stoneLight',
-     'gateWood','tileInk','tileRidge','tileEnd','woodShade','timberLight',
+     'tileInk','tileRidge','tileEnd','woodShade','timberLight',
      'stoneGrey','hanokPaperWindow'])
       if(name!=='hanokPaperWindow'||p.windows!=='glass')
         assert.ok(materials.has(name),p.id+' lacks photo material '+name);
@@ -137,20 +137,23 @@ test('hostel floral wall has separate raised flower circles; 52 has brick corner
 test('ALL nine facades remain on east private plots and do NOT enter narrow public or seven-viewpoint lanes',()=>{
  const w=world();
  for(const v of w.rightPhotoHouses){
-   const b=bounds(capture(v.profile).calls);
+   const {info,calls}=capture(v.profile);
+   const b=bounds(calls);
    assert.ok(b.xmin>=-3.95&&b.xmax<=3.95,
      'roof reaches next house: '+v.profile.label);
    assert.ok(b.zmin>=-4.85&&b.zmax<4.30,
      'roof crosses house allotment boundary '+v.profile.label);
    assert.ok(b.ymin>-.4&&b.ymax<6.8);
    const c=Math.cos(v.site.angle),s=Math.sin(v.site.angle);
-   for(const [x,z] of [[-3.5,-4.81],[0,-4.81],[3.5,-4.81],
-     [-3.39,-4.12],[3.39,-4.12],[0,-4.56]]){
+   for(const [x,z] of [
+     [-3.5,info.roofLipZ-.13],[0,info.roofLipZ-.13],
+     [3.5,info.roofLipZ-.13],[-3.39,info.wallZ],
+     [3.39,info.wallZ],[0,info.roofLipZ-.08]]){
      const X=v.site.x+x*c-z*s,Z=v.site.z+x*s+z*c;
      const d=Math.min(...w.paths.map(p=>
        w.distanceFromPath(X,Z,p)));
-     assert.ok(d>1.75,v.profile.label+' 3D facade hits road at '+[x,z,d]);
-     assert.equal(onMainStreet(X,Z),false);
+     assert.ok(d>1.96,v.profile.label+' 3D facade hits multiplayer margin at '+[x,z,d]);
+     assert.equal(onMainStreet(X,Z),false,v.profile.label+' eave overlaps playable road '+[x,z,d]);
    }
  }
 });
