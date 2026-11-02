@@ -42,7 +42,7 @@ const mat=new Map(Object.entries(MATERIAL_COLORS).map(([name,hex])=>[
   flatShading:false
  })
 ]));
-const sphereGeometry=new THREE.SphereGeometry(1,20,14);
+const sphereGeometry=new THREE.SphereGeometry(1,16,12);
 const boxGeometry=new THREE.BoxGeometry(1,1,1);
 const cylinderGeometry=new THREE.CylinderGeometry(1,1,1,14,1);
 const coneGeometry=new THREE.CylinderGeometry(1,1,1,16,1);
